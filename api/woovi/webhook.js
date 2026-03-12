@@ -22,13 +22,15 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const event = body.event || body.evento;
 
-  console.log(`>>> WEBHOOK CONTACT: ${req.method} | Event: ${event} | Body:`, JSON.stringify(body));
+  console.log(`>>> WEBHOOK [${req.method}]: Event=${event} | Body:`, JSON.stringify(body));
 
   // 3. Resposta para o Teste da Woovi (Essencial para validação)
-  // Alguns testes da Woovi podem vir com body vazio ou eventos de teste variados
-  if (req.method === 'POST' && (event === 'teste_webhook' || !event || Object.keys(body).length === 0)) {
-    console.log('>>> Responding to validation test');
-    return res.status(200).json({ status: 'ok', message: 'Endpoint Validado' });
+  // Formato exato que funciona no Bus-Manager
+  if (req.method === 'POST') {
+    if (event === 'teste_webhook' || !event || Object.keys(body).length === 0) {
+       console.log('✅ Connectivity Test / Validation Received');
+       return res.status(200).json({ received: true, message: 'Test success' });
+    }
   }
 
   // 4. Lógica de Confirmação de Pagamento
