@@ -76,6 +76,10 @@ const LoginPage = ({ onLogin }) => {
 
     const handleAppleLogin = async () => {
         setError('');
+        if (!window.AppleID) {
+            setError('Serviço da Apple indisponível no momento. Recarregue a página.');
+            return;
+        }
         try {
             const response = await window.AppleID.auth.signIn();
             const idToken = response.authorization.id_token;
