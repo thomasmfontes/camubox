@@ -225,10 +225,9 @@ const LoginPage = ({ onLogin }) => {
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={() => setError('Login com Google falhou. Tente novamente.')}
-                                    text="signin"
+                                    text="signin_with"
                                     shape="rectangular"
                                     logo_alignment="left"
-                                    useOneTap={false}
                                 />
                             </div>
                         </>

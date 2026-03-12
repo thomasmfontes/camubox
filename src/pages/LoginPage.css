@@ -147,15 +147,15 @@
 .google-login-wrapper {
     display: flex;
     justify-content: center;
-    margin-bottom: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
     width: 100%;
 }
 
-.google-login-wrapper > div,
-.google-login-wrapper > div > div,
-.google-login-wrapper iframe {
-    width: 100% !important;
-    max-width: 100% !important;
+/* Permitir que o botão tenha seu tamanho natural e seja centralizado */
+.google-login-wrapper > div {
+    display: flex !important;
+    justify-content: center !important;
 }
 
 .login-hint {
