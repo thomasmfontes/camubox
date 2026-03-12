@@ -29,10 +29,12 @@ const validateSignature = (payload, signature, secret) => {
 export default async function handler(req, res) {
   const rawBody = await getRawBody(req);
   let body = {};
-  try {
-    body = JSON.parse(rawBody);
-  } catch (e) {
-    console.error('Falha ao parsear JSON:', e);
+  if (rawBody) {
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error('Falha ao parsear JSON:', e);
+    }
   }
 
   // Log para depuração no painel da Vercel
