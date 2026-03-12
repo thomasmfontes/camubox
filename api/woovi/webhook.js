@@ -1,29 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
-export const config = {
-  api: {
-    bodyParser: true, // Voltando para true para simplificar a validação inicial
-  },
-};
-
 export default async function handler(req, res) {
+  // 1. Headers de CORS para permitir que a Woovi acesse
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-openpix-signature, x-webhook-signature');
+
+  // 2. Responde OK imediatamente para requisições de teste (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   console.log(`>>> WEBHOOK CONTACT: ${req.method} | Body:`, JSON.stringify(req.body));
   
-  // Resposta imediata de sucesso para QUALQUER coisa (GET, POST, etc)
-  // Isso garante que a Woovi valide o endpoint independente do teste dela
+  // Resposta para o navegador (GET)
   if (req.method === 'GET') {
-     return res.status(200).send('Webhook Camubox está Ativo!');
+     return res.status(200).send('Webhook Camubox está Ativo e Blindado!');
   }
 
   const body = req.body || {};
   const event = body.event || body.evento;
 
-  // 1. Resposta para o Teste da Woovi
+  // 3. Resposta para o Teste da Woovi (Essencial para validação)
   if (event === 'teste_webhook' || !event) {
     return res.status(200).json({ status: 'ok', message: 'Endpoint Validado' });
   }
 
-  // 2. Lógica Real (Só processa se for confirmação de carga)
+  // 4. Lógica de Confirmação de Pagamento
   if (event === 'OPENPIX:CHARGE_COMPLETED' || event === 'CHARGE_COMPLETED') {
     try {
       const charge = body.charge || body.cobranca;
@@ -47,6 +51,5 @@ export default async function handler(req, res) {
     }
   }
 
-  // Sempre retorna 200
   return res.status(200).json({ received: true });
 }
