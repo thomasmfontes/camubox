@@ -393,15 +393,49 @@ export const dbService = {
  * Service to handle authentication using Supabase Auth.
  */
 export const authService = {
+    loginWithGoogleToken: async (token) => {
+        if (isMockMode) {
+            console.log('Mock: Login with Google Token');
+            return { data: { user: { id: 'mock', email: 'mock@example.com' } }, error: null };
+        }
+
+        try {
+            // Em desenvolvimento, o Vite não serve a pasta /api.
+            // Redirecionamos para o domínio de produção para o teste funcionar.
+            const baseUrl = import.meta.env.DEV ? 'https://camubox.com' : '';
+            
+            const response = await fetch(`${baseUrl}/api/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: token })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return { data: null, error: result.error || 'Erro na autenticação customizada' };
+            }
+
+            // Simulamos o formato do Supabase para manter compatibilidade
+            return { data: { user: result.user }, error: null };
+        } catch (err) {
+            return { data: null, error: err.message };
+        }
+    },
     loginWithGoogle: async () => {
         if (isMockMode) {
             console.log('Mock: Login with Google');
             return { data: null, error: 'Sign in not available in mock mode' };
         }
+        
+        const redirectTo = import.meta.env.DEV 
+            ? window.location.origin 
+            : 'https://camubox.com';
+
         return await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin
+                redirectTo: redirectTo
             }
         });
     },
@@ -410,10 +444,15 @@ export const authService = {
             console.log('Mock: Login with Apple');
             return { data: null, error: 'Sign in not available in mock mode' };
         }
+
+        const redirectTo = import.meta.env.DEV 
+            ? window.location.origin 
+            : 'https://camubox.com';
+
         return await supabase.auth.signInWithOAuth({
             provider: 'apple',
             options: {
-                redirectTo: window.location.origin
+                redirectTo: redirectTo
             }
         });
     },

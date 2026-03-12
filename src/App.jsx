@@ -13,6 +13,7 @@ import AdminContracts from './pages/AdminContracts';
 import UserMyLockers from './pages/UserMyLockers';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import AuthGoogleCallback from './pages/AuthGoogleCallback';
 import { supabase, dbService, authService } from './services/supabaseClient';
 
 // User Mock Pages
@@ -44,10 +45,11 @@ function App() {
     checkSession();
 
     // 2. Auth State Change Listener
-    const { data: { subscription } } = supabase?.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         await syncUserSession(session.user);
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        // Apenas limpamos se o evento for explicitamente logout
         setUser(null);
         localStorage.removeItem('camubox_user');
       }
@@ -95,6 +97,7 @@ function App() {
         <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos-de-uso" element={<TermsOfService />} />
+        <Route path="/auth/google" element={<AuthGoogleCallback />} />
 
         {/* Protected Dashboard Routes */}
         <Route

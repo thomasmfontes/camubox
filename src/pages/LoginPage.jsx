@@ -27,6 +27,37 @@ const LoginPage = ({ onLogin }) => {
     const [isOAuthLoading, setIsOAuthLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const handleGoogleLogin = () => {
+        setIsOAuthLoading(true);
+        setError('');
+
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        const redirectUri = `${window.location.origin}/auth/google`;
+        const scope = 'openid profile email';
+        const responseType = 'id_token';
+        const nonce = Math.random().toString(36).substring(2); // Idealmente usar algo mais seguro, mas para MVP serve
+
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=${responseType}&nonce=${nonce}`;
+
+        window.location.href = authUrl;
+    };
+
+    const handleAppleLogin = async () => {
+        setIsOAuthLoading(true);
+        setError('');
+        try {
+            // Apple side still usually requires a redirect or a more complex popup setup
+            // For now, let's keep the existing logic or warn about Apple complexity if needed.
+            // But user wants local, so we trigger the redirect here if Apple SDK isn't easy.
+            const { error: authError } = await authService.loginWithApple();
+            if (authError) throw authError;
+        } catch (err) {
+            setError(`Erro ao iniciar login com Apple.`);
+            console.error('[APPLE ERROR]', err);
+            setIsOAuthLoading(false);
+        }
+    };
+
     const handleRealLogin = async (e) => {
         e.preventDefault();
         if (!loginInput.trim()) return;
@@ -175,7 +206,7 @@ const LoginPage = ({ onLogin }) => {
                     <div className="auth-buttons">
                         <button 
                             className="auth-btn google" 
-                            onClick={() => handleOAuthLogin('google')}
+                            onClick={handleGoogleLogin}
                             disabled={isLoading || isOAuthLoading}
                         >
                             {isOAuthLoading ? <div className="loader-mini"></div> : <GoogleIcon />}
@@ -184,7 +215,7 @@ const LoginPage = ({ onLogin }) => {
 
                         <button 
                             className="auth-btn apple" 
-                            onClick={() => handleOAuthLogin('apple')}
+                            onClick={handleAppleLogin}
                             disabled={isLoading || isOAuthLoading}
                         >
                             {isOAuthLoading ? <div className="loader-mini"></div> : <AppleIcon />}
