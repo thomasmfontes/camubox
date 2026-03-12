@@ -8,8 +8,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
-        const clientSecret = process.env.VITE_GOOGLE_CLIENT_SECRET;
+        const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.VITE_GOOGLE_CLIENT_SECRET;
         const redirectUri = process.env.VERCEL_URL 
             ? `https://camubox.com/api/auth/google-callback`
             : `http://localhost:5173/api/auth/google-callback`;

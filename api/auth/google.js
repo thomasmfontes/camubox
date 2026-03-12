@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
+    const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
     const redirectUri = process.env.NODE_ENV === 'production' 
         ? 'https://camubox.com/api/auth/google-callback'
         : 'http://localhost:5173/api/auth/google-callback'; // Locally we still need a way to hit the API, but typically Vercel dev handles this. 
