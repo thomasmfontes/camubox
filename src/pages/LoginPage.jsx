@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Shield, Lock, Users, UserPlus } from 'lucide-react';
+import { FaApple } from 'react-icons/fa';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { dbService } from '../services/supabaseClient';
+import { dbService, authService } from '../services/supabaseClient';
 import './LoginPage.css';
 
 const LoginPage = ({ onLogin }) => {
@@ -28,26 +29,6 @@ const LoginPage = ({ onLogin }) => {
         if (digits.length <= 2) return digits;
         if (digits.length <= 7) return `(${digits.slice(0,2)}) ${digits.slice(2)}`;
         return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
-    };
-
-    // Passo 1: Google autentica
-    const handleGoogleSuccess = async (credentialResponse) => {
-        setError('');
-        try {
-            const decoded = jwtDecode(credentialResponse.credential);
-            const email = decoded.email;
-            const name = decoded.name;
-            const { data: existingUser } = await dbService.users.getByEmail(email);
-            if (existingUser) {
-                onLogin({ id_usuario: existingUser.id_usuario, name: existingUser.nm_usuario, email: existingUser.dc_email, isAdmin: false });
-                navigate('/dashboard/lockers');
-            } else {
-                setGoogleStep({ email, name });
-            }
-        } catch (err) {
-            console.error('[GOOGLE LOGIN ERROR]', err);
-            setError('Erro ao processar login com Google. Tente novamente.');
-        }
     };
 
     // Passo 2: Verifica celular
@@ -80,6 +61,73 @@ const LoginPage = ({ onLogin }) => {
             setIsGoogleLoading(false);
         }
     };
+
+    // --- MANUAL APPLE LOGIN ---
+    useEffect(() => {
+        if (window.AppleID) {
+            window.AppleID.auth.init({
+                clientId: import.meta.env.VITE_APPLE_CLIENT_ID || 'com.chocolapp',
+                scope: 'name email',
+                redirectURI: window.location.origin + '/login', // Apple exige redirect ou popup. Usaremos Popup se possível.
+                usePopup: true
+            });
+        }
+    }, []);
+
+    const handleAppleLogin = async () => {
+        setError('');
+        try {
+            const response = await window.AppleID.auth.signIn();
+            const idToken = response.authorization.id_token;
+            const userData = response.user; // Só vem no primeiro login
+
+            setIsGoogleLoading(true);
+            const res = await fetch('/api/auth/apple', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token: idToken, user_info: userData })
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Erro na API da Apple');
+
+            const { email, name } = result.user;
+            const { data: existingUser } = await dbService.users.getByEmail(email);
+
+            if (existingUser) {
+                onLogin({ id_usuario: existingUser.id_usuario, name: existingUser.nm_usuario, email: existingUser.dc_email, isAdmin: false });
+                navigate('/dashboard/lockers');
+            } else {
+                setGoogleStep({ email, name });
+            }
+        } catch (err) {
+            console.error('[APPLE LOGIN ERROR]', err);
+            setError('Falha ao autenticar com Apple ID.');
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+
+    // Passo 1: Google autentica
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
+        try {
+            const decoded = jwtDecode(credentialResponse.credential);
+            const email = decoded.email;
+            const name = decoded.name;
+            const { data: existingUser } = await dbService.users.getByEmail(email);
+            if (existingUser) {
+                onLogin({ id_usuario: existingUser.id_usuario, name: existingUser.nm_usuario, email: existingUser.dc_email, isAdmin: false });
+                navigate('/dashboard/lockers');
+            } else {
+                setGoogleStep({ email, name });
+            }
+        } catch (err) {
+            console.error('[GOOGLE LOGIN ERROR]', err);
+            setError('Erro ao processar login com Google. Tente novamente.');
+        }
+    };
+
 
     // Passo 3: Cadastro novo usuário
     const handleRegisterSubmit = async (e) => {
@@ -221,14 +269,21 @@ const LoginPage = ({ onLogin }) => {
 
                             {error && <p className="login-error-msg">{error}</p>}
 
-                            <div className="google-login-wrapper">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={() => setError('Login com Google falhou. Tente novamente.')}
-                                    text="signin_with"
-                                    shape="rectangular"
-                                    logo_alignment="left"
-                                />
+                            <div className="auth-buttons-group">
+                                <div className="google-login-wrapper">
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={() => setError('Login com Google falhou. Tente novamente.')}
+                                        text="signin_with"
+                                        shape="rectangular"
+                                        logo_alignment="left"
+                                    />
+                                </div>
+
+                                <button className="apple-login-btn" onClick={handleAppleLogin}>
+                                    <FaApple size={20} />
+                                    <span>Entrar com Apple</span>
+                                </button>
                             </div>
                         </>
                     )}
