@@ -42,18 +42,93 @@ const PixPayment = ({ user }) => {
         price: `R$ ${price},00`
     };
 
-    // MOCK: Generate static Pix code
+    const [qrCodeData, setQrCodeData] = useState(null);
+
+    // Gerar cobrança real na Woovi
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setStatus('pending');
-        }, 1500);
-        return () => clearTimeout(timer);
+        const generatePix = async () => {
+            try {
+                // 1. Criar o registro da locação no Supabase primeiro para ter o ID
+                // Usaremos um status temporário se existir, ou o status 1 (ativa) 
+                // para simplificar o mock atual do usuário, mas o ideal seria um status 'pendente'
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (!currentUser) throw new Error('Usuário não logado');
+
+                let correlationID;
+
+                if (isExchange) {
+                    // Para troca, usaremos o ID da locação existente concatenado com algo único
+                    correlationID = `${exchangeInfo.rentalId}`;
+                } else {
+                    const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
+                        id_armario: selectedLocker.dbId,
+                        id_usuario: currentUser.id,
+                        nm_texto_contrato: 'Contrato Aceito Digitalmente',
+                        id_tipo: isSemestral ? 1 : 2,
+                        id_status: 3, // Assumindo 3 como Pendente (visto que 1=Ativa, 2=Encerrada)
+                        dt_inicio: new Date().toISOString(),
+                        dt_termino: isSemestral 
+                           ? new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString()
+                           : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
+                    }).select().single();
+
+                    if (rentalError) throw rentalError;
+                    correlationID = newRental.id_locacao.toString();
+                }
+
+                // 2. Chamar nossa API de backend para criar a cobrança na Woovi
+                const response = await fetch('/api/woovi/charge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        correlationID,
+                        value: price * 100, // Woovi usa centavos
+                        comment: isExchange ? `Troca Armário ${selectedLocker.id}` : `Locação Armário ${selectedLocker.id}`,
+                        customer: {
+                            name: currentUser.user_metadata?.full_name || currentUser.email,
+                            email: currentUser.email,
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Erro ao gerar cobrança');
+
+                setQrCodeData(data.charge);
+                setStatus('pending');
+
+                // 3. Opcional: Escutar mudanças no Supabase via Realtime para confirmar automático
+                const subscription = supabase
+                    .channel('status-update')
+                    .on('postgres_changes', { 
+                        event: 'UPDATE', 
+                        schema: 'public', 
+                        table: 't_locacao',
+                        filter: `id_locacao=eq.${correlationID}`
+                    }, (payload) => {
+                        if (payload.new.id_status === 1) {
+                            setStatus('confirmed');
+                            subscription.unsubscribe();
+                        }
+                    })
+                    .subscribe();
+
+            } catch (err) {
+                console.error('Erro Woovi:', err);
+                setErrorMsg('Erro ao gerar PIX. Verifique sua conexão ou tente mais tarde.');
+                setStatus('error');
+            }
+        };
+
+        generatePix();
     }, []);
 
     const handleCopy = () => {
-        navigator.clipboard.writeText("00020101021226840014br.gov.bcb.pix...mock...code");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        if (qrCodeData?.brCode) {
+            navigator.clipboard.writeText(qrCodeData.brCode);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
     };
 
     const handleMockPayment = async () => {
@@ -125,8 +200,10 @@ const PixPayment = ({ user }) => {
                         <div className={`qr-frame ${status === 'confirmed' ? 'paid' : ''}`}>
                             {status === 'generating' ? (
                                 <div className="qr-skeleton animate-pulse" style={{width: 180, height: 180, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12}}></div>
+                            ) : status === 'error' ? (
+                                <XCircle size={100} color="var(--red-500)" />
                             ) : (
-                                <QrCode size={180} strokeWidth={1.5} color="var(--primary-color)" />
+                                <img src={qrCodeData?.qrCodeImage} alt="QR Code Pix" style={{width: 180, height: 180, borderRadius: 8}} />
                             )}
                             
                             {status === 'confirmed' && (
@@ -142,8 +219,8 @@ const PixPayment = ({ user }) => {
                     <div className="pix-copy-area">
                         <label>Código Copia e Cola</label>
                         <div className="copy-input-group">
-                            <input type="text" value={status === 'generating' ? 'Gerando código...' : '00020101021226840014br.gov.bcb.pix...mock...code'} readOnly />
-                            <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating'}>
+                            <input type="text" value={status === 'generating' ? 'Gerando código...' : (qrCodeData?.brCode || 'Erro ao carregar')} readOnly />
+                            <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating' || !qrCodeData?.brCode}>
                                 {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                                 <span>{copied ? 'Copiado' : 'Copiar'}</span>
                             </button>
@@ -176,10 +253,10 @@ const PixPayment = ({ user }) => {
                             <>
                                 <button
                                     className={`verify-btn-premium ${status === 'verifying' ? 'loading' : ''}`}
-                                    onClick={handleMockPayment}
+                                    onClick={() => setStatus('verifying')}
                                     disabled={status === 'verifying' || status === 'generating'}
                                 >
-                                    {status === 'verifying' ? 'Gravando no Banco...' : 'Simular Pagamento (MOCK)'}
+                                    {status === 'verifying' ? 'Verificando...' : 'Já paguei'}
                                 </button>
                                 <button className="cancel-order-btn" onClick={() => navigate('/dashboard/lockers')}>
                                     Cancelar locação
