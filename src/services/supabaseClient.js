@@ -166,6 +166,29 @@ export const dbService = {
                 .select('*')
                 .eq('id_usuario', id)
                 .single();
+        },
+        create: async (userData) => {
+            if (isMockMode) return { data: { id_usuario: 'mock-id', ...userData }, error: null };
+            return await supabase
+                .from('t_usuario')
+                .insert([userData])
+                .select()
+                .single();
+        },
+        getByPhone: async (phone) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_usuario')
+                .select('*')
+                .eq('nr_celular', phone)
+                .single();
+        },
+        updateEmail: async (id, email) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_usuario')
+                .update({ dc_email: email })
+                .eq('id_usuario', id);
         }
     },
 

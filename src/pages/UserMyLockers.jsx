@@ -239,17 +239,20 @@ const UserMyLockers = ({ user }) => {
                     ) : (
                         <motion.div
                             className="empty-lockers-premium"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
                         >
                             <div className="empty-illustration">
-                                <div className="locker-icon-standard" style={{ width: '80px', height: '80px', opacity: 0.2 }} />
-                                <div className="pulse-ring" />
+                                <div className="empty-icon-ring">
+                                    <span className="empty-emoji">🔒</span>
+                                </div>
                             </div>
-                            <h2>Nenhum armário encontrado</h2>
-                            <p>Sua lista de locações está vazia. Comece alugando um armário hoje!</p>
+                            <h2>Nenhum armário ainda</h2>
+                            <p>Você ainda não possui nenhuma locação ativa.<br />Escolha seu armário agora e garanta seu espaço!</p>
                             <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
                                 Ver Armários Disponíveis
+                                <ChevronRight size={18} />
                             </button>
                         </motion.div>
                     )}
