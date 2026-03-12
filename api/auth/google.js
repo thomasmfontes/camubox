@@ -1,21 +1,25 @@
 export default async function handler(req, res) {
     const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.NODE_ENV === 'production' 
-        ? 'https://camubox.com/api/auth/google-callback'
-        : 'http://localhost:5173/api/auth/google-callback'; // Locally we still need a way to hit the API, but typically Vercel dev handles this. 
-                                                           // For now, let's use the production-like URL or local equivalent if using vercel dev.
-    
-    // In production environment (Vercel), we want the callback to hit our other serverless function
-    const actualRedirectUri = process.env.VERCEL_URL 
-        ? `https://camubox.com/api/auth/google-callback`
-        : `http://localhost:5173/api/auth/google-callback`;
+    const callbackUrl = `https://camubox.com/api/auth/google-callback`;
 
-    const scope = 'openid profile email';
-    const responseType = 'code'; // Authorization Code Flow, like brilha-mais
-    const accessType = 'offline';
-    const prompt = 'consent';
+    // Log de diagnóstico - vai aparecer nos logs da Vercel
+    console.log('[AUTH/GOOGLE] clientId present?', !!clientId);
+    console.log('[AUTH/GOOGLE] clientId value:', clientId ? clientId.substring(0, 20) + '...' : 'UNDEFINED');
 
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(actualRedirectUri)}&scope=${encodeURIComponent(scope)}&response_type=${responseType}&access_type=${accessType}&prompt=${prompt}`;
+    if (!clientId) {
+        return res.status(500).send(`
+            <h2>Erro: GOOGLE_CLIENT_ID não configurado na Vercel</h2>
+            <p>Acesse: Vercel Dashboard → Settings → Environment Variables e adicione GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET.</p>
+        `);
+    }
 
-    return res.redirect(authUrl);
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('redirect_uri', callbackUrl);
+    authUrl.searchParams.set('scope', 'openid profile email');
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('prompt', 'consent');
+
+    return res.redirect(authUrl.toString());
 }
