@@ -1,81 +1,21 @@
-import { createClient } from '@supabase/supabase-js';
-
 export default async function handler(req, res) {
-    // 0. Handle CORS for local development
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = process.env.NODE_ENV === 'production' 
+        ? 'https://camubox.com/api/auth/google-callback'
+        : 'http://localhost:5173/api/auth/google-callback'; // Locally we still need a way to hit the API, but typically Vercel dev handles this. 
+                                                           // For now, let's use the production-like URL or local equivalent if using vercel dev.
+    
+    // In production environment (Vercel), we want the callback to hit our other serverless function
+    const actualRedirectUri = process.env.VERCEL_URL 
+        ? `https://camubox.com/api/auth/google-callback`
+        : `http://localhost:5173/api/auth/google-callback`;
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
+    const scope = 'openid profile email';
+    const responseType = 'code'; // Authorization Code Flow, like brilha-mais
+    const accessType = 'offline';
+    const prompt = 'consent';
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(actualRedirectUri)}&scope=${encodeURIComponent(scope)}&response_type=${responseType}&access_type=${accessType}&prompt=${prompt}`;
 
-    const { id_token } = req.body;
-
-    if (!id_token) {
-        return res.status(400).json({ error: 'ID token is required' });
-    }
-
-    try {
-        // 1. Validate Token with Google API
-        // This bypasses the need for Supabase to be a "middleman" for the validation
-        const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`);
-        const tokenInfo = await googleRes.json();
-
-        if (tokenInfo.error || !tokenInfo.email) {
-            return res.status(401).json({ error: 'Invalid Google token', details: tokenInfo.error_description });
-        }
-
-        // 2. Connect to Supabase using Service Role (Bypassing Auth Provider check)
-        const supabase = createClient(
-            process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY
-        );
-
-        // 3. Find or Create User in t_usuario
-        let { data: user, error: fetchError } = await supabase
-            .from('t_usuario')
-            .select('*')
-            .eq('nm_email', tokenInfo.email)
-            .single();
-
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
-            throw fetchError;
-        }
-
-        // If user doesn't exist, we could create them or return error
-        // Let's create a basic profile if not found to allow access
-        if (!user) {
-            const { data: newUser, error: insertError } = await supabase
-                .from('t_usuario')
-                .insert([{
-                    nm_usuario: tokenInfo.name || tokenInfo.email.split('@')[0],
-                    nm_email: tokenInfo.email,
-                    // Add other defaults if required by your schema
-                }])
-                .select()
-                .single();
-            
-            if (insertError) throw insertError;
-            user = newUser;
-        }
-
-        // 4. Return user data (This will be stored in localStorage as the "session")
-        return res.status(200).json({
-            user: {
-                id_usuario: user.id_usuario,
-                name: user.nm_usuario,
-                email: user.nm_email,
-                isAdmin: true // Adjust logic for admin check if needed
-            }
-        });
-
-    } catch (err) {
-        console.error('[AUTH API ERROR]', err);
-        return res.status(500).json({ error: 'Internal server error', message: err.message });
-    }
+    return res.redirect(authUrl);
 }

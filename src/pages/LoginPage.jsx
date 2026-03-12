@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { dbService, authService } from '../services/supabaseClient';
 import './LoginPage.css';
@@ -21,25 +21,38 @@ const AppleIcon = () => (
 
 const LoginPage = ({ onLogin }) => {
     const navigate = useNavigate();
-    const [loginRole, setLoginRole] = useState('student'); // 'student' or 'admin'
+    const [searchParams] = useSearchParams();
+    const [loginRole, setLoginRole] = useState('student');
     const [loginInput, setLoginInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isOAuthLoading, setIsOAuthLoading] = useState(false);
     const [error, setError] = useState('');
 
+    useEffect(() => {
+        const authDataEncoded = searchParams.get('auth_data');
+        if (authDataEncoded) {
+            try {
+                const userData = JSON.parse(atob(authDataEncoded));
+                onLogin(userData);
+                navigate(userData.isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
+            } catch (err) {
+                console.error('Erro ao decodificar dados de autenticação:', err);
+                setError('Erro ao processar login. Tente novamente.');
+            }
+        }
+
+        const urlError = searchParams.get('error');
+        if (urlError) {
+            setError(`Erro na autenticação: ${urlError}`);
+        }
+    }, [searchParams, onLogin, navigate]);
+
     const handleGoogleLogin = () => {
         setIsOAuthLoading(true);
         setError('');
-
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        const redirectUri = `${window.location.origin}/auth/google`;
-        const scope = 'openid profile email';
-        const responseType = 'id_token';
-        const nonce = Math.random().toString(36).substring(2); // Idealmente usar algo mais seguro, mas para MVP serve
-
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=${responseType}&nonce=${nonce}`;
-
-        window.location.href = authUrl;
+        // Exatamente como brilha-mais: aponta para a variável de ambiente da API
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://camubox.com';
+        window.location.href = `${apiUrl}/api/auth/google`;
     };
 
     const handleAppleLogin = async () => {
@@ -86,7 +99,7 @@ const LoginPage = ({ onLogin }) => {
                         id_usuario: adminData.id_usuario,
                         name: adminData.nm_usuario,
                         isAdmin: true,
-                        email: adminData.nm_email
+                        email: adminData.dc_email
                     });
                     navigate('/dashboard/admin');
                     return;

@@ -156,7 +156,7 @@ export const dbService = {
             return await supabase
                 .from('t_usuario')
                 .select('*')
-                .eq('nm_email', email)
+                .eq('dc_email', email)
                 .single();
         },
         getById: async (id) => {
@@ -413,6 +413,7 @@ export const authService = {
             const result = await response.json();
 
             if (!response.ok) {
+                console.error('[AUTH API DETAILS]', result.details || 'No details provided');
                 return { data: null, error: result.error || 'Erro na autenticação customizada' };
             }
 
