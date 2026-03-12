@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
 import AdminHome from './pages/AdminHome';
@@ -11,6 +11,9 @@ import LockerInspection from './pages/LockerInspection';
 import AdminSettings from './pages/AdminSettings';
 import AdminContracts from './pages/AdminContracts';
 import UserMyLockers from './pages/UserMyLockers';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import { supabase, dbService, authService } from './services/supabaseClient';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -21,12 +24,67 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
+  useEffect(() => {
+    // 1. Initial Session Check
+    const checkSession = async () => {
+      if (!supabase) {
+        setIsLoadingAuth(false);
+        return;
+      }
+
+      const { data: { session } } = await authService.getSession();
+      if (session?.user) {
+        await syncUserSession(session.user);
+      }
+      setIsLoadingAuth(false);
+    };
+
+    checkSession();
+
+    // 2. Auth State Change Listener
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await syncUserSession(session.user);
+      } else {
+        setUser(null);
+        localStorage.removeItem('camubox_user');
+      }
+    }) || { data: { subscription: null } };
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  const syncUserSession = async (supabaseUser) => {
+    try {
+      // Try to find user in our t_usuario table
+      const { data: dbUser } = await dbService.users.getByEmail(supabaseUser.email);
+      
+      const userData = {
+        id_usuario: dbUser?.id_usuario || supabaseUser.id,
+        name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
+        email: supabaseUser.email,
+        isAdmin: !!dbUser?.id_usuario, // For now, if they are in t_usuario we consider them known
+        isOAuth: true
+      };
+
+      setUser(userData);
+      localStorage.setItem('camubox_user', JSON.stringify(userData));
+    } catch (err) {
+      console.error('Error syncing user session:', err);
+    }
+  };
+
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('camubox_user', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.signOut();
     setUser(null);
     localStorage.removeItem('camubox_user');
   };
@@ -35,6 +93,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+        <Route path="/termos-de-uso" element={<TermsOfService />} />
 
         {/* Protected Dashboard Routes */}
         <Route

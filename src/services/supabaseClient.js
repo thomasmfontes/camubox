@@ -388,3 +388,48 @@ export const dbService = {
         }
     }
 };
+
+/**
+ * Service to handle authentication using Supabase Auth.
+ */
+export const authService = {
+    loginWithGoogle: async () => {
+        if (isMockMode) {
+            console.log('Mock: Login with Google');
+            return { data: null, error: 'Sign in not available in mock mode' };
+        }
+        return await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+    },
+    loginWithApple: async () => {
+        if (isMockMode) {
+            console.log('Mock: Login with Apple');
+            return { data: null, error: 'Sign in not available in mock mode' };
+        }
+        return await supabase.auth.signInWithOAuth({
+            provider: 'apple',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+    },
+    signOut: async () => {
+        if (isMockMode) {
+            console.log('Mock: Sign out');
+            return { error: null };
+        }
+        return await supabase.auth.signOut();
+    },
+    getCurrentUser: async () => {
+        if (isMockMode) return { data: { user: null }, error: null };
+        return await supabase.auth.getUser();
+    },
+    getSession: async () => {
+        if (isMockMode) return { data: { session: null }, error: null };
+        return await supabase.auth.getSession();
+    }
+};

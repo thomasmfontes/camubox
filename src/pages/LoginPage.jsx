@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
-import { dbService } from '../services/supabaseClient';
+import { dbService, authService } from '../services/supabaseClient';
 import './LoginPage.css';
 
 const GoogleIcon = () => (
@@ -24,6 +24,7 @@ const LoginPage = ({ onLogin }) => {
     const [loginRole, setLoginRole] = useState('student'); // 'student' or 'admin'
     const [loginInput, setLoginInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isOAuthLoading, setIsOAuthLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleRealLogin = async (e) => {
@@ -94,10 +95,21 @@ const LoginPage = ({ onLogin }) => {
         }
     };
 
-    const handleSimulationLogin = (role) => {
-        // Mock login logic - fallback for testing
-        onLogin({ id_usuario: 1, name: 'Thomas Oliveira (Simulado)', isAdmin: role === 'admin' });
-        navigate('/dashboard');
+    const handleOAuthLogin = async (provider) => {
+        setIsOAuthLoading(true);
+        setError('');
+        try {
+            const { error: authError } = provider === 'google' 
+                ? await authService.loginWithGoogle() 
+                : await authService.loginWithApple();
+            
+            if (authError) throw authError;
+            // Redirection happens automatically
+        } catch (err) {
+            setError(`Erro ao iniciar login com ${provider === 'google' ? 'Google' : 'Apple'}.`);
+            console.error('[OAUTH ERROR]', err);
+            setIsOAuthLoading(false);
+        }
     };
 
     return (
@@ -161,18 +173,31 @@ const LoginPage = ({ onLogin }) => {
                     </div>
 
                     <div className="auth-buttons">
-                        <button className="auth-btn google" onClick={() => handleSimulationLogin('user')}>
-                            <GoogleIcon />
-                            <span>Entrar com Google</span>
+                        <button 
+                            className="auth-btn google" 
+                            onClick={() => handleOAuthLogin('google')}
+                            disabled={isLoading || isOAuthLoading}
+                        >
+                            {isOAuthLoading ? <div className="loader-mini"></div> : <GoogleIcon />}
+                            <span>{isOAuthLoading ? 'Conectando...' : 'Entrar com Google'}</span>
                         </button>
 
-                        <button className="auth-btn apple" onClick={() => handleSimulationLogin('user')}>
-                            <AppleIcon />
-                            <span>Entrar com Apple ID</span>
+                        <button 
+                            className="auth-btn apple" 
+                            onClick={() => handleOAuthLogin('apple')}
+                            disabled={isLoading || isOAuthLoading}
+                        >
+                            {isOAuthLoading ? <div className="loader-mini"></div> : <AppleIcon />}
+                            <span>{isOAuthLoading ? 'Conectando...' : 'Entrar com Apple ID'}</span>
                         </button>
                     </div>
 
                     <footer className="login-footer">
+                        <div className="footer-links">
+                            <Link to="/privacidade">Privacidade</Link>
+                            <span className="dot">•</span>
+                            <Link to="/termos-de-uso">Termos de Uso</Link>
+                        </div>
                         <p>&copy; 2026 CAMUBOX. Todos os direitos reservados.</p>
                     </footer>
                 </div>

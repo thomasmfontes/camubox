@@ -372,9 +372,33 @@
 }
 
 .login-footer p {
-    margin-top: 3rem;
+    margin-top: 1rem;
     font-size: 0.75rem;
     color: #475569;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    align-items: center;
+}
+
+.footer-links a {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: #10b981;
+}
+
+.dot {
+    color: #334155;
+    font-size: 0.5rem;
 }
 
 /* Animations */
@@ -424,4 +448,18 @@
     .visual-content h1 {
         font-size: 3rem;
     }
+}
+
+/* Loader for OAuth Buttons */
+.loader-mini {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: currentColor;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
