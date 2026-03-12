@@ -1,0 +1,246 @@
+.digital-contract.premium-theme {
+    padding: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.back-btn-premium {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.contract-flex-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Compact Rental Summary */
+.compact-rental-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.summary-item svg {
+    color: #10b981;
+}
+
+.summary-item.price-badge {
+    margin-left: auto;
+    background: #10b981;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.locker-picto {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(35%) sepia(87%) saturate(351%) hue-rotate(114deg) brightness(95%) contrast(92%);
+}
+
+/* Main Contract Card */
+.contract-view-card {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    background: white;
+    border-radius: 24px;
+    border: 1.5px solid #f1f5f9;
+}
+
+.contract-view-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.contract-view-header h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.contract-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(35%) sepia(87%) saturate(351%) hue-rotate(114deg) brightness(95%) contrast(92%);
+}
+
+.contract-view-body {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #475569;
+}
+
+/* Bottom Actions Card - FIXED CONTRAST */
+.contract-actions-card {
+    padding: 2rem;
+    background: #f0fdf4 !important;
+    /* Soft Emerald background for contrast */
+    border: 2px solid #bbf7d0 !important;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.acceptance-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.acceptance-toggle input {
+    display: none;
+}
+
+.custom-checkbox-premium {
+    min-width: 28px;
+    height: 28px;
+    border: 2.5px solid #10b981;
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: white;
+}
+
+.acceptance-toggle:hover .custom-checkbox-premium {
+    transform: scale(1.05);
+    border-color: #059669;
+}
+
+.acceptance-toggle input:checked+.custom-checkbox-premium {
+    background: #10b981;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.acceptance-toggle input:checked+.custom-checkbox-premium::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 8px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+.acceptance-toggle span {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #064e3b;
+    /* Dark Green Text */
+}
+
+.advance-payment-btn {
+    width: 100%;
+    padding: 1.4rem;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+}
+
+.advance-payment-btn.disabled {
+    opacity: 0.3;
+    background: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.advance-payment-btn:not(.disabled):hover {
+    transform: translateY(-4px);
+    background: #059669;
+    box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .digital-contract.premium-theme {
+        padding: 1rem;
+    }
+
+    .compact-rental-summary {
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .summary-item.price-badge {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .contract-view-card {
+        padding: 1.5rem;
+    }
+
+    .contract-actions-card {
+        padding: 1.5rem;
+    }
+
+    .acceptance-toggle span {
+        font-size: 0.9rem;
+    }
+}

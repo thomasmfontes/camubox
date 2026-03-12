@@ -1,0 +1,49 @@
+.main-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.content-area {
+    flex: 1;
+    margin-left: 260px;
+    /* Width of sidebar */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.page-content {
+    flex: 1;
+    padding: 2.5rem;
+    background-color: var(--bg-main);
+}
+
+@media (max-width: 768px) {
+    .content-area {
+        margin-left: 0;
+    }
+
+    .page-content {
+        padding: 1rem;
+    }
+}
+
+/* Mobile Overlay for Sidebar */
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 43, 31, 0.4); /* Dark green tint based on theme */
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 95; /* Topbar is 90, Sidebar is 100 */
+    opacity: 0;
+    animation: fadeInOverlay 0.3s forwards;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

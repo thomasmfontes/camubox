@@ -1,0 +1,323 @@
+.admin-settings.premium-theme {
+    padding: 2rem;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-settings .page-header {
+    margin-bottom: 2rem;
+}
+
+.admin-settings .page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+}
+
+.admin-settings .page-header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.settings-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+}
+
+.settings-card.full-width {
+    grid-column: span 2;
+}
+
+.settings-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.title-group h3 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.icon-primary {
+    color: var(--primary);
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Form Elements */
+.input-row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group.full {
+    width: 100%;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.input-with-prefix,
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 0.75rem;
+}
+
+.input-with-prefix span {
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+}
+
+.input-with-icon svg {
+    color: var(--text-muted);
+    margin-right: 0.75rem;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 0.6rem 0;
+    background: transparent;
+    border: none;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+select {
+    padding: 0.6rem 0.5rem;
+}
+
+.save-btn {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Contract Editor */
+.helper-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background: #eff6ff;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+}
+
+.contract-editor {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+/* Integrations */
+.env-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.env-badge.sandbox {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.env-badge.production {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* Admin List */
+.admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.admin-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.admin-info strong {
+    font-size: 0.95rem;
+}
+
+.admin-info span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.role-tag {
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.role-tag.super-admin {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+.role-tag.admin {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.icon-btn-danger {
+    color: #ef4444;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.icon-btn-danger:hover {
+    background: #fee2e2;
+}
+
+.add-admin {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.add-admin input {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+}
+
+/* Toggles */
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.toggle-info strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.toggle-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.toggle-btn {
+    width: 48px;
+    height: 24px;
+    background: #cbd5e1;
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.3s;
+}
+
+.toggle-btn.on {
+    background: var(--primary);
+}
+
+.toggle-slider {
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    transition: transform 0.3s;
+}
+
+.toggle-btn.on .toggle-slider {
+    transform: translateX(22px);
+}
+
+@media (max-width: 900px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-card.full-width {
+        grid-column: span 1;
+    }
+}

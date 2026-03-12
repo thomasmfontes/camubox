@@ -1,0 +1,113 @@
+:root {
+  /* Medicine Branding Palette */
+  --primary: #003d2b;
+  /* Deep Forest Green from Logo */
+  --primary-hover: #00523a;
+  --secondary: #d4af37;
+  /* Gold/Academic Accent */
+  --accent: #f59e0b;
+
+  --bg-main: #f4f7f6;
+  /* Very light greenish gray */
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-sidebar: #002b1f;
+  /* Even darker green for sidebar */
+
+  --text-main: #002b1f;
+  --text-muted: #4a635d;
+  --text-inverse: #ffffff;
+
+  --border: #d1dad7;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(0, 43, 31, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 43, 31, 0.12);
+
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: blur(16px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+button:focus {
+  outline: none;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* Global Locker Icon Standard */
+.locker-icon-standard {
+  width: 24px;
+  height: 24px;
+  background-image: url('/lockers.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.locker-icon-standard.white {
+  background-image: none;
+  background-color: white;
+  mask-image: url('/lockers.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('/lockers.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
