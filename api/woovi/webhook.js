@@ -27,7 +27,15 @@ const validateSignature = (payload, signature, secret) => {
 };
 
 export default async function handler(req, res) {
-  const rawBody = await getRawBody(req);
+  console.log(`>>> Webhook Recebido: ${req.method} ${req.url}`);
+  
+  let rawBody = '';
+  try {
+    rawBody = await getRawBody(req);
+    console.log(`>>> Raw Body Length: ${rawBody.length}`);
+  } catch (err) {
+    console.error('Erro ao ler corpo bruto:', err);
+  }
   let body = {};
   if (rawBody) {
     try {
