@@ -1,4 +1,11 @@
 /* eslint-disable no-undef */
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+
+// Precaching automático do Vite PWA
+precacheAndRoute(self.__WB_MANIFEST);
+cleanupOutdatedCaches();
+
+// --- INÍCIO LÓGICA FIREBASE ---
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
 
@@ -11,14 +18,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Força a ativação imediata do novo Service Worker
-self.addEventListener('install', () => {
-  self.skipWaiting();
-});
-
-// Removido clients.claim() para evitar loops de refresh com vite-plugin-pwa
-// self.addEventListener('activate', (event) => { event.waitUntil(clients.claim()); });
-
+// Interceptação nativa ultra-robusta (Garante que a notificação apareça)
 self.addEventListener('push', (event) => {
   let data = {};
   if (event.data) {
@@ -29,7 +29,6 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  // Extração agressiva de conteúdo (Firebase pode mandar de várias formas)
   const notification = data.notification || {};
   const dataPayload = data.data || {};
 
@@ -37,37 +36,34 @@ self.addEventListener('push', (event) => {
   const body = notification.body || dataPayload.body || 'Você tem uma nova atualização.';
 
   const options = {
-    body: body,
+    body,
     icon: '/pwa-icon.png',
     badge: '/pwa-icon.png',
     vibrate: [100, 50, 100],
     data: dataPayload,
-    tag: 'camubox-push-id' // Agrupa notificações
+    tag: 'camubox-push-id'
   };
 
-  // O pulo do gato: Retornar a promise do showNotification
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-});
-
-// Listener do SDK (opcional, mas ajuda com logs)
-messaging.onBackgroundMessage((payload) => {
-  console.log('[SW SDK] Payload recebido via SDK:', payload);
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const link = event.notification.data?.link || '/';
-
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
-        if (client.url.includes('camubox.com') && 'focus' in client) {
-          return client.focus();
-        }
+        if (client.url.includes('camubox.com') && 'focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow(link);
     })
   );
+});
+// --- FIM LÓGICA FIREBASE ---
+
+// Lógica de atualização automática (skipWaiting)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

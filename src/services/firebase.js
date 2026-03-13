@@ -23,10 +23,11 @@ export const requestFirebaseToken = async () => {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const regs = await navigator.serviceWorker.getRegistrations();
-      let registration = regs.find(r => r.active?.scriptURL.includes('firebase-messaging-sw.js'));
+      let registration = regs.find(r => r.active?.scriptURL.includes('sw.js'));
       
       if (!registration) {
-        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        // Se o Vite PWA ainda não o registrou, fazemos aqui
+        registration = await navigator.serviceWorker.register('/sw.js');
       }
 
       await navigator.serviceWorker.ready;
