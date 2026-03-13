@@ -71,6 +71,14 @@ const LoginPage = ({ onLogin }) => {
                 return;
             }
 
+            // SEGURANÇA: Verificamos se esse celular já tem um e-mail diferente vinculado
+            if (user.dc_email && user.dc_email.toLowerCase() !== googleStep.email.toLowerCase()) {
+                setError('Este número de celular já está vinculado a outra conta Google.');
+                setIsGoogleLoading(false);
+                return;
+            }
+
+            // Se o usuário existir mas não tiver e-mail, ou se for o mesmo e-mail, vincula/loga
             await dbService.users.updateEmail(user.id_usuario, googleStep.email);
             onLogin({ id_usuario: user.id_usuario, name: user.nm_usuario, email: googleStep.email, isAdmin: false });
             navigate('/dashboard/lockers');
@@ -89,6 +97,15 @@ const LoginPage = ({ onLogin }) => {
         setError('');
         try {
             const phone = registerPhone.replace(/\D/g, '');
+            
+            // SEGURANÇA: Verificar se o celular já foi cadastrado por outra pessoa nesse meio tempo
+            const { data: existingUser } = await dbService.users.getByPhone(phone);
+            if (existingUser) {
+                setError('Este número de celular já está em uso. Tente outro número ou faça login.');
+                setIsRegistering(false);
+                return;
+            }
+
             const { data: newUser, error: insertError } = await dbService.users.create({
                 nm_usuario: registerName.trim(),
                 dc_email: registerStep.email,
