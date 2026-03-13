@@ -229,14 +229,24 @@ export const dbService = {
         }
     },
     fcmTokens: {
-        upsert: async (userId, token) => {
+        upsert: async (email, token) => {
             if (isMockMode) {
-                console.log('Mock: Upserting FCM token', { userId, token });
+                console.log('Mock: Upserting FCM token', { email, token });
                 return { data: null, error: null };
             }
-            return await supabase
-                .from('t_fcm_tokens')
-                .upsert({ user_id: userId, token, updated_at: new Date().toISOString() }, { onConflict: 'token' });
+            try {
+                const response = await fetch('/api/fcm/upsert-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, token })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Erro ao sincronizar token');
+                return { data: result.data, error: null };
+            } catch (err) {
+                console.error('[FCM CLIENT ERROR]', err);
+                return { data: null, error: err };
+            }
         }
     },
 

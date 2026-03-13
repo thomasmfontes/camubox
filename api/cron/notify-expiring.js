@@ -48,12 +48,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No expiring rentals found today.' });
     }
 
-    // 2. Coletar tokens FCM dos usuários afetados
+    // 2. Coletar e-mails dos usuários afetados
     const userIds = [...new Set(rentals.map(r => r.id_usuario))];
+    const { data: users, error: userError } = await supabase
+      .from('t_usuario')
+      .select('id_usuario, dc_email')
+      .in('id_usuario', userIds);
+
+    if (userError) throw userError;
+
+    const userEmails = users.map(u => u.dc_email).filter(Boolean);
+    
+    // 3. Buscar tokens FCM por e-mail
     const { data: tokens, error: tokenError } = await supabase
       .from('t_fcm_tokens')
-      .select('user_id, token')
-      .in('user_id', userIds);
+      .select('dc_email, token')
+      .in('dc_email', userEmails);
 
     if (tokenError) throw tokenError;
 
@@ -68,7 +78,11 @@ export default async function handler(req, res) {
     // 4. Enviar notificações
     const results = [];
     for (const rental of rentals) {
-      const userTokens = tokens.filter(t => t.user_id === rental.id_usuario);
+      // Encontrar o e-mail do usuário dono dessa locação
+      const userObj = users.find(u => u.id_usuario === rental.id_usuario);
+      if (!userObj?.dc_email) continue;
+
+      const userTokens = tokens.filter(t => t.dc_email === userObj.dc_email);
       const daysLeft = rental.dt_termino === in7Days ? 7 : 1;
       
       for (const t of userTokens) {
