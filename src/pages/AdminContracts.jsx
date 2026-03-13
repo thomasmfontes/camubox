@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { IoMdPricetag } from 'react-icons/io';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
@@ -361,9 +362,9 @@ const AdminContracts = () => {
                 </div>
 
                 <div className="filter-group">
-                    <span className="filter-icon"><div className="locker-icon-standard" style={{ width: '20px', height: '20px' }} /></span>
+                    <span className="filter-icon"><IoMdPricetag size={20} /></span>
                     <select value={filters.contractType} onChange={e => setFilters({ ...filters, contractType: e.target.value })}>
-                        <option value="All">Todos os Tipos</option>
+                        <option value="All">Todos os Planos</option>
                         <option value="SEMESTRAL">Semestral</option>
                         <option value="ANUAL">Anual</option>
                         <option value="GRATUIDADE">Gratuidade</option>
