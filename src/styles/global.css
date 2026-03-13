@@ -35,18 +35,19 @@
 }
 
 html, body {
-  background-color: #060d0b; /* Default to dark to prevent white flashes/leaks */
+  background-color: #060d0b; /* Default dark background to prevent white flashes */
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  overscroll-behavior: none; /* Disable elastic scroll that reveals background */
+  overscroll-behavior: none; /* Prevent elastic bouncing on mobile */
 }
 
 body {
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 body.no-scroll {
