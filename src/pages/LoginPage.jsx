@@ -39,8 +39,14 @@ const LoginPage = ({ onLogin }) => {
             const name = decoded.name;
             const { data: existingUser } = await dbService.users.getByEmail(email);
             if (existingUser) {
-                onLogin({ id_usuario: existingUser.id_usuario, name: existingUser.nm_usuario, email: existingUser.dc_email, isAdmin: false });
-                navigate('/dashboard/lockers');
+                const isAdmin = !!existingUser.is_adm;
+                onLogin({ 
+                    id_usuario: existingUser.id_usuario, 
+                    name: existingUser.nm_usuario, 
+                    email: existingUser.dc_email, 
+                    isAdmin 
+                });
+                navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
             } else {
                 setGoogleStep({ email, name });
             }
@@ -80,8 +86,14 @@ const LoginPage = ({ onLogin }) => {
 
             // Se o usuário existir mas não tiver e-mail, ou se for o mesmo e-mail, vincula/loga
             await dbService.users.updateEmail(user.id_usuario, googleStep.email);
-            onLogin({ id_usuario: user.id_usuario, name: user.nm_usuario, email: googleStep.email, isAdmin: false });
-            navigate('/dashboard/lockers');
+            const isAdmin = !!user.is_adm;
+            onLogin({ 
+                id_usuario: user.id_usuario, 
+                name: user.nm_usuario, 
+                email: googleStep.email, 
+                isAdmin 
+            });
+            navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
         } catch (err) {
             console.error('[PHONE SUBMIT ERROR]', err);
             setError('Erro ao verificar o celular. Tente novamente.');
@@ -112,8 +124,14 @@ const LoginPage = ({ onLogin }) => {
                 nr_celular: phone,
             });
             if (insertError) throw insertError;
-            onLogin({ id_usuario: newUser.id_usuario, name: newUser.nm_usuario, email: newUser.dc_email, isAdmin: false });
-            navigate('/dashboard/lockers');
+            const isAdmin = !!newUser.is_adm;
+            onLogin({ 
+                id_usuario: newUser.id_usuario, 
+                name: newUser.nm_usuario, 
+                email: newUser.dc_email, 
+                isAdmin 
+            });
+            navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
         } catch (err) {
             console.error('[REGISTER ERROR]', err);
             setError('Erro ao criar cadastro. Tente novamente.');
