@@ -61,8 +61,20 @@ const AdminSettings = () => {
     const handleTestPush = async () => {
         setIsLoading(true);
         try {
-            const { data: { session } } = await authService.getSession();
-            if (!session) throw new Error('Sessão não encontrada. Faça login novamente.');
+            // Tenta obter a sessão de forma mais robusta
+            const { data: sessionData, error: sessionError } = await authService.getSession();
+            const session = sessionData?.session;
+
+            if (sessionError) throw new Error(`Erro ao buscar sessão: ${sessionError.message}`);
+
+            if (!session) {
+                // Fallback: Tenta obter o usuário direto se a sessão estiver "escondida"
+                const { data: userData } = await authService.getCurrentUser();
+                if (userData?.user) {
+                    throw new Error('Usuário detectado, mas sessão expirou. Por favor, saia e entre novamente para renovar o acesso.');
+                }
+                throw new Error('Sessão não encontrada. Certifique-se de estar logado.');
+            }
 
             const response = await fetch('/api/fcm/send-test', {
                 method: 'POST',
@@ -76,10 +88,10 @@ const AdminSettings = () => {
             if (response.ok) {
                 alert('🚀 Sucesso! A notificação foi enviada para este dispositivo.');
             } else {
-                alert(`❌ Erro: ${result.error || 'Falha ao enviar'}`);
+                alert(`❌ Erro do Servidor: ${result.error || 'Falha ao enviar'}`);
             }
         } catch (err) {
-            alert(`⚠️ Erro de conexão: ${err.message}`);
+            alert(`⚠️ Atenção: ${err.message}`);
         }
         setIsLoading(false);
     };
