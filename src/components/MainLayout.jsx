@@ -9,6 +9,7 @@ const MainLayout = ({ children, user, onLogout }) => {
     return (
         <div className="main-layout">
             <Sidebar 
+                user={user}
                 role={user?.isAdmin ? 'admin' : 'user'} 
                 onLogout={onLogout} 
                 isOpen={isMobileMenuOpen} 

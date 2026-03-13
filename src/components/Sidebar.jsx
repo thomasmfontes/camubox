@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home,
@@ -13,9 +14,21 @@ import {
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
+const Sidebar = ({ user, role = 'user', onLogout, isOpen, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     const handleLogoutClick = () => {
         if (onLogout) onLogout();
@@ -44,10 +57,12 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
                     <div className="nav-mask-icon icon-lockers logo-mask" />
                     <span>CAMUBOX</span>
                 </div>
-                <button className="mobile-close-btn" onClick={onClose}>
-                    <X size={24} />
+                <button className="mobile-close-btn-wrapper" onClick={onClose}>
+                    <X size={20} />
                 </button>
             </div>
+
+            <div className="sidebar-section-label">SISTEMA DE GERENCIAMENTO</div>
 
             <nav className="sidebar-nav">
                 {menuItems.map((item) => (

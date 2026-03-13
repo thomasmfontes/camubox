@@ -11,18 +11,18 @@ const Topbar = ({ user, onMenuToggle }) => {
             </div>
 
             <div className="topbar-actions">
-                <button className="icon-btn">
+                <button className="icon-btn notification-btn">
                     <Bell size={20} />
                     <span className="notification-badge"></span>
                 </button>
 
-                <div className="user-profile">
+                <div className="user-profile-simple">
                     <div className="user-info">
-                        <p className="user-name">{user?.name || 'Thomas Oliveira'}</p>
-                        <p className="user-role">{user?.isAdmin ? 'Administrador' : 'Aluno'}</p>
+                        <span className="user-name">{user?.name || 'Thomas Oliveira'}</span>
+                        <span className="user-role">{user?.isAdmin ? 'Administrador' : 'Aluno'}</span>
                     </div>
-                    <div className="avatar">
-                        <User size={20} />
+                    <div className="avatar-circle">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : 'T'}
                     </div>
                 </div>
             </div>
