@@ -150,18 +150,61 @@
 }
 
 /* ========== GOOGLE BUTTON ========== */
-.google-login-wrapper {
+.oauth-buttons-wrapper {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 1.5rem;
     width: 100%;
+    gap: 0;
 }
 
-/* Permitir que o botão tenha seu tamanho natural e seja centralizado */
-.google-login-wrapper > div {
-    display: flex !important;
-    justify-content: center !important;
+.google-login-btn-custom,
+.apple-login-btn {
+    width: 250px;
+    background: #ffffff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    height: 40px;
+    font-weight: 500;
+    font-size: 14px;
+    font-family: 'Roboto', 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+    margin: 0 auto;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center;
+}
+
+.apple-login-btn {
+    color: #000000; /* Apple icon/text typically black */
+}
+
+.google-login-btn-custom:hover:not(:disabled),
+.apple-login-btn:hover:not(:disabled) {
+    background: #f8f9fa;
+    border-color: #d2d2d7;
+}
+
+.google-login-btn-custom:active:not(:disabled),
+.apple-login-btn:active:not(:disabled) {
+    transform: scale(0.99);
+}
+
+.google-login-btn-custom svg,
+.apple-login-btn svg {
+    flex-shrink: 0;
+}
+
+.google-login-btn-custom span,
+.apple-login-btn span {
+    display: inline-block;
+    line-height: 1;
 }
 
 .login-hint {
@@ -169,6 +212,39 @@
     color: #64748b;
     font-weight: 500;
     margin-bottom: 1.5rem;
+}
+
+/* ========== ALTERNATIVE LOGIN (Apple) ========== */
+
+.divider-premium {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.divider-premium::before,
+.divider-premium::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.apple-login-btn:disabled,
+.google-login-btn-custom:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.loader-mini.dark {
+    border-color: rgba(0, 0, 0, 0.1);
+    border-top-color: #000;
 }
 
 /* ========== PHONE FORM ========== */
