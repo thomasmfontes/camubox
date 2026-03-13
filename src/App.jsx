@@ -64,10 +64,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (user?.id_usuario) {
-      handleFCMRegistration(user.id_usuario);
+    if (user?.uid) {
+      handleFCMRegistration(user.uid);
     }
-  }, [user?.id_usuario]);
+  }, [user?.uid]);
 
   const handleFCMRegistration = async (userId) => {
     try {
@@ -86,6 +86,7 @@ function App() {
       const { data: dbUser } = await dbService.users.getByEmail(supabaseUser.email);
       
       const userData = {
+        uid: supabaseUser.id, // Auth UUID para FCM e referências nativas
         id_usuario: dbUser?.id_usuario || supabaseUser.id,
         name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
         email: dbUser?.dc_email || supabaseUser.email,

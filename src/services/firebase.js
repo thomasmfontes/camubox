@@ -17,22 +17,31 @@ const messaging = getMessaging(app);
 export const requestFirebaseToken = async () => {
   try {
     const permission = await Notification.requestPermission();
-    if (permission === "granted") {
+    if (permission === 'granted') {
+      // Registrar SW explicitamente para garantir que o getToken encontre-o
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      
       const token = await getToken(messaging, {
-        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+        serviceWorkerRegistration: registration
       });
+      
       if (token) {
         return token;
       } else {
-        console.warn("Nenhum token FCM disponível. Verifique as configurações.");
+        console.warn('Nenhum token FCM disponível.');
         return null;
       }
     } else {
-      console.warn("Permissão de notificação negada.");
+      console.warn('Permissão de notificação negada.');
       return null;
     }
   } catch (error) {
-    console.error("Erro ao obter token FCM:", error);
+    if (error.code === 'messaging/permission-blocked') {
+      console.error('Permissão bloqueada pelo usuário.');
+    } else {
+      console.error('Erro ao obter token FCM:', error);
+    }
     return null;
   }
 };
