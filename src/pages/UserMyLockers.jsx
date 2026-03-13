@@ -207,12 +207,6 @@ const UserMyLockers = ({ user }) => {
                                         )}
                                     </div>
 
-                                    {locker.isExpired && (
-                                        <div className="expired-overlay">
-                                            <AlertCircle size={20} />
-                                            <span>Contrato Finalizado</span>
-                                        </div>
-                                    )}
                                 </motion.div>
                             ))}
 
