@@ -8,8 +8,10 @@ import {
     Settings as SettingsIcon,
     Plus,
     Trash2,
-    AlertCircle
+    AlertCircle,
+    Bell
 } from 'lucide-react';
+import { authService } from '../services/supabaseClient';
 import './AdminSettings.css';
 
 const AdminSettings = () => {
@@ -52,6 +54,32 @@ const AdminSettings = () => {
             alert(`Configurações de ${sectionLabel} salvas com sucesso!`);
         } else {
             alert(`Erro ao salvar: ${error.message}`);
+        }
+        setIsLoading(false);
+    };
+
+    const handleTestPush = async () => {
+        setIsLoading(true);
+        try {
+            const { data: { session } } = await authService.getSession();
+            if (!session) throw new Error('Sessão não encontrada. Faça login novamente.');
+
+            const response = await fetch('/api/fcm/send-test', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert('🚀 Sucesso! A notificação foi enviada para este dispositivo.');
+            } else {
+                alert(`❌ Erro: ${result.error || 'Falha ao enviar'}`);
+            }
+        } catch (err) {
+            alert(`⚠️ Erro de conexão: ${err.message}`);
         }
         setIsLoading(false);
     };
@@ -227,6 +255,30 @@ const AdminSettings = () => {
                                     <Plus size={20} />
                                 </button>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* CARD 5: Notificações de Teste */}
+                    <section className="settings-modern-card glass">
+                        <div className="card-header-premium">
+                            <div className="header-title-bundle">
+                                <span className="icon-wrapper primary pulse">
+                                    <Bell size={20} />
+                                </span>
+                                <h3>Testar Notificações</h3>
+                            </div>
+                        </div>
+                        <div className="card-content-premium">
+                            <p className="settings-helper-text">
+                                Verifique se as notificações push estão chegando corretamente neste dispositivo.
+                            </p>
+                            <button className="premium-test-btn" onClick={handleTestPush} disabled={isLoading}>
+                                <Bell size={18} />
+                                <span>Enviar Notificação de Teste</span>
+                            </button>
+                            <span className="test-badge-info">
+                                Certifique-se de permitir notificações no navegador.
+                            </span>
                         </div>
                     </section>
 
