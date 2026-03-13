@@ -16,7 +16,7 @@ import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
 import InstallPWA from './components/InstallPWA';
 import { motion, AnimatePresence } from 'framer-motion';
-import { requestFirebaseToken } from './services/firebase';
+import { requestFirebaseToken, setupForegroundListener } from './services/firebase';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -61,6 +61,12 @@ function App() {
     return () => {
       subscription?.unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    // Escutar mensagens em foreground
+    const unsubscribe = setupForegroundListener();
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {

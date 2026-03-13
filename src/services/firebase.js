@@ -14,6 +14,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
+export { messaging };
+
 export const requestFirebaseToken = async () => {
   try {
     if (!('serviceWorker' in navigator)) return null;
@@ -36,15 +38,24 @@ export const requestFirebaseToken = async () => {
         serviceWorkerRegistration: registration
       });
     }
+    return null;
   } catch (error) {
-    console.error('[FCM] Error:', error);
+    console.error('[FCM] Error requesting token:', error);
     return null;
   }
 };
 
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      resolve(payload);
-    });
+export const setupForegroundListener = () => {
+  return onMessage(messaging, (payload) => {
+    console.log('[FCM] Mensagem em foreground:', payload);
+    
+    // Tenta mostrar notificação nativa mesmo em foreground
+    if (Notification.permission === 'granted' && payload.notification) {
+      const { title, body } = payload.notification;
+      new Notification(title || 'CAMUBOX', {
+        body,
+        icon: '/pwa-icon.png'
+      });
+    }
   });
+};

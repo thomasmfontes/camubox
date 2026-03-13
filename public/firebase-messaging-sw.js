@@ -1,10 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
-
-// Os valores abaixo serão lidos do sw-env mas como SW não acessa import.meta,
-// precisamos injetar ou usar o sender ID diretamente se for estático.
-// Para PWA com Vite, podemos configurar o vite-plugin-pwa ou injetar os valores.
-// No Firebase, o MessagingSenderId é o principal campo necessário aqui.
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   messagingSenderId: "399118885219",
@@ -15,13 +10,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Este evento dispara quando o app está em BACKGROUND ou FECHADO
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  console.log('[SW] Mensagem em background recebida:', payload);
+  
+  if (!payload.notification) {
+    console.warn('[SW] Mensagem recebida sem payload de notificação');
+    return;
+  }
+
+  const notificationTitle = payload.notification.title || 'CAMUBOX';
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/pwa-icon.png'
+    icon: '/pwa-icon.png',
+    badge: '/pwa-icon.png',
+    data: payload.data // Passa dados extras
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
