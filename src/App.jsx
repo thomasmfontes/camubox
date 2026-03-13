@@ -18,6 +18,7 @@ import InstallPWA from './components/InstallPWA';
 import { motion, AnimatePresence } from 'framer-motion';
 import { requestFirebaseToken, setupForegroundListener } from './services/firebase';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import ScrollToTop from './components/ScrollToTop';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -141,6 +142,7 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes location={location} key={location.pathname.split('/')[1] === 'dashboard' ? 'dashboard-root' : location.pathname}>
         <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
