@@ -3,6 +3,10 @@
 /* ========== BASE (mobile-first) ========== */
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body {
+    background-color: #060d0b; /* Prevent white leak on mobile overscroll */
+}
+
 .login-container {
     display: flex;
     flex-direction: column;

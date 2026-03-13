@@ -34,11 +34,18 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+html {
+  background-color: var(--bg-main);
+  /* Prevent white background leak on scroll */
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  /* Prevent elastic scrolling revealing white background */
 }
 
 body.no-scroll {
