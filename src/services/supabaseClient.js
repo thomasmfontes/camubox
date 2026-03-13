@@ -510,9 +510,8 @@ export const authService = {
             return { data: null, error: 'Sign in not available in mock mode' };
         }
         
-        const redirectTo = import.meta.env.DEV 
-            ? window.location.origin 
-            : 'https://camubox.com';
+        // Use the current origin for dynamic redirects (Vercel, custom domain, localhost, etc.)
+        const redirectTo = window.location.origin;
 
         return await supabase.auth.signInWithOAuth({
             provider: 'google',
@@ -527,9 +526,8 @@ export const authService = {
             return { data: null, error: 'Sign in not available in mock mode' };
         }
 
-        const redirectTo = import.meta.env.DEV 
-            ? window.location.origin 
-            : 'https://camubox.com';
+        // Use the current origin for dynamic redirects (Vercel, custom domain, localhost, etc.)
+        const redirectTo = window.location.origin;
 
         return await supabase.auth.signInWithOAuth({
             provider: 'apple',
