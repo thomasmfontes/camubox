@@ -11,9 +11,9 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['lockers.png', 'my-locker.png'],
+      includeAssets: ['lockers.png', 'logo-CAMU.jpeg'],
       manifest: {
-        name: 'CAMUBOX - Armários Escolares',
+        name: 'CAMUBOX',
         short_name: 'CAMUBOX',
         description: 'Sistema de gestão de armários para instituições de ensino',
         theme_color: '#003d2b',
@@ -22,19 +22,19 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/my-locker.png',
+            src: '/logo-CAMU.jpeg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/jpeg'
           },
           {
-            src: '/my-locker.png',
-            sizes: '500x500',
-            type: 'image/png'
+            src: '/logo-CAMU.jpeg',
+            sizes: '512x512',
+            type: 'image/jpeg'
           },
           {
-            src: '/my-locker.png',
-            sizes: '500x500',
-            type: 'image/png',
+            src: '/logo-CAMU.jpeg',
+            sizes: '512x512',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           }
         ]
