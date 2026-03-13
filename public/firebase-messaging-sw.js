@@ -2,7 +2,6 @@
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
 
-// Configuração idêntica ao frontend para o Service Worker
 firebase.initializeApp({
   messagingSenderId: "399118885219",
   apiKey: "AIzaSyBFH3kTferNsJQTmn6LQIAm87SwYlRxpAM",
@@ -12,61 +11,67 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-/**
- * IMPORTANTE: Para evitar que o Chrome mostre a mensagem 
- * "Este site foi atualizado em segundo plano", precisamos garantir que 
- * showNotification seja chamado e retornado como uma Promise.
- */
+// Força a ativação imediata do novo Service Worker
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
 
-// Interceptador nativo (Camada 1 - Segurança máxima)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener('push', (event) => {
-  console.log('[SW] Evento PUSH nativo detectado:', event);
+  console.log('[SW] Push bruto recebido:', event);
 
-  let payload = {};
+  let data = {};
   if (event.data) {
     try {
-      payload = event.data.json();
+      data = event.data.json();
     } catch (e) {
-      console.warn('[SW] Push sem JSON válido ou vazio. Tentando texto...');
-      payload = { notification: { title: 'CAMUBOX', body: event.data.text() } };
+      data = { notification: { title: 'CAMUBOX', body: event.data.text() } };
     }
   }
 
-  console.log('[SW] Payload extraído:', payload);
+  console.log('[SW] Dados processados:', data);
 
-  const title = payload.notification?.title || payload.data?.title || 'CAMUBOX';
-  const body = payload.notification?.body || payload.data?.body || 'Nova atualização do sistema.';
+  // Extração agressiva de conteúdo (Firebase pode mandar de várias formas)
+  const notification = data.notification || {};
+  const dataPayload = data.data || {};
 
-  const promiseChain = self.registration.showNotification(title, {
+  const title = notification.title || dataPayload.title || 'CAMUBOX';
+  const body = notification.body || dataPayload.body || 'Você tem uma nova atualização.';
+
+  const options = {
     body: body,
     icon: '/pwa-icon.png',
     badge: '/pwa-icon.png',
-    data: payload.data || {},
-    tag: 'camubox-alert' // Agrupa notificações similares
-  });
+    vibrate: [100, 50, 100],
+    data: dataPayload,
+    tag: 'camubox-push-id' // Agrupa notificações
+  };
 
-  event.waitUntil(promiseChain);
+  // O pulo do gato: Retornar a promise do showNotification
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
 });
 
-// Listener do SDK (Camada 2 - Pode disparar em paralelo, o 'tag' acima evita duplicados)
+// Listener do SDK (opcional, mas ajuda com logs)
 messaging.onBackgroundMessage((payload) => {
-  console.log('[SW SDK] Background message:', payload);
+  console.log('[SW SDK] Payload recebido via SDK:', payload);
 });
 
-// Handler de clique
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const link = event.notification.data?.link || '/dashboard/lockers';
+  const link = event.notification.data?.link || '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Se já tiver uma aba aberta, foca nela
       for (const client of windowClients) {
         if (client.url.includes('camubox.com') && 'focus' in client) {
           return client.focus();
         }
       }
-      // Senão abre nova
       if (clients.openWindow) return clients.openWindow(link);
     })
   );
