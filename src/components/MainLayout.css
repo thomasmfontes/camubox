@@ -37,7 +37,7 @@
     background-color: rgba(0, 20, 15, 0.6); /* Deeper green tint */
     backdrop-filter: blur(6px); /* Premium blur */
     -webkit-backdrop-filter: blur(6px);
-    z-index: 95;
+    z-index: 1500; /* Sidebar is 2000 */
     opacity: 0;
     animation: fadeInOverlay 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }

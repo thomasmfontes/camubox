@@ -22,11 +22,14 @@ const Sidebar = ({ user, role = 'user', onLogout, isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none'; // Stronger lock for mobile
         } else {
             document.body.style.overflow = 'unset';
+            document.body.style.touchAction = 'unset';
         }
         return () => {
             document.body.style.overflow = 'unset';
+            document.body.style.touchAction = 'unset';
         };
     }, [isOpen]);
 
