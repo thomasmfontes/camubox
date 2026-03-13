@@ -64,19 +64,25 @@ function App() {
   }, []);
 
   useEffect(() => {
+    console.log('[App] Auth UID trigger:', user?.uid ? `Authenticated: ${user.uid}` : 'Not authenticated');
     if (user?.uid) {
+      console.log('[App] Starting FCM registration process...');
       handleFCMRegistration(user.uid);
     }
   }, [user?.uid]);
 
   const handleFCMRegistration = async (userId) => {
+    console.log('[App] handleFCMRegistration called with ID:', userId);
     try {
       const token = await requestFirebaseToken();
+      console.log('[App] requestFirebaseToken output:', token ? 'Token exists' : 'Token is NULL');
       if (token) {
+        console.log('[App] Sending token to database...');
         await dbService.fcmTokens.upsert(userId, token);
+        console.log('[App] Token saved successfully in Supabase');
       }
     } catch (err) {
-      console.error('FCM Registration error:', err);
+      console.error('[App] Critical FCM Error:', err);
     }
   };
 
