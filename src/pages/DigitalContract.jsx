@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { IoMdPricetag } from 'react-icons/io';
 import {
     FileText,
     Calendar,
@@ -100,22 +101,24 @@ const DigitalContract = () => {
                 </section>
 
                 {/* Main Contract Card */}
-                <section className="contract-view-card card">
-                    <div className="contract-view-header">
-                        <img src="/contract.png" alt="Contrato" className="contract-icon-img" />
-                        <h2>Contrato</h2>
-                    </div>
-                    <div className="contract-view-body">
-                        {isLoading ? (
-                            <div className="contract-loading">Carregando regulamento...</div>
-                        ) : (
-                            <div
-                                className="content-text"
-                                dangerouslySetInnerHTML={{ __html: contractText.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>') }}
-                            />
-                        )}
-                    </div>
-                </section>
+                <main className="contract-main-content">
+                    <section className="contract-view-card card">
+                        <div className="contract-view-header">
+                            <IoMdPricetag size={24} className="contract-icon-img" />
+                            <h2>Contrato</h2>
+                        </div>
+                        <div className="contract-view-body">
+                            {isLoading ? (
+                                <div className="contract-loading">Carregando regulamento...</div>
+                            ) : (
+                                <div
+                                    className="content-text"
+                                    dangerouslySetInnerHTML={{ __html: contractText.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, '<br/>') }}
+                                />
+                            )}
+                        </div>
+                    </section>
+                </main>
 
                 {/* Bottom Acceptance Area */}
                 <footer className="contract-actions-card card">

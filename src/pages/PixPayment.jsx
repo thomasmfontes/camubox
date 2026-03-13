@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { IoMdPricetag } from 'react-icons/io';
 import {
     QrCode,
     Copy,
@@ -8,7 +9,8 @@ import {
     Clock,
     XCircle,
     ChevronLeft,
-    ArrowRight
+    ArrowRight,
+    MapPin
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import './PixPayment.css';
@@ -182,52 +184,75 @@ const PixPayment = ({ user }) => {
             </header>
 
             <div className="payment-grid-premium">
-                <section className="qr-card card">
-                    <div className="card-top">
-                        <div className={`status-pill ${status}`}>
-                            {status === 'generating' && <><RefreshCcw size={14} className="animate-spin" /> <span>Gerando Pix...</span></>}
-                            {status === 'pending' && <><Clock size={14} /> <span>Aguardando...</span></>}
-                            {status === 'verifying' && <><RefreshCcw size={14} className="animate-spin" /> <span>Analisando Confirmação...</span></>}
-                            {status === 'confirmed' && <><CheckCircle2 size={14} /> <span>Pago</span></>}
-                            {status === 'error' && <><XCircle size={14} /> <span>Erro</span></>}
-                        </div>
-                        <div className="timer-text">
-                            Expira em: <strong>30:00</strong>
-                        </div>
+                {/* Compact Top Summary - Visible on Mobile */}
+                <section className="compact-payment-summary">
+                    <div className="summary-item">
+                        <img src="/lockers.png" alt="Armário" className="locker-picto" />
+                        <span>{isExchange ? `Novo Armário #${selectedLocker.id}` : `Armário #${rentalDetails.id}`}</span>
                     </div>
-
-                    <div className="qr-main-container">
-                        <div className={`qr-frame ${status === 'confirmed' ? 'paid' : ''}`}>
-                            {status === 'generating' ? (
-                                <div className="qr-skeleton animate-pulse" style={{width: 180, height: 180, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12}}></div>
-                            ) : status === 'error' ? (
-                                <XCircle size={100} color="var(--red-500)" />
-                            ) : (
-                                <img src={qrCodeData?.qrCodeImage} alt="QR Code Pix" style={{width: 180, height: 180, borderRadius: 8}} />
-                            )}
-                            
-                            {status === 'confirmed' && (
-                                <div className="success-overlay">
-                                    <CheckCircle2 size={60} />
-                                </div>
-                            )}
+                    {selectedLocker.floor && (
+                        <div className="summary-item">
+                            <MapPin size={16} />
+                            <span>{selectedLocker.floor}</span>
                         </div>
+                    )}
+                    <div className="summary-item">
+                        <IoMdPricetag size={18} style={{ color: 'var(--primary)' }} />
+                        <span>{rentalDetails.contract}</span>
                     </div>
-
-                    <p className="qr-instruction">Aponte a câmera do seu aplicativo de banco para o QR Code acima</p>
-
-                    <div className="pix-copy-area">
-                        <label>Código Copia e Cola</label>
-                        <div className="copy-input-group">
-                            <input type="text" value={status === 'generating' ? 'Gerando código...' : (qrCodeData?.brCode || 'Erro ao carregar')} readOnly />
-                            <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating' || !qrCodeData?.brCode}>
-                                {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-                                <span>{copied ? 'Copiado' : 'Copiar'}</span>
-                            </button>
-                        </div>
-                        {errorMsg && <p className="error-message p-sm" style={{color: 'var(--red-500)', marginTop: 8}}>{errorMsg}</p>}
+                    <div className="summary-item price-badge">
+                        <span>{rentalDetails.price}</span>
                     </div>
                 </section>
+
+                <main className="payment-main-content">
+                    <section className="qr-card card">
+                        <div className="card-top">
+                            <div className={`status-pill ${status}`}>
+                                {status === 'generating' && <><RefreshCcw size={14} className="animate-spin" /> <span>Gerando Pix...</span></>}
+                                {status === 'pending' && <><Clock size={14} /> <span>Aguardando...</span></>}
+                                {status === 'verifying' && <><RefreshCcw size={14} className="animate-spin" /> <span>Analisando Confirmação...</span></>}
+                                {status === 'confirmed' && <><CheckCircle2 size={14} /> <span>Pago</span></>}
+                                {status === 'error' && <><XCircle size={14} /> <span>Erro</span></>}
+                            </div>
+                            <div className="timer-text">
+                                Expira em: <strong>30:00</strong>
+                            </div>
+                        </div>
+
+                        <div className="qr-main-container">
+                            <div className={`qr-frame ${status === 'confirmed' ? 'paid' : ''}`}>
+                                {status === 'generating' ? (
+                                    <div className="qr-skeleton animate-pulse" style={{backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12}}></div>
+                                ) : status === 'error' ? (
+                                    <XCircle size={80} color="var(--red-500)" />
+                                ) : (
+                                    <img src={qrCodeData?.qrCodeImage} alt="QR Code Pix" style={{borderRadius: 8}} />
+                                )}
+                                
+                                {status === 'confirmed' && (
+                                    <div className="success-overlay">
+                                        <CheckCircle2 size={60} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <p className="qr-instruction">Aponte a câmera do seu aplicativo de banco para o QR Code acima</p>
+
+                        <div className="pix-copy-area">
+                            <label>Código Copia e Cola</label>
+                            <div className="copy-input-group">
+                                <input type="text" value={status === 'generating' ? 'Gerando código...' : (qrCodeData?.brCode || 'Erro ao carregar')} readOnly />
+                                <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating' || !qrCodeData?.brCode}>
+                                    {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+                                    <span>{copied ? 'Copiado' : 'Copiar'}</span>
+                                </button>
+                            </div>
+                            {errorMsg && <p className="error-message p-sm" style={{color: 'var(--red-500)', marginTop: 8}}>{errorMsg}</p>}
+                        </div>
+                    </section>
+                </main>
 
                 <aside className="payment-sidebar">
                     <div className="order-summary card">
@@ -238,7 +263,7 @@ const PixPayment = ({ user }) => {
                                 <span>{isExchange ? `Novo Armário #${selectedLocker.id}` : `Armário #${rentalDetails.id}`}</span>
                             </div>
                             <div className="order-row">
-                                <img src="/contract.png" alt="" className="nav-img-icon" />
+                                <IoMdPricetag size={20} style={{ color: 'var(--primary)' }} />
                                 <span>{rentalDetails.contract}</span>
                             </div>
                         </div>

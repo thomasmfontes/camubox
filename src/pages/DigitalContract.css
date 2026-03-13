@@ -11,6 +11,10 @@
     gap: 1.25rem;
 }
 
+.contract-main-content {
+    width: 100%;
+}
+
 /* Compact Rental Summary */
 .compact-rental-summary {
     display: flex;
@@ -80,10 +84,7 @@
 }
 
 .contract-icon-img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    filter: brightness(0) saturate(100%) invert(35%) sepia(87%) saturate(351%) hue-rotate(114deg) brightness(95%) contrast(92%);
+    color: var(--primary);
 }
 
 .contract-view-body {
@@ -194,7 +195,7 @@
 
 @media (max-width: 768px) {
     .digital-contract.premium-theme {
-        padding: 1rem;
+        padding: 0;
     }
 
     .compact-rental-summary {
