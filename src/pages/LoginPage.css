@@ -215,7 +215,7 @@
 
 .login-submit-btn {
     width: 100%;
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #fff;
     border: none;
     border-radius: 14px;
@@ -228,9 +228,16 @@
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    transition: all 0.25s;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     letter-spacing: -0.01em;
     -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.login-submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.3);
 }
 
 .login-submit-btn:active:not(:disabled) {
@@ -244,23 +251,25 @@
 
 /* ========== BACK BUTTON ========== */
 .back-btn {
-    background: none;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    color: #475569;
-    font-size: 0.83rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 0.85rem;
     font-weight: 600;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
-    padding: 0.6rem 1.25rem;
-    transition: all 0.2s;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.2s ease;
     margin-bottom: 1.25rem;
     width: 100%;
     -webkit-tap-highlight-color: transparent;
 }
 
-.back-btn:active {
-    opacity: 0.7;
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #f1f5f9;
 }
 
 /* ========== ERROR MESSAGE ========== */
