@@ -205,10 +205,6 @@ const UserMyLockers = ({ user }) => {
                                                 <span>Trocar armário</span>
                                             </button>
                                         )}
-                                        <button className="btn-action-primary">
-                                            <RefreshCcw size={16} />
-                                            <span>{locker.isExpired ? 'Renovar' : 'Estender'}</span>
-                                        </button>
                                     </div>
 
                                     {locker.isExpired && (
