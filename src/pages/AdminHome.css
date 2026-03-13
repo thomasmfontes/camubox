@@ -131,7 +131,7 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .stats-grid-6 {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .mini-stat-card {
@@ -140,8 +140,12 @@
         padding: 1.25rem;
     }
 
+    .actions-grid-simple {
+        grid-template-columns: 1fr;
+    }
+
     .action-tile-large {
-        padding: 1rem;
+        padding: 1.15rem;
         gap: 1rem;
     }
 
@@ -157,5 +161,16 @@
 
     .action-tile-large span {
         font-size: 1rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .stats-grid-6 {
+        grid-template-columns: 1fr;
+    }
+    
+    .mini-stat-card {
+        flex-direction: row;
+        align-items: center;
     }
 }
