@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './styles/global.css'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { registerSW } from 'virtual:pwa-register'
+
+// Register PWA service worker
+registerSW({ immediate: true })
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
