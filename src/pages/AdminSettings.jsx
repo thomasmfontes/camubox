@@ -8,8 +8,7 @@ import {
     Settings as SettingsIcon,
     Plus,
     Trash2,
-    AlertCircle,
-    Bell
+    AlertCircle
 } from 'lucide-react';
 import { authService } from '../services/supabaseClient';
 import './AdminSettings.css';
@@ -54,44 +53,6 @@ const AdminSettings = () => {
             alert(`Configurações de ${sectionLabel} salvas com sucesso!`);
         } else {
             alert(`Erro ao salvar: ${error.message}`);
-        }
-        setIsLoading(false);
-    };
-
-    const handleTestPush = async () => {
-        setIsLoading(true);
-        try {
-            // Tenta obter a sessão de forma mais robusta
-            const { data: sessionData, error: sessionError } = await authService.getSession();
-            const session = sessionData?.session;
-
-            if (sessionError) throw new Error(`Erro ao buscar sessão: ${sessionError.message}`);
-
-            if (!session) {
-                // Fallback: Tenta obter o usuário direto se a sessão estiver "escondida"
-                const { data: userData } = await authService.getCurrentUser();
-                if (userData?.user) {
-                    throw new Error('Usuário detectado, mas sessão expirou. Por favor, saia e entre novamente para renovar o acesso.');
-                }
-                throw new Error('Sessão não encontrada. Certifique-se de estar logado.');
-            }
-
-            const response = await fetch('/api/fcm/send-test', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert('🚀 Sucesso! A notificação foi enviada para este dispositivo.');
-            } else {
-                alert(`❌ Erro do Servidor: ${result.error || 'Falha ao enviar'}`);
-            }
-        } catch (err) {
-            alert(`⚠️ Atenção: ${err.message}`);
         }
         setIsLoading(false);
     };
@@ -270,29 +231,6 @@ const AdminSettings = () => {
                         </div>
                     </section>
 
-                    {/* CARD 5: Notificações de Teste */}
-                    <section className="settings-modern-card glass">
-                        <div className="card-header-premium">
-                            <div className="header-title-bundle">
-                                <span className="icon-wrapper primary pulse">
-                                    <Bell size={20} />
-                                </span>
-                                <h3>Testar Notificações</h3>
-                            </div>
-                        </div>
-                        <div className="card-content-premium">
-                            <p className="settings-helper-text">
-                                Verifique se as notificações push estão chegando corretamente neste dispositivo.
-                            </p>
-                            <button className="premium-test-btn" onClick={handleTestPush} disabled={isLoading}>
-                                <Bell size={18} />
-                                <span>Enviar Notificação de Teste</span>
-                            </button>
-                            <span className="test-badge-info">
-                                Certifique-se de permitir notificações no navegador.
-                            </span>
-                        </div>
-                    </section>
 
                     {/* CARD 5: Contrato */}
                     <section className="settings-modern-card glass full-width">
