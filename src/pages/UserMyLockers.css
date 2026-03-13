@@ -365,6 +365,9 @@
 
 /* Password Modal Enhancements */
 .password-display {
+    min-height: 160px;
+    cursor: pointer;
+    transition: all 0.2s;
     padding: 2.5rem 1.5rem;
     background: #f8fafc;
     border-radius: 20px;
@@ -373,7 +376,25 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 160px;
+}
+
+.password-display:hover {
+    background: #f1f5f9;
+    border-color: var(--primary);
+}
+
+.password-view-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-hint-click {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 600;
+    opacity: 0.7;
 }
 
 .password-edit-container {
@@ -428,12 +449,13 @@
     transition: all 0.2s;
 }
 
-.btn-edit {
+.btn-toggle-eye {
     background: #f1f5f9;
-    color: var(--text-main);
+    color: var(--primary);
+    flex: 1;
 }
 
-.btn-edit:hover { background: #e2e8f0; }
+.btn-toggle-eye:hover { background: #e2e8f0; }
 
 .btn-save {
     background: var(--primary);

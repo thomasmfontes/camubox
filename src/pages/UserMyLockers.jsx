@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Clock, RefreshCcw, MapPin, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
+import { Eye, EyeOff, Clock, RefreshCcw, MapPin, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
@@ -11,6 +11,7 @@ const UserMyLockers = ({ user }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [viewPassword, setViewPassword] = useState(null);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [newPassValue, setNewPassValue] = useState('');
     const [isSavingPass, setIsSavingPass] = useState(false);
 
@@ -266,7 +267,7 @@ const UserMyLockers = ({ user }) => {
                                 <p>Armário #{viewPassword.lockerNumber}</p>
                             </div>
                             
-                            <div className="password-display">
+                            <div className="password-display" onClick={() => !isEditingPassword && setIsEditingPassword(true)}>
                                 {isEditingPassword ? (
                                     <div className="password-edit-container">
                                         <input 
@@ -280,7 +281,12 @@ const UserMyLockers = ({ user }) => {
                                         <p className="edit-hint">Anote sua nova combinação acima.</p>
                                     </div>
                                 ) : (
-                                    <span className="p-code">{viewPassword.password}</span>
+                                    <div className="password-view-wrapper">
+                                        <span className="p-code">
+                                            {showPassword ? viewPassword.password : '••••'}
+                                        </span>
+                                        <p className="edit-hint-click">Clique para editar</p>
+                                    </div>
                                 )}
                             </div>
 
@@ -297,9 +303,9 @@ const UserMyLockers = ({ user }) => {
                                     </div>
                                 ) : (
                                     <div className="footer-actions">
-                                        <button className="btn-edit" onClick={() => setIsEditingPassword(true)}>
-                                            <Edit3 size={18} />
-                                            Editar Combinação
+                                        <button className="btn-toggle-eye" onClick={() => setShowPassword(!showPassword)}>
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? 'Ocultar' : 'Visualizar'}
                                         </button>
                                         <button className="btn-close-modal" onClick={() => setViewPassword(null)}>
                                             Fechar
