@@ -6,6 +6,7 @@ const InstallPWA = () => {
   const [supportsPWA, setSupportsPWA] = useState(false);
   const [promptInstall, setPromptInstall] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -26,12 +27,21 @@ const InstallPWA = () => {
 
     // Also check if already installed
     window.addEventListener('appinstalled', () => {
-      setIsVisible(false);
+      handleClose();
       setSupportsPWA(false);
     });
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    // Let the slideDown animation play (0.5s)
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsClosing(false);
+    }, 500);
+  };
 
   const onClickInstall = async () => {
     if (!promptInstall) return;
@@ -40,19 +50,19 @@ const InstallPWA = () => {
     const { outcome } = await promptInstall.userChoice;
     
     if (outcome === 'accepted') {
-      setIsVisible(false);
+      handleClose();
     }
   };
 
   const onDismiss = () => {
-    setIsVisible(false);
     sessionStorage.setItem('pwa_banner_dismissed', 'true');
+    handleClose();
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className="pwa-install-banner">
+    <div className={`pwa-install-banner ${isClosing ? 'closing' : ''}`}>
       <div className="pwa-content">
         <div className="pwa-icon-box">
           <Smartphone size={24} className="pwa-icon" />
