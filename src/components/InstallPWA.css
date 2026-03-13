@@ -118,23 +118,6 @@
 .btn-pwa-dismiss:hover { background: #e2e8f0; }
 .btn-pwa-install:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-.pwa-close-x {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-}
-
-.pwa-close-x:hover { opacity: 1; }
-
 /* Desktop Adjustment */
 @media (min-width: 768px) {
   .pwa-install-banner {
@@ -150,11 +133,5 @@
   .pwa-actions {
     width: 300px;
     flex-shrink: 0;
-  }
-
-  .pwa-close-x {
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
   }
 }

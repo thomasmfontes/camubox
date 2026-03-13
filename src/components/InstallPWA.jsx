@@ -72,9 +72,6 @@ const InstallPWA = () => {
           Instalar
         </button>
       </div>
-      <button className="pwa-close-x" onClick={onDismiss}>
-        <X size={16} />
-      </button>
     </div>
   );
 };
