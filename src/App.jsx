@@ -33,17 +33,13 @@ function App() {
   useEffect(() => {
     // 1. Initial Session Check
     const checkSession = async () => {
-      console.log('[App] Checking session...');
       if (!supabase) {
-        console.warn('[App] Supabase client not initialized');
         setIsLoadingAuth(false);
         return;
       }
 
       const { data: { session } } = await authService.getSession();
-      console.log('[App] Session check result:', session ? 'Session found' : 'No session');
       if (session?.user) {
-        console.log('[App] Found user in session:', session.user.email);
         await syncUserSession(session.user);
       }
       setIsLoadingAuth(false);
@@ -68,34 +64,26 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log('[App] FCM Trigger Check:', user?.email ? `Email found: ${user.email}` : 'No user email');
     if (user?.email) {
-      console.log('[App] Starting FCM registration process...');
       handleFCMRegistration(user.email);
     }
   }, [user?.email]);
 
   const handleFCMRegistration = async (email) => {
-    console.log('[App] handleFCMRegistration called for:', email);
     try {
       const token = await requestFirebaseToken();
-      console.log('[App] requestFirebaseToken output:', token ? 'Token exists' : 'Token is NULL');
       if (token && email) {
-        console.log('[App] Sending token to database via API...');
         await dbService.fcmTokens.upsert(email, token);
-        console.log('[App] Token sync completed');
       }
     } catch (err) {
-      console.error('[App] Critical FCM Error:', err);
+      console.error('[App] FCM Registration error:', err);
     }
   };
 
   const syncUserSession = async (supabaseUser) => {
-    console.log('[App] Syncing user session for:', supabaseUser.email);
     try {
       // Try to find user in our t_usuario table
       const { data: dbUser } = await dbService.users.getByEmail(supabaseUser.email);
-      console.log('[App] DB user search result:', dbUser ? 'Found in t_usuario' : 'Not found in t_usuario');
       
       const userData = {
         uid: supabaseUser.id, // Auth UUID para FCM e referências nativas
@@ -106,7 +94,6 @@ function App() {
         isOAuth: true
       };
 
-      console.log('[App] Setting user state with UID:', userData.uid);
       setUser(userData);
       localStorage.setItem('camubox_user', JSON.stringify(userData));
     } catch (err) {
