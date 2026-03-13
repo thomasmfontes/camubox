@@ -207,7 +207,7 @@ const LoginPage = ({ onLogin }) => {
             {/* LEFT PANEL */}
             <div className="login-visual">
                 <div className="visual-content">
-                    <img src="/logo-CAMU.jpeg" alt="CAMU Logo" className="visual-logo-img" />
+                    <img src="/pwa-icon.png" alt="CAMU Logo" className="visual-logo-img" />
                     <h1>Gestão inteligente de armários acadêmicos.</h1>
                     <p>A plataforma completa para alunos e administração da CAMU.</p>
                     <div className="feature-list">
@@ -304,7 +304,7 @@ const LoginPage = ({ onLogin }) => {
                         /* PASSO 1: Login Google */
                         <>
                             <div className="form-header">
-                                <img src="/logo-CAMU.jpeg" alt="" className="card-logo-img" />
+                                <img src="/pwa-icon.png" alt="" className="card-logo-img" />
                                 <h2>Bem-vindo ao CAMUBOX</h2>
                                 <p>Acesse o portal com sua conta digital</p>
                             </div>
