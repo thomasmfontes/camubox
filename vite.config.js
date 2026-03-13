@@ -11,7 +11,7 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['lockers.png', 'logo-CAMU.jpeg'],
+      includeAssets: ['lockers.png', 'pwa-icon.png'],
       manifest: {
         name: 'CAMUBOX',
         short_name: 'CAMUBOX',
@@ -22,19 +22,19 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/logo-CAMU.jpeg',
+            src: '/pwa-icon.png',
             sizes: '192x192',
-            type: 'image/jpeg'
+            type: 'image/png'
           },
           {
-            src: '/logo-CAMU.jpeg',
+            src: '/pwa-icon.png',
             sizes: '512x512',
-            type: 'image/jpeg'
+            type: 'image/png'
           },
           {
-            src: '/logo-CAMU.jpeg',
+            src: '/pwa-icon.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]
