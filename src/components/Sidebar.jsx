@@ -18,24 +18,6 @@ const Sidebar = ({ user, role = 'user', onLogout, isOpen, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Lock body scroll when mobile menu is open
-    useEffect(() => {
-        const html = document.documentElement;
-        const body = document.body;
-
-        if (isOpen) {
-            html.classList.add('no-scroll');
-            body.classList.add('no-scroll');
-        } else {
-            html.classList.remove('no-scroll');
-            body.classList.remove('no-scroll');
-        }
-
-        return () => {
-            html.classList.remove('no-scroll');
-            body.classList.remove('no-scroll');
-        };
-    }, [isOpen]);
 
     const handleLogoutClick = () => {
         if (onLogout) onLogout();
