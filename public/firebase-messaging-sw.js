@@ -12,20 +12,35 @@ const messaging = firebase.messaging();
 
 // Este evento dispara quando o app está em BACKGROUND ou FECHADO
 messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Mensagem em background recebida:', payload);
+  console.log('[SW] Mensagem recebida:', payload);
   
-  if (!payload.notification) {
-    console.warn('[SW] Mensagem recebida sem payload de notificação');
-    return;
-  }
-
-  const notificationTitle = payload.notification.title || 'CAMUBOX';
+  // Extrair dados com fallbacks
+  const title = payload.notification?.title || payload.data?.title || 'CAMUBOX';
+  const body = payload.notification?.body || payload.data?.body || 'Você tem uma nova mensagem.';
+  
   const notificationOptions = {
-    body: payload.notification.body,
+    body: body,
     icon: '/pwa-icon.png',
     badge: '/pwa-icon.png',
-    data: payload.data // Passa dados extras
+    data: payload.data,
+    tag: 'camubox-notification' // Evita duplicatas
   };
 
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  // Garante que uma notificação seja SEMPRE exibida (evita mensagem genérica do Chrome)
+  return self.registration.showNotification(title, notificationOptions);
+});
+
+// Adicionar listener de clique na notificação
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.link || '/dashboard/lockers';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(urlToOpen);
+    })
+  );
 });
