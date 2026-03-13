@@ -228,6 +228,17 @@ export const dbService = {
                 .eq('id_usuario', id);
         }
     },
+    fcmTokens: {
+        upsert: async (userId, token) => {
+            if (isMockMode) {
+                console.log('Mock: Upserting FCM token', { userId, token });
+                return { data: null, error: null };
+            }
+            return await supabase
+                .from('t_fcm_tokens')
+                .upsert({ user_id: userId, token, updated_at: new Date().toISOString() }, { onConflict: 'token' });
+        }
+    },
 
     // RENTALS
     rentals: {

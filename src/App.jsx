@@ -16,6 +16,7 @@ import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
 import InstallPWA from './components/InstallPWA';
 import { motion, AnimatePresence } from 'framer-motion';
+import { requestFirebaseToken } from './services/firebase';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -61,6 +62,23 @@ function App() {
       subscription?.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (user?.id_usuario) {
+      handleFCMRegistration(user.id_usuario);
+    }
+  }, [user?.id_usuario]);
+
+  const handleFCMRegistration = async (userId) => {
+    try {
+      const token = await requestFirebaseToken();
+      if (token) {
+        await dbService.fcmTokens.upsert(userId, token);
+      }
+    } catch (err) {
+      console.error('FCM Registration error:', err);
+    }
+  };
 
   const syncUserSession = async (supabaseUser) => {
     try {
