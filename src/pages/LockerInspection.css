@@ -3,9 +3,6 @@
     padding: 1rem;
     width: 100%;
     min-height: 100vh;
-    background-color: #f1f5f9;
-    /* Higher contrast background */
-    animation: fadeIn 0.3s ease-out;
 }
 
 @media (min-width: 1024px) {
@@ -14,22 +11,6 @@
     }
 }
 
-.locker-inspection-page .page-header {
-    margin-bottom: 1.5rem;
-}
-
-.locker-inspection-page .page-header h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #0d3b66;
-    margin-bottom: 0.25rem;
-    letter-spacing: -0.01em;
-}
-
-.locker-inspection-page .page-header p {
-    font-size: 0.9rem;
-    color: #475569;
-}
 
 /* Inspection Table / List */
 .inspection-container {
@@ -381,15 +362,7 @@
 }
 
 /* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
 
-    to {
-        opacity: 1;
-    }
-}
 
 .spinner {
     animation: spin 1s linear infinite;

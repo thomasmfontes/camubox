@@ -51,11 +51,10 @@ const ManualRental = () => {
     return (
         <div className="manual-rental-page">
             <header className="page-header">
-                <button className="back-btn" onClick={() => navigate(-1)}>
+                <button className="back-btn-premium" onClick={() => navigate(-1)}>
                     <ChevronLeft size={20} />
-                    <span>Voltar</span>
                 </button>
-                <div>
+                <div className="header-text">
                     <h1>Registrar Locação Manual</h1>
                     <p>Crie uma nova locação diretamente no sistema para alunos ou entidades.</p>
                 </div>

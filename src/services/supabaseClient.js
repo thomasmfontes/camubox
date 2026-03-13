@@ -13,6 +13,43 @@ export const supabase = isMockMode ? null : createClient(supabaseUrl, supabaseAn
  * This abstracts the database layer and allows easy swapping between real and mock data.
  */
 export const dbService = {
+    // SYSTEM CONFIGURATION
+    settings: {
+        get: async () => {
+            if (isMockMode) {
+                return {
+                    data: {
+                        id_configuracao: 1,
+                        vl_pequeno_semestral: 70,
+                        vl_pequeno_anual: 100,
+                        vl_grande_semestral: 100,
+                        vl_grande_anual: 150,
+                        vl_taxa_troca: 20,
+                        nr_dias_aviso_vencimento: 7,
+                        is_exige_vistoria: true,
+                        is_permite_gratuidade: true,
+                        nm_texto_contrato: 'Termos de uso padrão...',
+                        nm_woovi_api_key: 'sk_mock_123',
+                        nm_woovi_webhook_url: 'https://camubox.com/api/webhook',
+                        dc_woovi_ambiente: 'SANDBOX'
+                    },
+                    error: null
+                };
+            }
+            return await supabase.from('t_configuracao').select('*').eq('id_configuracao', 1).single();
+        },
+        update: async (settingsData) => {
+            if (isMockMode) {
+                console.log('Mock: Updating configuration', settingsData);
+                return { data: settingsData, error: null };
+            }
+            return await supabase
+                .from('t_configuracao')
+                .update({ ...settingsData, dt_atualizacao: new Date().toISOString() })
+                .eq('id_configuracao', 1);
+        }
+    },
+
     // LOBBY / LOCKERS
     lockers: {
         getAll: async () => {

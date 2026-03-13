@@ -3,35 +3,17 @@
     flex-direction: column;
     gap: 2rem;
     padding: 1rem;
-    /* Mobile first */
     width: 100%;
     min-height: 100vh;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
     .admin-home.premium-theme {
-        padding: 2.5rem;
+        padding: 2rem;
     }
 }
 
 /* Page Header */
-.admin-home .page-header {
-    margin-bottom: 0.5rem;
-}
-
-.admin-home .page-header h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 0.25rem;
-}
-
-.admin-home .page-header p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
 
 /* Stats Cards Section */
 .stats-grid-6 {

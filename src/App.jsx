@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
@@ -15,11 +15,13 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
 import InstallPWA from './components/InstallPWA';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
 
 function App() {
+  const location = useLocation();
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('camubox_user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -92,8 +94,8 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
+    <>
+      <Routes location={location} key={location.pathname.split('/')[1] === 'dashboard' ? 'dashboard-root' : location.pathname}>
         <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos-de-uso" element={<TermsOfService />} />
@@ -104,21 +106,31 @@ function App() {
           element={
             user ? (
               <MainLayout user={user} onLogout={handleLogout}>
-                <Routes>
-                  <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
-                  <Route path="/admin" element={<AdminHome />} />
-                  <Route path="/admin/lockers" element={<LockerManagement />} />
-                  <Route path="/admin/contracts" element={<AdminContracts />} />
-                  <Route path="/admin/inspections" element={<LockerInspection />} />
-                  <Route path="/admin/settings" element={<AdminSettings />} />
-                  <Route path="/lockers" element={<UserLockerSelection />} />
-                  <Route path="/checkout/contract" element={<DigitalContract />} />
-                  <Route path="/checkout/payment" element={<PixPayment user={user} />} />
-                  <Route path="/my-locker" element={<UserMyLockers user={user} />} />
-                  <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
-                  {/* Add other sub-routes here as they are implemented */}
-                  <Route path="*" element={<div>Página em construção...</div>} />
-                </Routes>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={location.pathname}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <Routes location={location}>
+                      <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
+                      <Route path="/admin" element={<AdminHome />} />
+                      <Route path="/admin/lockers" element={<LockerManagement />} />
+                      <Route path="/admin/contracts" element={<AdminContracts />} />
+                      <Route path="/admin/inspections" element={<LockerInspection />} />
+                      <Route path="/admin/settings" element={<AdminSettings />} />
+                      <Route path="/lockers" element={<UserLockerSelection />} />
+                      <Route path="/checkout/contract" element={<DigitalContract />} />
+                      <Route path="/checkout/payment" element={<PixPayment user={user} />} />
+                      <Route path="/my-locker" element={<UserMyLockers user={user} />} />
+                      <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
+                      <Route path="*" element={<div>Página em construção...</div>} />
+                    </Routes>
+                  </motion.div>
+                </AnimatePresence>
               </MainLayout>
             ) : (
               <Navigate to="/" />
@@ -127,7 +139,7 @@ function App() {
         />
       </Routes>
       <InstallPWA />
-    </Router>
+    </>
   );
 }
 

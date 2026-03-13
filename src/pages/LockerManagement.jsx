@@ -226,7 +226,7 @@ const LockerManagement = () => {
     return (
         <div className="user-selection premium-theme">
             <header className="page-header">
-                <div>
+                <div className="header-text">
                     <h1>Armários Disponíveis</h1>
                     <p>Encontre a melhor unidade para seu semestre.</p>
                 </div>
@@ -293,26 +293,19 @@ const LockerManagement = () => {
                         <p>Mapeando estrutura...</p>
                     </div>
                 ) : (
-                    <motion.div 
-                        className="locker-wall"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
+                    <div className="locker-wall">
                         {displayLockers.length > 0 ? (
                             displayLockers.map((locker) => (
-                                <motion.button
+                                <button
                                     key={locker.dbId}
                                     className={`locker-unit ${getStatusClass(locker.status)} ${selectedLocker?.dbId === locker.dbId ? 'active' : ''}`}
                                     onClick={() => handleLockerClick(locker)}
-                                    whileHover={{ scale: 1.1, zIndex: 10 }}
-                                    whileTap={{ scale: 0.95 }}
                                 >
                                     <span className="unit-number">{locker.id}</span>
                                     {locker.status === 'em-uso' && <Lock size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
-                                </motion.button>
+                                </button>
                             ))
                         ) : (
                             <div className="empty-state-premium">
@@ -334,26 +327,18 @@ const LockerManagement = () => {
                                 </div>
                             </div>
                         )}
-                    </motion.div>
+                    </div>
                 )}
             </div>
 
             {/* Selection Drawer (Admin Mode) */}
-            <AnimatePresence>
                 {selectedLocker && (
-                    <motion.div 
+                    <div 
                         className="selection-drawer-overlay open"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
                         onClick={() => setSelectedLocker(null)}
                     >
-                        <motion.div 
+                        <div 
                             className="selection-drawer"
-                            initial={{ y: window.innerWidth <= 768 ? '100%' : 0, x: window.innerWidth > 768 ? '100%' : 0 }}
-                            animate={{ y: 0, x: 0 }}
-                            exit={{ y: window.innerWidth <= 768 ? '100%' : 0, x: window.innerWidth > 768 ? '100%' : 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             onClick={e => e.stopPropagation()}
                         >
                             <header className="drawer-header">
@@ -372,11 +357,7 @@ const LockerManagement = () => {
                                 </div>
 
                                 {isGratuityMode ? (
-                                    <motion.div 
-                                        className="rental-form-compact"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                    >
+                                    <div className="rental-form-compact">
                                         <h3 className="section-title">Conceder Gratuidade</h3>
                                         <div className="form-group-compact">
                                             <label>Buscar Aluno</label>
@@ -412,7 +393,7 @@ const LockerManagement = () => {
                                                 {isSaving ? <Loader2 size={18} className="spinner" /> : 'Confirmar Gratuidade'}
                                             </button>
                                         </footer>
-                                    </motion.div>
+                                    </div>
                                 ) : (
                                     <>
                                         <div className="drawer-section">
@@ -490,10 +471,9 @@ const LockerManagement = () => {
                                     </>
                                 )}
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };

@@ -111,11 +111,7 @@ const UserMyLockers = ({ user }) => {
 
     return (
         <div className="my-lockers-container premium-theme">
-            <motion.header
-                className="page-header"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
+            <header className="page-header">
                 <div className="header-text">
                     <h1>Meus Armários</h1>
                     <p>Olá, <strong>{user?.name?.split(' ')[0] || 'Aluno'}</strong>! Você possui {activeCount} {activeCount === 1 ? 'armário ativo' : 'armários ativos'}.</p>
@@ -126,20 +122,15 @@ const UserMyLockers = ({ user }) => {
                         <span>{myLockers.length} {myLockers.length === 1 ? 'Locação' : 'Locações'}</span>
                     </div>
                 </div>
-            </motion.header>
+            </header>
 
             <div className="lockers-section">
-                <AnimatePresence mode="popLayout">
                     {myLockers.length > 0 ? (
                         <div className="lockers-matrix">
                             {myLockers.map((locker, index) => (
-                                <motion.div
+                                <div
                                     key={locker.id}
                                     className={`locker-card-premium ${locker.isExpired ? 'expired' : ''}`}
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    whileHover={{ y: -5 }}
                                 >
                                     <div className="card-glass-effect" />
 
@@ -208,14 +199,11 @@ const UserMyLockers = ({ user }) => {
                                         )}
                                     </div>
 
-                                </motion.div>
+                                </div>
                             ))}
 
-                            <motion.div
+                            <div
                                 className="add-locker-card-premium"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                whileHover={{ scale: 1.02 }}
                                 onClick={() => navigate('/dashboard/lockers')}
                             >
                                 <div className="add-content">
@@ -225,15 +213,10 @@ const UserMyLockers = ({ user }) => {
                                     <h3>Novo Aluguel</h3>
                                     <ChevronRight size={20} className="arrow" />
                                 </div>
-                            </motion.div>
+                            </div>
                         </div>
                     ) : (
-                        <motion.div
-                            className="empty-lockers-premium"
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4 }}
-                        >
+                        <div className="empty-lockers-premium">
                             <div className="empty-illustration">
                                 <div className="empty-icon-ring">
                                     <span className="empty-emoji">🔒</span>
@@ -245,16 +228,15 @@ const UserMyLockers = ({ user }) => {
                                 Ver Armários Disponíveis
                                 <ChevronRight size={18} />
                             </button>
-                        </motion.div>
+                        </div>
                     )}
-                </AnimatePresence>
             </div>
 
             {/* Password Modal */}
-            <AnimatePresence>
+            {/* Password Modal */}
                 {viewPassword && (
                     <div className="modal-overlay" onClick={() => setViewPassword(null)}>
-                        <motion.div
+                        <div
                             className="password-modal"
                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -313,10 +295,9 @@ const UserMyLockers = ({ user }) => {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };

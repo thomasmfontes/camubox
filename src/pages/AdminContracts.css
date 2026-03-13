@@ -1,29 +1,11 @@
 .admin-contracts.premium-theme {
     width: 100%;
-    animation: fadeIn 0.4s ease-out;
     padding: 1rem;
 }
 
 /* Page Header */
 .admin-contracts .page-header {
-    margin-bottom: 2rem;
-    display: flex;
-    flex-direction: column;
     gap: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.admin-contracts .page-header h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 0.25rem;
-}
-
-.admin-contracts .page-header p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
 }
 
 .secondary-btn {
@@ -525,7 +507,6 @@
     border: 2px dashed #eee;
     border-radius: 24px;
     margin: 1rem 0;
-    animation: fadeIn 0.4s ease-out;
 }
 
 .empty-state-icon {
@@ -580,7 +561,7 @@
 }
 
 @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 
 @media (max-width: 768px) {
     .admin-contracts.premium-theme { padding: 1rem; }

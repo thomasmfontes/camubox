@@ -116,36 +116,16 @@ const AdminHome = () => {
     return (
         <div className="admin-home premium-theme">
             <header className="page-header">
-                <div>
+                <div className="header-text">
                     <h1>Visão Geral</h1>
                     <p>Status atual do sistema CAMUBOX.</p>
                 </div>
             </header>
 
             {/* Stats Cards Row */}
-            <motion.div 
-                className="stats-grid-6"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                    hidden: { opacity: 0 },
-                    visible: {
-                        opacity: 1,
-                        transition: { staggerChildren: 0.1 }
-                    }
-                }}
-            >
+            <div className="stats-grid-6">
                 {stats.map((stat, i) => (
-                    <motion.div 
-                        key={i} 
-                        className="mini-stat-card card"
-                        variants={{
-                            hidden: { y: 20, opacity: 0 },
-                            visible: { y: 0, opacity: 1 }
-                        }}
-                        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                        whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                    >
+                    <div key={i} className="mini-stat-card card">
                         <div className="mini-stat-icon" style={{ backgroundColor: stat.color + '10', color: stat.color }}>
                             {stat.icon}
                         </div>
@@ -159,16 +139,11 @@ const AdminHome = () => {
                                 )}
                             </h3>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
-            </motion.div>
+            </div>
 
-            <motion.section 
-                className="dashboard-section card"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, type: 'spring', damping: 25 }}
-            >
+            <section className="dashboard-section card">
                 <h3 className="section-title">Ações Rápidas</h3>
                 <div className="actions-grid-simple">
                     {quickActions.map((action, i) => (
@@ -184,7 +159,7 @@ const AdminHome = () => {
                         </button>
                     ))}
                 </div>
-            </motion.section>
+            </section>
         </div>
     );
 };

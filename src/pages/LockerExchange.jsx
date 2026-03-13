@@ -83,7 +83,7 @@ const LockerExchange = () => {
     return (
         <div className="locker-exchange-page">
             <header className="page-header">
-                <div>
+                <div className="header-text">
                     <h1>Gestão de Trocas</h1>
                     <p>Gerencie solicitações de troca de armários e cobrança de taxas.</p>
                 </div>

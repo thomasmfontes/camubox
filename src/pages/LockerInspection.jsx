@@ -105,7 +105,7 @@ const LockerInspection = () => {
     return (
         <div className="locker-inspection-page premium-theme">
             <header className="page-header">
-                <div>
+                <div className="header-text">
                     <h1>{activeTab === 'vistoria' ? 'Vistorias' : 'Manutenção'}</h1>
                     <p>
                         {activeTab === 'vistoria' 

@@ -173,7 +173,7 @@ const UserLockerSelection = () => {
     return (
         <div className="user-selection premium-theme">
             <header className="page-header">
-                <div>
+                <div className="header-text">
                     <h1>{exchangeFor ? `Trocar para #${exchangeSize}` : 'Armários Disponíveis'}</h1>
                     <p>{exchangeFor ? `Selecione um novo armário ${exchangeSize.toLowerCase()} para realizar a troca.` : 'Encontre a melhor unidade para seu semestre.'}</p>
                 </div>

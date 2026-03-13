@@ -328,12 +328,8 @@ const AdminContracts = () => {
 
     return (
         <div className="admin-contracts premium-theme">
-            <motion.header 
-                className="page-header"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                <div>
+            <header className="page-header">
+                <div className="header-text">
                     <h1>Contratos de Armários</h1>
                     <p>Gerenciamento centralizado de todas as locações do sistema.</p>
                 </div>
@@ -341,15 +337,10 @@ const AdminContracts = () => {
                     <Download size={18} />
                     Exportar Excel
                 </button>
-            </motion.header>
+            </header>
 
             {/* Filter Bar */}
-            <motion.div 
-                className="filter-bar-premium"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-            >
+            <div className="filter-bar-premium">
                 <div className="filter-group search">
                     <span className="filter-icon"><Search size={20} /></span>
                     <input
@@ -378,7 +369,7 @@ const AdminContracts = () => {
                         <option value="GRATUIDADE">Gratuidade</option>
                     </select>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Error State */}
             {error && (
@@ -390,12 +381,7 @@ const AdminContracts = () => {
             )}
 
             {/* Data Area */}
-            <motion.div 
-                className="data-container"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-            >
+            <div className="data-container">
                 {isLoading ? (
                     <div className="loading-state">
                         <Loader2 className="spinner" size={40} />
@@ -412,15 +398,12 @@ const AdminContracts = () => {
                             <div className="col-status">Status</div>
                         </div>
 
-                        <AnimatePresence>
+                        <div className="contracts-list-entries">
                             {filteredRentals.map((rental) => (
-                                <motion.div 
+                                <div 
                                     key={rental.id} 
                                     className="contract-card"
                                     onClick={() => openDetails(rental)}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
                                 >
                                     <div className="card-main-info">
                                         <div className="locker-info">
@@ -448,9 +431,9 @@ const AdminContracts = () => {
                                             {getStatusBadge(rental.status)}
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
-                        </AnimatePresence>
+                        </div>
                     </div>
                 )}
                 
@@ -468,19 +451,14 @@ const AdminContracts = () => {
                         </div>
                     </div>
                 )}
-            </motion.div>
+            </div>
 
             {/* Details Side Panel */}
-            <AnimatePresence>
                 {isPanelOpen && (
                     <div className="details-panel-overlay" onClick={() => setIsPanelOpen(false)}>
-                        <motion.div 
+                        <div 
                             className="details-panel" 
                             onClick={e => e.stopPropagation()}
-                            initial={{ x: '100%', opacity: 0.5 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: '100%', opacity: 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                         >
                             <header className="panel-header">
                                 <h2>Detalhes do Contrato</h2>
@@ -594,22 +572,16 @@ const AdminContracts = () => {
                                     )}
                                 </div>
                             )}
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
             
             {/* Swap Locker Modal */}
-            <AnimatePresence>
                 {showSwapModal && (
                     <div className="details-panel-overlay swap-overlay" onClick={() => setShowSwapModal(false)}>
-                        <motion.div 
+                        <div 
                             className="details-panel swap-modal" 
                             onClick={e => e.stopPropagation()}
-                            initial={{ x: '100%', opacity: 0.5 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: '100%', opacity: 0 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                         >
                             <header className="panel-header">
                                 <h2>Selecionar Novo Armário</h2>
@@ -631,12 +603,10 @@ const AdminContracts = () => {
                                     <div className="swap-lockers-list">
                                         {availableLockers.length > 0 ? (
                                             availableLockers.map(l => (
-                                                <motion.div 
+                                                <div 
                                                     key={l.id_armario} 
                                                     className="swap-locker-card" 
                                                     onClick={() => confirmSwap(l)}
-                                                    whileHover={{ x: 4 }}
-                                                    whileTap={{ scale: 0.98 }}
                                                 >
                                                     <div className="locker-info-main">
                                                         <div className="locker-icon-box">
@@ -656,7 +626,7 @@ const AdminContracts = () => {
                                                     <div className="locker-action-indicator">
                                                         <ChevronRight size={20} />
                                                     </div>
-                                                </motion.div>
+                                                    </div>
                                             ))
                                         ) : (
                                             <div className="empty-msg-container">
@@ -667,21 +637,16 @@ const AdminContracts = () => {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
+            
 
             {/* Custom Action Modal */}
-            <AnimatePresence>
                 {modalConfig.isOpen && (
                     <div className="action-modal-overlay">
-                        <motion.div 
+                        <div 
                             className="action-modal-card"
-                            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.8, opacity: 0, y: 20 }}
-                            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         >
                             <div className={`modal-icon-container ${modalConfig.type}`}>
                                 {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
@@ -705,10 +670,9 @@ const AdminContracts = () => {
                                     <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };
