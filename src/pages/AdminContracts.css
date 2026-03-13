@@ -400,6 +400,12 @@
     border-bottom: 1px dashed var(--border);
 }
 
+@media (max-width: 360px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -598,6 +604,23 @@
     text-align: center;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border);
+}
+
+@media (max-width: 480px) {
+    .action-modal-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .modal-icon-container {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 1rem;
+    }
+    
+    .action-modal-card h3 {
+        font-size: 1.1rem;
+    }
 }
 
 .modal-icon-container {

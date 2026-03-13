@@ -393,6 +393,12 @@
     margin-top: 12px;
 }
 
+@media (max-width: 360px) {
+    .specs-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .spec-item {
     background: #fbfbfb;
     border: 1px solid #f2f2f2;
