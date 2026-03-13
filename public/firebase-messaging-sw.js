@@ -20,8 +20,6 @@ self.addEventListener('install', () => {
 // self.addEventListener('activate', (event) => { event.waitUntil(clients.claim()); });
 
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push bruto recebido:', event);
-
   let data = {};
   if (event.data) {
     try {
@@ -30,8 +28,6 @@ self.addEventListener('push', (event) => {
       data = { notification: { title: 'CAMUBOX', body: event.data.text() } };
     }
   }
-
-  console.log('[SW] Dados processados:', data);
 
   // Extração agressiva de conteúdo (Firebase pode mandar de várias formas)
   const notification = data.notification || {};

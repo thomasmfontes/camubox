@@ -40,15 +40,12 @@ export const requestFirebaseToken = async () => {
     }
     return null;
   } catch (error) {
-    console.error('[FCM] Error requesting token:', error);
     return null;
   }
 };
 
 export const setupForegroundListener = () => {
   return onMessage(messaging, (payload) => {
-    console.log('[FCM] Mensagem em foreground:', payload);
-    
     // Tenta mostrar notificação nativa mesmo em foreground
     if (Notification.permission === 'granted' && payload.notification) {
       const { title, body } = payload.notification;
