@@ -16,9 +16,8 @@ self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
-});
+// Removido clients.claim() para evitar loops de refresh com vite-plugin-pwa
+// self.addEventListener('activate', (event) => { event.waitUntil(clients.claim()); });
 
 self.addEventListener('push', (event) => {
   console.log('[SW] Push bruto recebido:', event);
