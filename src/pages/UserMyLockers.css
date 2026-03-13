@@ -437,50 +437,66 @@
     width: 100%;
 }
 
-.btn-edit, .btn-save, .btn-cancel, .btn-close-modal {
+.btn-edit, .btn-save, .btn-cancel, .btn-close-modal, .btn-toggle-eye {
     flex: 1;
-    height: 48px;
-    border-radius: 12px;
+    height: 52px;
+    border-radius: 16px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
+    gap: 10px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
 }
 
 .btn-toggle-eye {
-    background: #f1f5f9;
-    color: var(--primary);
-    flex: 1;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #d1fae5;
 }
 
-.btn-toggle-eye:hover { background: #e2e8f0; }
+.btn-toggle-eye:hover {
+    background: #d1fae5;
+    transform: translateY(-2px);
+}
 
 .btn-save {
     background: var(--primary);
     color: white;
-    flex: 2;
+    flex: 1.5;
+    box-shadow: 0 10px 15px -3px rgba(0, 61, 43, 0.2);
 }
 
-.btn-save:hover { background: #002d1f; transform: translateY(-2px); }
+.btn-save:hover {
+    background: #002d1f;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 61, 43, 0.3);
+}
 
 .btn-cancel {
-    background: transparent;
+    background: #f8fafc;
     border: 1.5px solid var(--border);
     color: var(--text-muted);
 }
 
-.btn-cancel:hover { background: #f8fafc; }
+.btn-cancel:hover {
+    background: #f1f5f9;
+    color: var(--text-main);
+}
 
 .btn-close-modal {
-    background: #f8fafc;
-    color: var(--text-muted);
+    background: #f1f5f9;
+    color: var(--text-main);
+    border: 1px solid var(--border);
 }
 
 .btn-close-modal:hover {
-    filter: brightness(1.1);
+    color: #475569;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 @keyframes spin {
