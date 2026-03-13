@@ -4,17 +4,25 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
-    background-color: #060d0b; /* Prevent white leak on mobile overscroll */
+    background-color: #060d0b; 
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* No scroll at all on login page */
+    overscroll-behavior: none;
 }
 
 .login-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
+    width: 100%;
     background-color: #060d0b;
     overflow: hidden;
-    position: relative;
+    position: fixed; /* Keep it locked to the viewport */
+    top: 0;
+    left: 0;
     font-family: 'Inter', system-ui, sans-serif;
 }
 

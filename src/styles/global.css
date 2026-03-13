@@ -34,18 +34,19 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-html {
-  background-color: var(--bg-main);
-  /* Prevent white background leak on scroll */
+html, body {
+  background-color: #060d0b; /* Default to dark to prevent white flashes/leaks */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overscroll-behavior: none; /* Disable elastic scroll that reveals background */
 }
 
 body {
-  background-color: var(--bg-main);
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior: none;
-  /* Prevent elastic scrolling revealing white background */
 }
 
 body.no-scroll {
