@@ -306,7 +306,7 @@ const LoginPage = ({ onLogin }) => {
                             <div className="form-header">
                                 <img src="/logo-CAMU.jpeg" alt="" className="card-logo-img" />
                                 <h2>Bem-vindo ao CAMUBOX</h2>
-                                <p>Acesse o portal com sua conta Google</p>
+                                <p>Acesse o portal com sua conta digital</p>
                             </div>
 
                             {error && <p className="login-error-msg">{error}</p>}

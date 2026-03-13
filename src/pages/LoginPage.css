@@ -9,14 +9,11 @@
 .login-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     width: 100vw;
     background-color: #060d0b;
-    overflow: hidden; /* Lock scroll ONLY on this container */
-    position: fixed;
-    top: 0;
-    left: 0;
+    overflow-y: auto; /* Allow scroll */
     font-family: 'Inter', system-ui, sans-serif;
 }
 
@@ -173,12 +170,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px; /* Slightly more gap for better visual balance */
     padding: 0;
     margin: 0 auto;
     transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
     -webkit-tap-highlight-color: transparent;
-    text-align: center;
+    overflow: hidden;
 }
 
 .apple-login-btn {
@@ -199,12 +196,13 @@
 .google-login-btn-custom svg,
 .apple-login-btn svg {
     flex-shrink: 0;
+    display: block;
 }
 
 .google-login-btn-custom span,
 .apple-login-btn span {
-    display: inline-block;
-    line-height: 1;
+    display: block;
+    line-height: normal;
 }
 
 .login-hint {
@@ -221,6 +219,7 @@
     align-items: center;
     gap: 1rem;
     margin: 1rem 0;
+    width: 250px; /* Match button width */
     color: #475569;
     font-size: 0.75rem;
     font-weight: 600;
