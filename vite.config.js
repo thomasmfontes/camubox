@@ -11,7 +11,7 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['lockers.png'],
+      includeAssets: ['lockers.png', 'my-locker.png'],
       manifest: {
         name: 'CAMUBOX - Armários Escolares',
         short_name: 'CAMUBOX',
@@ -22,18 +22,18 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/lockers.png',
+            src: '/my-locker.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/lockers.png',
-            sizes: '512x512',
+            src: '/my-locker.png',
+            sizes: '500x500',
             type: 'image/png'
           },
           {
-            src: '/lockers.png',
-            sizes: '512x512',
+            src: '/my-locker.png',
+            sizes: '500x500',
             type: 'image/png',
             purpose: 'any maskable'
           }

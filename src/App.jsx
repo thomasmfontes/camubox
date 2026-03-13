@@ -14,6 +14,7 @@ import UserMyLockers from './pages/UserMyLockers';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
+import InstallPWA from './components/InstallPWA';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -125,6 +126,7 @@ function App() {
           }
         />
       </Routes>
+      <InstallPWA />
     </Router>
   );
 }
