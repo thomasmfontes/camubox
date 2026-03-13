@@ -143,7 +143,7 @@ const LoginPage = ({ onLogin }) => {
                     {registerStep ? (
                         <>
                             <div className="form-header">
-                                <div className="step-badge"><UserPlus size={12} /> Primeiro acesso</div>
+                                <div className="step-badge">Primeiro acesso</div>
                                 <h2>Criar seu cadastro</h2>
                                 <p>Confirme seu nome e celular para concluir o cadastro.</p>
                             </div>
@@ -180,7 +180,7 @@ const LoginPage = ({ onLogin }) => {
                         /* PASSO 2: Celular */
                         <>
                             <div className="form-header">
-                                <div className="step-badge">Passo 2 de 2</div>
+                                <div className="step-badge">Identidade</div>
                                 <h2>Confirme sua identidade</h2>
                                 <p>Olá, <strong>{googleStep.name}</strong>! Informe o celular cadastrado para vincular sua conta Google.</p>
                             </div>
