@@ -156,7 +156,6 @@ const LoginPage = ({ onLogin }) => {
                                         value={registerName}
                                         onChange={(e) => setRegisterName(e.target.value)}
                                         required
-                                        autoFocus
                                     />
                                     <input
                                         type="tel"
@@ -195,7 +194,6 @@ const LoginPage = ({ onLogin }) => {
                                             value={phoneInput}
                                             onChange={(e) => setPhoneInput(formatPhone(e.target.value))}
                                             required
-                                            autoFocus
                                         />
                                     </div>
                                     <button type="submit" className="login-submit-btn" disabled={isGoogleLoading}>
