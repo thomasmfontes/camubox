@@ -16,10 +16,24 @@ const messaging = getMessaging(app);
 
 export const requestFirebaseToken = async () => {
   try {
+    if (!('serviceWorker' in navigator)) {
+      console.error('Service Workers não são suportados neste navegador.');
+      return null;
+    }
+
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      // Registrar SW explicitamente para garantir que o getToken encontre-o
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      console.log('Permissão concedida. Registrando Service Worker...');
+      
+      // Registrar e aguardar ficar pronto
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/'
+      });
+      
+      // Aguardar o SW estar ativo
+      await navigator.serviceWorker.ready;
+
+      console.log('Service Worker pronto. Obtendo token FCM...');
       
       const token = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
@@ -27,21 +41,18 @@ export const requestFirebaseToken = async () => {
       });
       
       if (token) {
+        console.log('Token FCM obtido com sucesso.');
         return token;
       } else {
         console.warn('Nenhum token FCM disponível.');
         return null;
       }
     } else {
-      console.warn('Permissão de notificação negada.');
+      console.warn('Permissão de notificação negada ou ignorada.');
       return null;
     }
   } catch (error) {
-    if (error.code === 'messaging/permission-blocked') {
-      console.error('Permissão bloqueada pelo usuário.');
-    } else {
-      console.error('Erro ao obter token FCM:', error);
-    }
+    console.error('Erro detalhado no FCM:', error);
     return null;
   }
 };
