@@ -20,16 +20,20 @@ const Sidebar = ({ user, role = 'user', onLogout, isOpen, onClose }) => {
     
     // Lock body scroll when mobile menu is open
     useEffect(() => {
+        const html = document.documentElement;
+        const body = document.body;
+
         if (isOpen) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.touchAction = 'none'; // Stronger lock for mobile
+            html.classList.add('no-scroll');
+            body.classList.add('no-scroll');
         } else {
-            document.body.style.overflow = 'unset';
-            document.body.style.touchAction = 'unset';
+            html.classList.remove('no-scroll');
+            body.classList.remove('no-scroll');
         }
+
         return () => {
-            document.body.style.overflow = 'unset';
-            document.body.style.touchAction = 'unset';
+            html.classList.remove('no-scroll');
+            body.classList.remove('no-scroll');
         };
     }, [isOpen]);
 
