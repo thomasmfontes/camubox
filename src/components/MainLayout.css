@@ -25,6 +25,12 @@
     .page-content {
         padding: 1rem;
     }
+
+    .content-area.background-locked {
+        pointer-events: none; /* Block clicks on background */
+        touch-action: none; /* Block swipes on background */
+        user-select: none;
+    }
 }
 
 /* Mobile Overlay for Sidebar */
