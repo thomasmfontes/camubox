@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
     const { data: lockers, error: lockerError } = await supabase
       .from('t_armario')
-      .select('id_armario, nr_armario, cd_armario')
+      .select('id_armario, cd_armario')
       .in('id_armario', lockerIds);
 
     if (lockerError) console.error('Error fetching lockers:', lockerError);
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
 
       const userTokens = tokens.filter(t => t.dc_email === userObj.dc_email);
       const lockerObj = lockers?.find(l => l.id_armario === rental.id_armario);
-      const lockerDisplay = lockerObj?.nr_armario || lockerObj?.cd_armario || rental.id_armario;
+      const lockerDisplay = lockerObj?.cd_armario || rental.id_armario;
 
       let daysLeft = 0;
       if (rental.dt_termino === in7Days) daysLeft = 7;
