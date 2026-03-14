@@ -23,8 +23,8 @@ const Topbar = ({ user, onMenuToggle }) => {
     };
 
     const fetchNotifications = async () => {
-        if (!user?.id) return;
-        const { data, error } = await dbService.notifications.getByUser(user.id);
+        if (!user?.id_usuario) return;
+        const { data, error } = await dbService.notifications.getByUser(user.id_usuario);
         if (!error && data) {
             setNotifications(data);
             setUnreadCount(data.filter(n => !n.is_lida).length);
@@ -36,7 +36,7 @@ const Topbar = ({ user, onMenuToggle }) => {
         // Poll for new notifications every 2 minutes
         const interval = setInterval(fetchNotifications, 120000);
         return () => clearInterval(interval);
-    }, [user?.id]);
+    }, [user?.id_usuario]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

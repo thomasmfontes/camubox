@@ -467,6 +467,39 @@ export const dbService = {
                 .update({ cd_senha: newPassword })
                 .eq('id_locacao', rentalId);
         }
+    },
+
+    // NOTIFICATIONS
+    notifications: {
+        getByUser: async (userId) => {
+            if (isMockMode) {
+                return {
+                    data: [
+                        { id_notificacao: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
+                    ],
+                    error: null
+                };
+            }
+            return await supabase
+                .from('t_notificacao')
+                .select('*')
+                .eq('id_usuario', userId)
+                .order('dt_criacao', { ascending: false });
+        },
+        markAsRead: async (notificationId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_notificacao')
+                .update({ is_lida: true })
+                .eq('id_notificacao', notificationId);
+        },
+        delete: async (notificationId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_notificacao')
+                .delete()
+                .eq('id_notificacao', notificationId);
+        }
     }
 };
 
@@ -550,38 +583,5 @@ export const authService = {
     getSession: async () => {
         if (isMockMode) return { data: { session: null }, error: null };
         return await supabase.auth.getSession();
-    },
-
-    // NOTIFICATIONS
-    notifications: {
-        getByUser: async (userId) => {
-            if (isMockMode) {
-                return {
-                    data: [
-                        { id_notificacao: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
-                    ],
-                    error: null
-                };
-            }
-            return await supabase
-                .from('t_notificacao')
-                .select('*')
-                .eq('id_usuario', userId)
-                .order('dt_criacao', { ascending: false });
-        },
-        markAsRead: async (notificationId) => {
-            if (isMockMode) return { data: null, error: null };
-            return await supabase
-                .from('t_notificacao')
-                .update({ is_lida: true })
-                .eq('id_notificacao', notificationId);
-        },
-        delete: async (notificationId) => {
-            if (isMockMode) return { data: null, error: null };
-            return await supabase
-                .from('t_notificacao')
-                .delete()
-                .eq('id_notificacao', notificationId);
-        }
     }
 };
