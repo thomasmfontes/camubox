@@ -7,28 +7,40 @@ const supabase = createClient(
 );
 
 async function getAccessToken() {
-  const envVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+  let envVar = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!envVar) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT variable is empty or not set in Vercel.');
   }
 
   let serviceAccount;
   try {
+    // Tenta o parse normal
     serviceAccount = JSON.parse(envVar);
+    // Se o resultado for uma string, significa que estava double-stringified (comum no Windows/Vercel)
+    if (typeof serviceAccount === 'string') {
+      serviceAccount = JSON.parse(serviceAccount);
+    }
   } catch (e) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT is not a valid JSON. Check for trailing commas or encoding issues.');
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is not a valid JSON. Error: ' + e.message);
   }
   
-  if (!serviceAccount.private_key || !serviceAccount.client_email) {
-    throw new Error(`Missing fields in Service Account JSON. Found email: ${!!serviceAccount.client_email}, Found key: ${!!serviceAccount.private_key}`);
+  const privateKey = serviceAccount.private_key || serviceAccount.privateKey;
+  const clientEmail = serviceAccount.client_email || serviceAccount.clientEmail;
+
+  if (!privateKey || !clientEmail) {
+    throw new Error(`Missing fields in Service Account JSON. Keys found: ${Object.keys(serviceAccount).join(', ')}`);
   }
 
-  const jwtClient = new JWT(
-    serviceAccount.client_email,
-    null,
-    serviceAccount.private_key.replace(/\\n/g, '\n'), // Garantir que quebras de linha sejam interpretadas corretamente
-    ['https://www.googleapis.com/auth/firebase.messaging']
-  );
+  // Garantir que a chave tenha o formato correto (newlines reais em vez de \n literais)
+  const formattedKey = privateKey.includes('\\n') 
+    ? privateKey.replace(/\\n/g, '\n') 
+    : privateKey;
+
+  const jwtClient = new JWT({
+    email: clientEmail,
+    key: formattedKey,
+    scopes: ['https://www.googleapis.com/auth/firebase.messaging']
+  });
 
   const tokens = await jwtClient.authorize();
   return tokens.access_token;
