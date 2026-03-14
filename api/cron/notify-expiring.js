@@ -129,6 +129,21 @@ export default async function handler(req, res) {
         ? `Seu contrato do armário #${lockerDisplay} venceu hoje!` 
         : `Sua locação do armário #${lockerDisplay} vence em ${daysLeft} dia(s).`;
 
+      // 4.1 Salvar no histórico (t_notificacoes) para o sininho
+      // Fazemos isso independente de ter tokens, para aparecer no dashboard
+      try {
+        await supabase
+          .from('t_notificacoes')
+          .insert({
+            id_usuario: rental.id_usuario,
+            dc_titulo: 'Vencimento de Armário 📦',
+            dc_mensagem: notificationBody,
+            is_lida: false
+          });
+      } catch (dbErr) {
+        console.error('Error saving notification to history:', dbErr);
+      }
+
       for (const t of userTokens) {
         try {
           const fcmResponse = await fetch(

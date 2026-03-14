@@ -550,5 +550,38 @@ export const authService = {
     getSession: async () => {
         if (isMockMode) return { data: { session: null }, error: null };
         return await supabase.auth.getSession();
+    },
+
+    // NOTIFICATIONS
+    notifications: {
+        getByUser: async (userId) => {
+            if (isMockMode) {
+                return {
+                    data: [
+                        { id_notificacoes: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
+                    ],
+                    error: null
+                };
+            }
+            return await supabase
+                .from('t_notificacoes')
+                .select('*')
+                .eq('id_usuario', userId)
+                .order('dt_criacao', { ascending: false });
+        },
+        markAsRead: async (notificationId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_notificacoes')
+                .update({ is_lida: true })
+                .eq('id_notificacoes', notificationId);
+        },
+        delete: async (notificationId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_notificacoes')
+                .delete()
+                .eq('id_notificacoes', notificationId);
+        }
     }
 };
