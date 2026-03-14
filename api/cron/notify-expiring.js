@@ -74,6 +74,15 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'No expiring rentals found today.' });
     }
 
+    // 1.1 Buscar detalhes dos armários (número/código)
+    const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
+    const { data: lockers, error: lockerError } = await supabase
+      .from('t_armario')
+      .select('id_armario, nr_armario, cd_armario')
+      .in('id_armario', lockerIds);
+
+    if (lockerError) console.error('Error fetching lockers:', lockerError);
+
     // 2. Coletar e-mails dos usuários afetados
     const userIds = [...new Set(rentals.map(r => r.id_usuario))];
     const { data: users, error: userError } = await supabase
@@ -109,12 +118,17 @@ export default async function handler(req, res) {
       if (!userObj?.dc_email) continue;
 
       const userTokens = tokens.filter(t => t.dc_email === userObj.dc_email);
+      const lockerObj = lockers?.find(l => l.id_armario === rental.id_armario);
+      const lockerDisplay = lockerObj?.nr_armario || lockerObj?.cd_armario || rental.id_armario;
+
       let daysLeft = 0;
       if (rental.dt_termino === in7Days) daysLeft = 7;
       else if (rental.dt_termino === in1Day) daysLeft = 1;
       
-      const dayText = daysLeft === 0 ? "HOJE" : `em ${daysLeft} dia(s)`;
-      
+      const notificationBody = daysLeft === 0 
+        ? `Seu contrato do armário #${lockerDisplay} venceu hoje!` 
+        : `Sua locação do armário #${lockerDisplay} vence em ${daysLeft} dia(s).`;
+
       for (const t of userTokens) {
         try {
           const fcmResponse = await fetch(
@@ -130,7 +144,7 @@ export default async function handler(req, res) {
                   token: t.token,
                   notification: {
                     title: 'Vencimento de Armário 📦',
-                    body: `Sua locação do armário #${rental.id_armario} vence ${dayText}. Renove agora!`
+                    body: notificationBody
                   },
                   webpush: {
                     fcm_options: {
