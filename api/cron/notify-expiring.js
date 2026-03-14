@@ -27,19 +27,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const today = new Date();
+    const today = new Date().toISOString().split('T')[0];
     // Normalizar para YYYY-MM-DD
-    const in7Days = new Date(new Date().setDate(today.getDate() + 7)).toISOString().split('T')[0];
-    const in1Day = new Date(new Date().setDate(today.getDate() + 1)).toISOString().split('T')[0];
+    const in7Days = new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0];
+    const in1Day = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
 
-    console.log(`Checking rentals expiring on ${in7Days} and ${in1Day}`);
+    console.log(`Checking rentals expiring on ${today}, ${in7Days} and ${in1Day}`);
 
     // 1. Buscar contratos vencendo em 7 ou 1 dia
     // Filtramos apenas os que estão 'ATIVA' (id_status = 1)
     const { data: rentals, error: rentalError } = await supabase
       .from('t_locacao')
-      .select('id_usuario, nr_armario, dt_termino')
-      .in('dt_termino', [in7Days, in1Day])
+      .select('id_usuario, id_armario, dt_termino')
+      .in('dt_termino', [today, in7Days, in1Day])
       .eq('id_status', 1);
 
     if (rentalError) throw rentalError;
@@ -83,7 +83,11 @@ export default async function handler(req, res) {
       if (!userObj?.dc_email) continue;
 
       const userTokens = tokens.filter(t => t.dc_email === userObj.dc_email);
-      const daysLeft = rental.dt_termino === in7Days ? 7 : 1;
+      let daysLeft = 0;
+      if (rental.dt_termino === in7Days) daysLeft = 7;
+      else if (rental.dt_termino === in1Day) daysLeft = 1;
+      
+      const dayText = daysLeft === 0 ? "HOJE" : `em ${daysLeft} dia(s)`;
       
       for (const t of userTokens) {
         try {
@@ -100,7 +104,7 @@ export default async function handler(req, res) {
                   token: t.token,
                   notification: {
                     title: 'Vencimento de Armário 📦',
-                    body: `Sua locação do armário #${rental.nr_armario || rental.cd_armario} vence em ${daysLeft} dia(s). Renove agora!`
+                    body: `Sua locação do armário #${rental.id_armario} vence ${dayText}. Renove agora!`
                   },
                   webpush: {
                     fcm_options: {
