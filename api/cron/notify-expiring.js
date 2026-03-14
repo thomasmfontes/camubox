@@ -133,7 +133,7 @@ export default async function handler(req, res) {
       // Fazemos isso independente de ter tokens, para aparecer no dashboard
       try {
         await supabase
-          .from('t_notificacoes')
+          .from('t_notificacao')
           .insert({
             id_usuario: rental.id_usuario,
             dc_titulo: 'Vencimento de Armário 📦',

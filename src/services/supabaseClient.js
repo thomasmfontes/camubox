@@ -558,13 +558,13 @@ export const authService = {
             if (isMockMode) {
                 return {
                     data: [
-                        { id_notificacoes: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
+                        { id_notificacao: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
                     ],
                     error: null
                 };
             }
             return await supabase
-                .from('t_notificacoes')
+                .from('t_notificacao')
                 .select('*')
                 .eq('id_usuario', userId)
                 .order('dt_criacao', { ascending: false });
@@ -572,16 +572,16 @@ export const authService = {
         markAsRead: async (notificationId) => {
             if (isMockMode) return { data: null, error: null };
             return await supabase
-                .from('t_notificacoes')
+                .from('t_notificacao')
                 .update({ is_lida: true })
-                .eq('id_notificacoes', notificationId);
+                .eq('id_notificacao', notificationId);
         },
         delete: async (notificationId) => {
             if (isMockMode) return { data: null, error: null };
             return await supabase
-                .from('t_notificacoes')
+                .from('t_notificacao')
                 .delete()
-                .eq('id_notificacoes', notificationId);
+                .eq('id_notificacao', notificationId);
         }
     }
 };

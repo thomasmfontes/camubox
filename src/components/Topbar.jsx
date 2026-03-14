@@ -57,7 +57,7 @@ const Topbar = ({ user, onMenuToggle }) => {
     const handleMarkAsRead = async (id) => {
         const { error } = await dbService.notifications.markAsRead(id);
         if (!error) {
-            setNotifications(notifications.map(n => n.id_notificacoes === id ? { ...n, is_lida: true } : n));
+            setNotifications(notifications.map(n => n.id_notificacao === id ? { ...n, is_lida: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         }
     };
@@ -65,8 +65,8 @@ const Topbar = ({ user, onMenuToggle }) => {
     const handleDelete = async (id) => {
         const { error } = await dbService.notifications.delete(id);
         if (!error) {
-            setNotifications(notifications.filter(n => n.id_notificacoes !== id));
-            if (!notifications.find(n => n.id_notificacoes === id).is_lida) {
+            setNotifications(notifications.filter(n => n.id_notificacao !== id));
+            if (!notifications.find(n => n.id_notificacao === id).is_lida) {
                 setUnreadCount(prev => Math.max(0, prev - 1));
             }
         }
@@ -108,7 +108,7 @@ const Topbar = ({ user, onMenuToggle }) => {
                                     <p className="no-notifications">Nenhuma notificação por enquanto.</p>
                                 ) : (
                                     notifications.map(n => (
-                                        <div key={n.id_notificacoes} className={`notification-item ${n.is_lida ? 'read' : 'unread'}`}>
+                                        <div key={n.id_notificacao} className={`notification-item ${n.is_lida ? 'read' : 'unread'}`}>
                                             <div className="notification-info">
                                                 <h4>{n.dc_titulo}</h4>
                                                 <p>{n.dc_mensagem}</p>
@@ -118,7 +118,7 @@ const Topbar = ({ user, onMenuToggle }) => {
                                                 {!n.is_lida && (
                                                     <button 
                                                         title="Marcar como lida" 
-                                                        onClick={() => handleMarkAsRead(n.id_notificacoes)}
+                                                        onClick={() => handleMarkAsRead(n.id_notificacao)}
                                                         className="action-btn read-btn"
                                                     >
                                                         <Check size={16} />
@@ -126,7 +126,7 @@ const Topbar = ({ user, onMenuToggle }) => {
                                                 )}
                                                 <button 
                                                     title="Excluir" 
-                                                    onClick={() => handleDelete(n.id_notificacoes)}
+                                                    onClick={() => handleDelete(n.id_notificacao)}
                                                     className="action-btn delete-btn"
                                                 >
                                                     <Trash2 size={16} />
