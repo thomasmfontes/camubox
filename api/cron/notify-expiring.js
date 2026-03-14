@@ -7,12 +7,26 @@ const supabase = createClient(
 );
 
 async function getAccessToken() {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const envVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!envVar) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT variable is empty or not set in Vercel.');
+  }
+
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(envVar);
+  } catch (e) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is not a valid JSON. Check for trailing commas or encoding issues.');
+  }
   
+  if (!serviceAccount.private_key || !serviceAccount.client_email) {
+    throw new Error(`Missing fields in Service Account JSON. Found email: ${!!serviceAccount.client_email}, Found key: ${!!serviceAccount.private_key}`);
+  }
+
   const jwtClient = new JWT(
     serviceAccount.client_email,
     null,
-    serviceAccount.private_key,
+    serviceAccount.private_key.replace(/\\n/g, '\n'), // Garantir que quebras de linha sejam interpretadas corretamente
     ['https://www.googleapis.com/auth/firebase.messaging']
   );
 
