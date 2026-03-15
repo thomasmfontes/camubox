@@ -234,12 +234,28 @@ export const dbService = {
                 console.log('Mock: Upserting FCM token', { email, token });
                 return { data: null, error: null };
             }
+
+            // In local development, /api routes usually don't exist unless using 'vercel dev'
+            // We skip the sync to avoid 404 errors in the console during development
+            if (window.location.hostname === 'localhost') {
+                console.log('[FCM Setup] Skipping token sync on localhost (API not available)');
+                return { data: null, error: null };
+            }
+
             try {
                 const response = await fetch('/api/fcm/upsert-token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, token })
                 });
+                
+                // Check if response is JSON (avoid SyntaxError on 404/500 HTML responses)
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`Server returned non-JSON response: ${response.status}`);
+                }
+
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error || 'Erro ao sincronizar token');
                 return { data: result.data, error: null };
@@ -471,20 +487,35 @@ export const dbService = {
 
     // NOTIFICATIONS
     notifications: {
-        getByUser: async (userId) => {
+        getByUser: async (userId, userUid) => {
             if (isMockMode) {
                 return {
                     data: [
-                        { id_notificacao: 1, id_usuario: userId, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
+                        { id_notificacao: 1, id_usuario: userId || userUid, dc_titulo: 'Bem-vindo!', dc_mensagem: 'Bem-vindo ao CAMUBOX!', is_lida: false, dt_criacao: new Date().toISOString() }
                     ],
                     error: null
                 };
             }
-            return await supabase
-                .from('t_notificacao')
-                .select('*')
-                .eq('id_usuario', userId)
-                .order('dt_criacao', { ascending: false });
+
+            // Build query
+            let query = supabase.from('t_notificacao').select('*');
+            
+            // We want to fetch notifications that match EITHER the integer ID OR the UUID
+            // This handles cases where different parts of the system used different identifiers
+            if (userId && userUid) {
+                // If we have both, we use an 'OR' filter
+                // However, id_usuario is often an integer in the DB, so we must be careful with types
+                // If one is definitely a string (uuid) and the other is numeric, supabase .or handles it if the column type matches
+                query = query.or(`id_usuario.eq.${userId},id_usuario.eq.${userUid}`);
+            } else if (userId) {
+                query = query.eq('id_usuario', userId);
+            } else if (userUid) {
+                query = query.eq('id_usuario', userUid);
+            } else {
+                return { data: [], error: null };
+            }
+
+            return await query.order('dt_criacao', { ascending: false });
         },
         markAsRead: async (notificationId) => {
             if (isMockMode) return { data: null, error: null };

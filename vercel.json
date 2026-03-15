@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/api/cron/notify-expiring",
-      "schedule": "0 15 * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }

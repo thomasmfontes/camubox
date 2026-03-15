@@ -23,9 +23,24 @@ const Topbar = ({ user, onMenuToggle }) => {
     };
 
     const fetchNotifications = async () => {
-        if (!user?.id_usuario) return;
-        const { data, error } = await dbService.notifications.getByUser(user.id_usuario);
-        if (!error && data) {
+        if (!user?.id_usuario && !user?.uid) {
+            console.log('[Topbar] No user identifier (id_usuario or uid) found in session:', user);
+            return;
+        }
+        
+        const userId = user.id_usuario;
+        const userUid = user.uid;
+        
+        console.log(`[Topbar] Fetching notifications - id_usuario: ${userId}, uid: ${userUid}`);
+        const { data, error } = await dbService.notifications.getByUser(userId, userUid);
+        
+        if (error) {
+            console.error('[Topbar] DB ERROR during fetch:', error);
+            return;
+        }
+        
+        console.log(`[Topbar] SUCCESS: Found ${data?.length || 0} notifications`, data);
+        if (data) {
             setNotifications(data);
             setUnreadCount(data.filter(n => !n.is_lida).length);
         }
@@ -36,7 +51,7 @@ const Topbar = ({ user, onMenuToggle }) => {
         // Poll for new notifications every 2 minutes
         const interval = setInterval(fetchNotifications, 120000);
         return () => clearInterval(interval);
-    }, [user?.id_usuario]);
+    }, [user?.id_usuario, user?.uid]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

@@ -34,6 +34,7 @@ const LoginPage = ({ onLogin }) => {
                 if (existingUser) {
                     const isAdmin = !!existingUser.is_adm;
                     onLogin({ 
+                        uid: user.id,
                         id_usuario: existingUser.id_usuario, 
                         name: existingUser.nm_usuario, 
                         email: existingUser.dc_email, 
@@ -76,8 +77,11 @@ const LoginPage = ({ onLogin }) => {
                 
                 const { data: existingUser } = await dbService.users.getByEmail(email);
                 if (existingUser) {
+                    // Try to get supabase user id if available
+                    const { data: { user: sbUser } } = await authService.getSession();
                     const isAdmin = !!existingUser.is_adm;
                     onLogin({ 
+                        uid: sbUser?.id,
                         id_usuario: existingUser.id_usuario, 
                         name: existingUser.nm_usuario, 
                         email: existingUser.dc_email, 
@@ -143,8 +147,13 @@ const LoginPage = ({ onLogin }) => {
 
             // Se o usuário existir mas não tiver e-mail, ou se for o mesmo e-mail, vincula/loga
             await dbService.users.updateEmail(user.id_usuario, googleStep.email);
+            
+            // Get current auth UID
+            const { data: { user: sbUser } } = await authService.getSession();
             const isAdmin = !!user.is_adm;
+            
             onLogin({ 
+                uid: sbUser?.id,
                 id_usuario: user.id_usuario, 
                 name: user.nm_usuario, 
                 email: googleStep.email, 
@@ -181,8 +190,13 @@ const LoginPage = ({ onLogin }) => {
                 nr_celular: phone,
             });
             if (insertError) throw insertError;
+
+            // Get current auth UID
+            const { data: { user: sbUser } } = await authService.getSession();
             const isAdmin = !!newUser.is_adm;
+            
             onLogin({ 
+                uid: sbUser?.id,
                 id_usuario: newUser.id_usuario, 
                 name: newUser.nm_usuario, 
                 email: newUser.dc_email, 

@@ -61,6 +61,7 @@ function App() {
       }
 
       const { data: { session } } = await authService.getSession();
+      console.log('[App] Auth session check result:', session?.user ? 'Found session' : 'No session');
       if (session?.user) {
         await syncUserSession(session.user);
       }
@@ -122,6 +123,7 @@ function App() {
         isOAuth: true
       };
 
+      console.log('[App] Syncing user data into state/storage:', userData);
       setUser(userData);
       localStorage.setItem('camubox_user', JSON.stringify(userData));
     } catch (err) {
