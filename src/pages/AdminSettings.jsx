@@ -8,9 +8,13 @@ import {
     Settings as SettingsIcon,
     Plus,
     Trash2,
-    AlertCircle
+    AlertCircle,
+    AlertTriangle,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
 import { authService } from '../services/supabaseClient';
+import { motion, AnimatePresence } from 'framer-motion';
 import './AdminSettings.css';
 
 const AdminSettings = () => {
@@ -20,19 +24,51 @@ const AdminSettings = () => {
         vl_grande_semestral: 0,
         vl_grande_anual: 0,
         vl_taxa_troca: 20,
-        nr_dias_aviso_vencimento: 7,
-        is_exige_vistoria: true,
-        is_permite_gratuidade: true,
         nm_texto_contrato: ''
     });
 
-    const [admins, setAdmins] = useState([
-        { name: 'Thomas Ed', email: 'thomas@example.com', role: 'Super Admin' },
-        { name: 'Admin CAMU', email: 'admin@camubox.com', role: 'Admin' }
-    ]);
+    const [admins, setAdmins] = useState([]);
     const [newAdminEmail, setNewAdminEmail] = useState('');
+    const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
+
+    // Modal State
+    const [modalConfig, setModalConfig] = useState({ 
+        isOpen: false, 
+        title: '', 
+        message: '', 
+        type: 'confirm', 
+        onConfirm: null 
+    });
+
+    const showModal = (config) => {
+        setModalConfig({
+            isOpen: true,
+            title: config.title || 'Confirmação',
+            message: config.message || '',
+            type: config.type || 'confirm',
+            onConfirm: config.onConfirm || null
+        });
+    };
+
+    const closeModal = () => {
+        setModalConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const fetchAdmins = async () => {
+        setIsLoadingAdmins(true);
+        const { data, error } = await dbService.users.getAdmins();
+        if (!error && data) {
+            setAdmins(data.map(u => ({
+                name: u.nm_usuario || 'Usuário',
+                email: u.dc_email,
+                role: 'Admin', // Default role for now
+                id_usuario: u.id_usuario
+            })));
+        }
+        setIsLoadingAdmins(false);
+    };
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -43,16 +79,112 @@ const AdminSettings = () => {
             }
             setIsLoading(false);
         };
+
         fetchConfig();
+        fetchAdmins();
     }, []);
+
+    const handleAddAdmin = async () => {
+        const email = newAdminEmail.trim();
+        if (!email) return;
+
+        // Validar formato de e-mail
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showModal({
+                title: 'E-mail Inválido',
+                message: 'Por favor, insira um endereço de e-mail válido para continuar.',
+                type: 'error'
+            });
+            return;
+        }
+
+        setIsLoadingAdmins(true);
+        try {
+            // 1. Primeiro vamos verificar se o usuário existe no sistema
+            const { data: user, error: fetchError } = await dbService.users.getByEmail(email);
+            
+            if (fetchError || !user) {
+                showModal({
+                    title: 'Usuário não Encontrado',
+                    message: `O e-mail ${email} ainda não está cadastrado no sistema. O usuário precisa fazer login pelo menos uma vez antes de ser promovido a admin.`,
+                    type: 'error'
+                });
+                return;
+            }
+
+            // 2. Se existis, atualiza o status
+            const { error: updateError } = await dbService.users.updateAdminStatus(email, true);
+            
+            if (!updateError) {
+                setNewAdminEmail('');
+                await fetchAdmins();
+                showModal({
+                    title: 'Sucesso!',
+                    message: 'Novo administrador adicionado com sucesso.',
+                    type: 'success'
+                });
+            } else {
+                throw updateError;
+            }
+        } catch (err) {
+            showModal({
+                title: 'Erro',
+                message: 'Não foi possível adicionar o administrador: ' + err.message,
+                type: 'error'
+            });
+        } finally {
+            setIsLoadingAdmins(false);
+        }
+    };
+
+    const handleDeleteAdmin = async (email) => {
+        showModal({
+            title: 'Confirmar Remoção',
+            message: `Tem certeza que deseja remover o acesso administrativo de ${email}?`,
+            type: 'confirm',
+            onConfirm: async () => {
+                setIsLoadingAdmins(true);
+                try {
+                    const { error } = await dbService.users.updateAdminStatus(email, false);
+                    if (!error) {
+                        setAdmins(prev => prev.filter(a => a.email !== email));
+                        showModal({
+                            title: 'Sucesso!',
+                            message: 'Acesso administrativo removido com sucesso.',
+                            type: 'success'
+                        });
+                    } else {
+                        throw error;
+                    }
+                } catch (err) {
+                    showModal({
+                        title: 'Erro',
+                        message: 'Erro ao remover acesso: ' + err.message,
+                        type: 'error'
+                    });
+                } finally {
+                    setIsLoadingAdmins(false);
+                }
+            }
+        });
+    };
 
     const handleSave = async (sectionLabel) => {
         setIsLoading(true);
         const { error } = await dbService.settings.update(config);
         if (!error) {
-            alert(`Configurações de ${sectionLabel} salvas com sucesso!`);
+            showModal({
+                title: 'Sucesso!',
+                message: `Configurações de ${sectionLabel} salvas com sucesso!`,
+                type: 'success'
+            });
         } else {
-            alert(`Erro ao salvar: ${error.message}`);
+            showModal({
+                title: 'Erro ao Salvar',
+                message: `Erro ao salvar: ${error.message}`,
+                type: 'error'
+            });
         }
         setIsLoading(false);
     };
@@ -132,58 +264,7 @@ const AdminSettings = () => {
                                 <span>Salvar Valores</span>
                             </button>
                         </div>
-                    </section>
-
-                    {/* CARD 2: Regras do Sistema */}
-                    <section className="settings-modern-card glass">
-                        <div className="card-header-premium">
-                            <div className="header-title-bundle">
-                                <span className="icon-wrapper primary">
-                                    <AlertCircle size={20} />
-                                </span>
-                                <h3>Regras de Negócio</h3>
-                            </div>
-                        </div>
-                        <div className="card-content-premium">
-                            <div className="settings-field">
-                                <label>Aviso de vencimento (dias de antecedência)</label>
-                                <div className="premium-input-box no-prefix">
-                                    <input type="number" value={config.nr_dias_aviso_vencimento} onChange={e => updateConfig('nr_dias_aviso_vencimento', e.target.value)} />
-                                </div>
-                            </div>
-                            
-                            <div className="premium-toggle-card">
-                                <div className="toggle-label-area">
-                                    <strong>Vistoria Obrigatória</strong>
-                                    <p>Exigir validação humana antes de liberar acesso.</p>
-                                </div>
-                                <button
-                                    className={`modern-toggle ${config.is_exige_vistoria ? 'active' : ''}`}
-                                    onClick={() => updateConfig('is_exige_vistoria', !config.is_exige_vistoria)}
-                                >
-                                    <div className="toggle-puck"></div>
-                                </button>
-                            </div>
-
-                            <div className="premium-toggle-card">
-                                <div className="toggle-label-area">
-                                    <strong>Locações Gratuitas</strong>
-                                    <p>Habilita o gerenciamento de gratuidade via Admin.</p>
-                                </div>
-                                <button
-                                    className={`modern-toggle ${config.is_permite_gratuidade ? 'active' : ''}`}
-                                    onClick={() => updateConfig('is_permite_gratuidade', !config.is_permite_gratuidade)}
-                                >
-                                    <div className="toggle-puck"></div>
-                                </button>
-                            </div>
-
-                            <button className="premium-save-btn" onClick={() => handleSave('Regras')}>
-                                <Save size={18} />
-                                <span>Atualizar Regras</span>
-                            </button>
-                        </div>
-                    </section>
+                               </section>
 
                     {/* CARD 4: Administradores */}
                     <section className="settings-modern-card glass">
@@ -197,36 +278,85 @@ const AdminSettings = () => {
                         </div>
                         <div className="card-content-premium">
                             <div className="modern-admin-list">
-                                {admins.map((admin, idx) => (
-                                    <div key={idx} className="modern-admin-item">
-                                        <div className="admin-avatar-tiny">
-                                            {admin.name.charAt(0)}
-                                        </div>
-                                        <div className="admin-entry-details">
-                                            <div className="admin-name-row">
-                                                <strong>{admin.name}</strong>
-                                                <span className={`admin-role-pill ${admin.role.toLowerCase().replace(' ', '-')}`}>
-                                                    {admin.role}
-                                                </span>
+                                <AnimatePresence mode="popLayout">
+                                    {isLoadingAdmins ? (
+                                        <motion.div 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="loading-admins-state"
+                                        >
+                                            <div className="spinner-mini-admin"></div>
+                                            <span>Sincronizando equipe...</span>
+                                        </motion.div>
+                                    ) : admins.length === 0 ? (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="empty-admin-list-premium"
+                                        >
+                                            <div className="empty-icon-shield">
+                                                <Shield size={32} />
                                             </div>
-                                            <span className="admin-email-text">{admin.email}</span>
-                                        </div>
-                                        <button className="delete-admin-btn" title="Remover Acesso">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                ))}
+                                            <p>Nenhum administrador cadastrado.</p>
+                                        </motion.div>
+                                    ) : (
+                                        admins.map((admin) => (
+                                            <motion.div 
+                                                key={admin.email}
+                                                layout
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className="modern-admin-item-premium"
+                                            >
+                                                <div className="admin-avatar-premium">
+                                                    {admin.name.charAt(0)}
+                                                </div>
+                                                <div className="admin-info-bundle">
+                                                    <div className="admin-name-meta">
+                                                        <strong>{admin.name}</strong>
+                                                        <span className="admin-badge">Admin</span>
+                                                    </div>
+                                                    <span className="admin-email-secondary">{admin.email}</span>
+                                                </div>
+                                                <button 
+                                                    className="remove-admin-control" 
+                                                    onClick={() => handleDeleteAdmin(admin.email)}
+                                                    title="Remover Acesso"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </motion.div>
+                                        ))
+                                    )}
+                                </AnimatePresence>
                             </div>
-                            <div className="add-admin-bundle">
-                                <input
-                                    type="email"
-                                    placeholder="Adicionar e-mail..."
-                                    value={newAdminEmail}
-                                    onChange={e => setNewAdminEmail(e.target.value)}
-                                />
-                                <button className="add-pill-btn">
-                                    <Plus size={20} />
-                                </button>
+
+                            <div className="add-admin-premium-box">
+                                <div className="integrated-input-group">
+                                    <input
+                                        type="email"
+                                        placeholder="E-mail do novo administrador..."
+                                        value={newAdminEmail}
+                                        onChange={e => setNewAdminEmail(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && handleAddAdmin()}
+                                    />
+                                    <button 
+                                        className="integrated-add-btn" 
+                                        onClick={handleAddAdmin} 
+                                        disabled={isLoadingAdmins || !newAdminEmail.trim()}
+                                    >
+                                        {isLoadingAdmins ? (
+                                            <div className="spinner-mini-white"></div>
+                                        ) : (
+                                            <>
+                                                <Plus size={20} />
+                                                <span className="btn-label-desktop">Adicionar</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -261,6 +391,49 @@ const AdminSettings = () => {
                     </section>
                 </div>
             )}
+
+            {/* Modal de Ação Customizado */}
+            <AnimatePresence>
+                {modalConfig.isOpen && (
+                    <motion.div 
+                        className="action-modal-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="action-modal-card"
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        >
+                            <div className={`modal-icon-container ${modalConfig.type}`}>
+                                {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
+                                {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
+                                {modalConfig.type === 'error' && <XCircle size={32} />}
+                            </div>
+                            
+                            <h3>{modalConfig.title}</h3>
+                            <p>{modalConfig.message}</p>
+                            
+                            <div className="modal-footer-actions">
+                                {modalConfig.type === 'confirm' ? (
+                                    <>
+                                        <button className="modal-btn-cancel" onClick={closeModal}>Cancelar</button>
+                                        <button className="modal-btn-confirm" onClick={() => {
+                                            if (modalConfig.onConfirm) modalConfig.onConfirm();
+                                            closeModal();
+                                        }}>Confirmar</button>
+                                    </>
+                                ) : (
+                                    <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

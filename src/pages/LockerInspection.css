@@ -277,13 +277,17 @@
 @media (min-width: 1024px) {
 
     .actions-cell,
-    th.actions-cell {
+    .actions-cell {
         text-align: right;
         margin-top: 0;
         padding-top: 1rem !important;
         /* Standard padding for desktop header/cell */
         border-top: none !important;
     }
+}
+
+.text-right {
+    text-align: right !important;
 }
 
 /* Actions Row - Keep Side-by-Side even on small screens */

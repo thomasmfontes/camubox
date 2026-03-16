@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ClipboardCheck,
     MapPin,
@@ -200,12 +201,19 @@ const LockerInspection = () => {
                                 <th>Armário</th>
                                 <th>Responsável Anterior</th>
                                 <th>{activeTab === 'vistoria' ? 'Vencimento' : 'Data da Ocorrência'}</th>
-                                <th className="actions-cell">Ações</th>
+                                <th className="actions-cell text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {filteredInspections.map((item) => (
-                                <tr key={item.dbId}>
+                        <AnimatePresence mode="wait">
+                            <motion.tbody key={activeTab}>
+                                {filteredInspections.map((item, index) => (
+                                    <motion.tr 
+                                        key={item.dbId}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2, delay: index * 0.03 }}
+                                    >
                                     <td className="col-armario">
                                         <div className="unified-locker-badge">
                                             <span className="locker-id-part">{item.id}</span>
@@ -246,7 +254,7 @@ const LockerInspection = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="action-row-compact" style={{ justifyContent: 'flex-start' }}>
+                                            <div className="action-row-compact">
                                                 <button
                                                     className="btn-compact-success"
                                                     style={{ width: '100%' }}
@@ -258,14 +266,15 @@ const LockerInspection = () => {
                                             </div>
                                         )}
                                     </td>
-                                </tr>
-                            ))}
+                                    </motion.tr>
+                                ))}
                             {filteredInspections.length === 0 && (
                                 <tr>
                                     <td colSpan="4" className="empty-state">Nenhum resultado encontrado.</td>
                                 </tr>
                             )}
-                        </tbody>
+                            </motion.tbody>
+                        </AnimatePresence>
                     </table>
                 )}
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { IoMdPricetag } from 'react-icons/io';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IoMdPricetag } from 'react-icons/io';
 import {
     Search,
     Filter,
@@ -11,7 +11,7 @@ import {
     FileText,
     Download,
     Calendar,
-    User,
+    User as UserIcon,
     X,
     Loader2,
     CheckCircle2,
@@ -19,6 +19,7 @@ import {
     AlertTriangle,
     MinusCircle,
     ChevronRight,
+    ChevronLeft,
     MapPin
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
@@ -36,112 +37,111 @@ const AdminContracts = () => {
     });
     const [selectedRental, setSelectedRental] = useState(null);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [config, setConfig] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
+    const [isSwapClosing, setIsSwapClosing] = useState(false);
     const [availableLockers, setAvailableLockers] = useState([]);
     const [isFetchingAvailable, setIsFetchingAvailable] = useState(false);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null });
     const [error, setError] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
 
-    useEffect(() => {
-        const fetchRentals = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const [rentalsRes, configRes] = await Promise.all([
-                    dbService.rentals.getAll(),
-                    dbService.lockers.getConfig()
-                ]);
+    const mapRentalData = (data) => {
+        const today = new Date(2026, 2, 16);
+        const mapped = [];
+        
+        for (let i = 0; i < data.length; i++) {
+            const contrato = data[i];
+            
+            let startDate = null;
+            if (contrato.dt_inicio) {
+                const [y, m, d] = contrato.dt_inicio.split('-').map(Number);
+                startDate = new Date(y, m - 1, d);
+            }
 
-                if (configRes.data) setConfig(configRes.data);
+            let expirationDate = null;
+            if (contrato.dt_vencimento) {
+                const [y, m, d] = contrato.dt_vencimento.split('-').map(Number);
+                expirationDate = new Date(y, m - 1, d);
+            }
 
-                const { data, dbError } = rentalsRes;
+            let finalStatus = contrato.id_status === 1 ? 'ATIVA' : contrato.dc_status_locacao || 'ENCERRADA';
+            if (finalStatus === 'ATIVA' && expirationDate && expirationDate < today) {
+                finalStatus = 'VENCIDA';
+            }
 
-                if (dbError) {
-                    console.error('Database Error:', dbError);
-                    setError(`Erro no banco de dados: ${dbError.message}`);
-                    setIsLoading(false);
-                    return;
-                }
+            mapped.push({
+                id: contrato.id_locacao,
+                lockerId: contrato.id_armario,
+                lockerNumber: String(contrato.nr_armario || 0).padStart(3, '0'),
+                floor: contrato.dc_andar || 'Térreo',
+                student: contrato.nm_aluno || 'Estudante não identificado',
+                contractType: (contrato.dc_tipo_contrato || 'Personalizado').toUpperCase(),
+                startDate,
+                expirationDate,
+                startDateFormatted: startDate ? startDate.toLocaleDateString() : '---',
+                expirationDateFormatted: expirationDate ? expirationDate.toLocaleDateString() : '---',
+                status: finalStatus,
+                paymentStatus: contrato.dc_status_pagamento || 'PAGO',
+                sizePath: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase(),
+                displaySize: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase() === 'GRANDE' ? 'Grande' : 'Pequeno'
+            });
+        }
+        return mapped;
+    };
 
-                if (data) {
-                    const mappedData = data.map((contrato) => ({
-                        id: contrato.id_locacao,
-                        lockerId: contrato.id_armario,
-                        lockerNumber: String(contrato.nr_armario || 0).padStart(3, '0'),
-                        floor: contrato.dc_andar || 'Térreo',
-                        student: contrato.nm_aluno || 'Estudante não identificado',
-                        ra: contrato.nm_ra || '---',
-                        contractType: (contrato.dc_tipo_contrato || 'Personalizado').toUpperCase(),
-                        startDate: (function() {
-                            if (!contrato.dt_inicio) return null;
-                            const [y, m, d] = contrato.dt_inicio.split('-').map(Number);
-                            return new Date(y, m - 1, d);
-                        })(),
-                        expirationDate: (function() {
-                            if (!contrato.dt_vencimento) return null;
-                            const [y, m, d] = contrato.dt_vencimento.split('-').map(Number);
-                            return new Date(y, m - 1, d);
-                        })(),
-                        status: contrato.id_status === 1 ? 'ATIVA' : contrato.dc_status_locacao || 'ENCERRADA',
-                        paymentStatus: contrato.dc_status_pagamento || 'PAGO',
-                        sizePath: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase(),
-                        displaySize: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase() === 'GRANDE' ? 'Grande' : 'Pequeno'
-                    }));
-                    setRentals(mappedData);
-                } else {
-                    setRentals([]);
-                }
-            } catch (err) {
-                console.error('Runtime Error:', err);
-                setError(`Erro inesperado: ${err.message}`);
-            } finally {
+    const fetchRentals = async (showLoading = true) => {
+        try {
+            if (showLoading) setIsLoading(true);
+            setError(null);
+            
+            const [rentalsRes, configRes] = await Promise.all([
+                dbService.rentals.getAll(),
+                dbService.lockers.getConfig()
+            ]);
+
+            if (configRes.data) setConfig(configRes.data);
+
+            const { data, dbError } = rentalsRes;
+
+            if (dbError) {
+                console.error('Database Error:', dbError);
+                setError(`Erro no banco de dados: ${dbError.message}`);
+                setIsLoading(false);
+                return;
+            }
+
+            if (data) {
+                // Mapping can be heavy, but it's done once.
+                const mapped = mapRentalData(data);
+                setRentals(mapped);
+                
+                // Crucial step: Wait for the state update to be processed by the browser
+                // before hiding the loading indicator. This avoids the "static frozen loading" look.
+                requestAnimationFrame(() => {
+                    setTimeout(() => setIsLoading(false), 0);
+                });
+            } else {
+                setRentals([]);
                 setIsLoading(false);
             }
-        };
-        fetchRentals();
-    }, []);
-
-    const fetchRentals = async () => {
-        try {
-            setIsLoading(true);
-            const { data } = await dbService.rentals.getAll();
-            if (data) {
-                const mappedData = data.map((contrato) => ({
-                    id: contrato.id_locacao,
-                    lockerId: contrato.id_armario,
-                    lockerNumber: String(contrato.nr_armario || 0).padStart(3, '0'),
-                    floor: contrato.dc_andar || 'Térreo',
-                    student: contrato.nm_aluno || 'Estudante não identificado',
-                    ra: contrato.nm_ra || '---',
-                    contractType: (contrato.dc_tipo_contrato || 'Personalizado').toUpperCase(),
-                    startDate: (function() {
-                        if (!contrato.dt_inicio) return null;
-                        const [y, m, d] = contrato.dt_inicio.split('-').map(Number);
-                        return new Date(y, m - 1, d);
-                    })(),
-                    expirationDate: (function() {
-                        if (!contrato.dt_vencimento) return null;
-                        const [y, m, d] = contrato.dt_vencimento.split('-').map(Number);
-                        return new Date(y, m - 1, d);
-                    })(),
-                    status: contrato.id_status === 1 ? 'ATIVA' : contrato.dc_status_locacao || 'ENCERRADA',
-                    paymentStatus: contrato.dc_status_pagamento || 'PAGO',
-                    sizePath: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase(),
-                    displaySize: String(contrato.dc_tamanho || 'PEQUENO').toUpperCase() === 'GRANDE' ? 'Grande' : 'Pequeno'
-                }));
-                setRentals(mappedData);
-            }
         } catch (err) {
-            console.error('Error refreshing rentals:', err);
-        } finally {
+            console.error('Runtime Error:', err);
+            setError(`Erro inesperado: ${err.message}`);
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchRentals();
+    }, []);
     const resetFilters = () => {
         setSearchTerm('');
         setFilters({ status: 'All', contractType: 'All', floor: 'All' });
+        setCurrentPage(1);
     };
 
     const filteredRentals = useMemo(() => {
@@ -149,16 +149,69 @@ const AdminContracts = () => {
         return rentals.filter(rental => {
             const matchesSearch = !term ||
                 rental.student.toLowerCase().includes(term) ||
-                rental.lockerNumber.includes(term) ||
-                rental.ra.toLowerCase().includes(term);
+                rental.lockerNumber.includes(term);
 
             const matchesStatus = filters.status === 'All' || rental.status === filters.status;
             const matchesType = filters.contractType === 'All' || rental.contractType === filters.contractType;
-            const matchesFloor = filters.floor === 'All' || rental.floor.includes(filters.floor);
+            const matchesFloor = filters.floor === 'All' || rental.floor === filters.floor;
 
             return matchesSearch && matchesStatus && matchesType && matchesFloor;
         });
     }, [rentals, searchTerm, filters]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filters]);
+
+    useEffect(() => {
+        const needsLock = (isPanelOpen && !isClosing) || (showSwapModal && !isSwapClosing);
+        
+        if (needsLock) {
+            document.documentElement.classList.add('no-scroll');
+            document.body.classList.add('no-scroll');
+            
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.paddingRight = `${scrollBarWidth}px`;
+        } else {
+            document.documentElement.classList.remove('no-scroll');
+            document.body.classList.remove('no-scroll');
+            document.body.style.paddingRight = '';
+        }
+        return () => {
+            document.documentElement.classList.remove('no-scroll');
+            document.body.classList.remove('no-scroll');
+            document.body.style.paddingRight = '';
+        };
+    }, [isPanelOpen, isClosing, showSwapModal, isSwapClosing]);
+
+    const handleCloseSwapModal = () => {
+        setIsSwapClosing(true);
+        setTimeout(() => {
+            setShowSwapModal(false);
+            setIsSwapClosing(false);
+        }, 350);
+    };
+
+    const handleClosePanel = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsPanelOpen(false);
+            setIsClosing(false);
+            setSelectedRental(null);
+        }, 350); // Match CSS animation (0.35s)
+    };
+
+    const openDetails = (rental) => {
+        setSelectedRental(rental);
+        setIsClosing(false);
+        setIsPanelOpen(true);
+    };
+
+    const totalPages = Math.ceil(filteredRentals.length / itemsPerPage);
+    const paginatedRentals = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredRentals.slice(start, start + itemsPerPage);
+    }, [filteredRentals, currentPage]);
 
     const getStatusBadge = (status) => {
         switch (status) {
@@ -184,8 +237,8 @@ const AdminContracts = () => {
             'Andar': r.floor,
             'Aluno': r.student,
             'Tipo': r.contractType,
-            'Início': new Date(r.startDate).toLocaleDateString(),
-            'Vencimento': new Date(r.expirationDate).toLocaleDateString(),
+            'Início': r.startDateFormatted,
+            'Vencimento': r.expirationDateFormatted,
             'Status': r.status,
             'Pagamento': r.paymentStatus
         }));
@@ -196,10 +249,6 @@ const AdminContracts = () => {
         XLSX.writeFile(wb, `contratos_camubox_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
-    const openDetails = (rental) => {
-        setSelectedRental(rental);
-        setIsPanelOpen(true);
-    };
 
     const showModal = (config) => {
         setModalConfig({
@@ -383,87 +432,137 @@ const AdminContracts = () => {
 
             {/* Data Area */}
             <div className="data-container">
-                {isLoading ? (
-                    <div className="loading-state">
-                        <Loader2 className="spinner" size={40} />
-                        <p>Sincronizando contratos...</p>
-                    </div>
-                ) : (
-                    <div className="contracts-list">
-                        {/* List Header - Visible only on Desktop */}
-                        <div className="list-header">
-                            <div className="col-locker">Armário</div>
-                            <div className="col-student">Aluno</div>
-                            <div className="col-type">Tipo</div>
-                            <div className="col-dates">Vigência</div>
-                            <div className="col-status">Status</div>
+                <div className="inspection-container card">
+                    {isLoading ? (
+                        <div className="loading-state-matrix" style={{ padding: '40px', textAlign: 'center' }}>
+                            <Loader2 className="spinner" size={40} />
+                            <p>Carregando contratos...</p>
                         </div>
+                    ) : (
+                        <table className="inspection-table-simple">
+                            <thead>
+                                <tr>
+                                    <th>Armário</th>
+                                    <th>Aluno</th>
+                                    <th>Tipo de Contrato</th>
+                                    <th>Vigência</th>
+                                    <th className="col-status text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <AnimatePresence mode="wait">
+                                <motion.tbody key={currentPage + filters.status + filters.contractType + searchTerm}>
+                                    {paginatedRentals.map((rental, index) => (
+                                        <motion.tr 
+                                            key={rental.id} 
+                                            onClick={() => openDetails(rental)}
+                                            className="clickable-row"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            transition={{ duration: 0.2, delay: index * 0.03 }}
+                                        >
+                                        <td className="col-armario">
+                                            <div className="unified-locker-badge">
+                                                <span className="locker-id-part">{rental.lockerNumber}</span>
+                                                <div className="floor-part">
+                                                    <MapPin size={10} />
+                                                    <span>{rental.floor}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        
+                                        <td className="col-user">
+                                            <div className="info-item">
+                                                <UserIcon size={14} className="icon-sub" />
+                                                <div className="user-stack">
+                                                    <span className="txt-main">{rental.student}</span>
+                                                </div>
+                                            </div>
+                                        </td>
 
-                        <div className="contracts-list-entries">
-                            {filteredRentals.map((rental) => (
-                                <div 
-                                    key={rental.id} 
-                                    className="contract-card"
-                                    onClick={() => openDetails(rental)}
-                                >
-                                    <div className="card-main-info">
-                                        <div className="locker-info">
-                                            <span className="locker-id-text">{rental.floor} - {rental.lockerNumber}</span>
-                                            <span className={`size-badge ${rental.sizePath.toLowerCase()}`}>
-                                                {rental.displaySize}
-                                            </span>
-                                        </div>
+                                        <td className="col-type">
+                                            <div className="info-item">
+                                                <div className="type-badge-minimal">
+                                                    <FileText size={14} className="icon-sub" />
+                                                    <span className="txt-main">{rental.contractType}</span>
+                                                </div>
+                                            </div>
+                                        </td>
 
-                                        <div className="student-info">
-                                            <span className="student-name">{rental.student}</span>
-                                        </div>
-                                    </div>
+                                        <td className="col-date">
+                                            <div className="info-item">
+                                                <Calendar size={14} className="icon-sub" />
+                                                <span className="txt-sub">{rental.expirationDateFormatted}</span>
+                                            </div>
+                                        </td>
 
-                                    <div className="card-secondary-info">
-                                        <div className="info-item type">
-                                            <label>Tipo</label>
-                                            <strong>{rental.contractType}</strong>
-                                        </div>
-                                        <div className="info-item dates">
-                                            <label>Vencimento</label>
-                                            <span>{new Date(rental.expirationDate).toLocaleDateString()}</span>
-                                        </div>
-                                        <div className="info-item status">
+                                        <td className="col-status actions-cell">
                                             {getStatusBadge(rental.status)}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                                        </td>
+                                        </motion.tr>
+                                    ))}
+                                    {filteredRentals.length === 0 && (
+                                        <motion.tr
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                        >
+                                            <td colSpan="5" className="empty-state">Nenhum resultado encontrado.</td>
+                                        </motion.tr>
+                                    )}
+                                </motion.tbody>
+                            </AnimatePresence>
+                        </table>
+                    )}
+                </div>
                 
-                {!isLoading && filteredRentals.length === 0 && (
-                    <div className="empty-state-premium">
-                        <div className="empty-state-icon">
-                            <FileText size={40} strokeWidth={1.5} />
+                {!isLoading && filteredRentals.length > 0 && (
+                    <div className="pagination-wrapper">
+                        <div className="pagination-info">
+                            Mostrando <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> - <strong>{Math.min(currentPage * itemsPerPage, filteredRentals.length)}</strong> de <strong>{filteredRentals.length}</strong> contratos
                         </div>
-                        <div className="empty-state-content">
-                            <h3>Nenhum contrato encontrado</h3>
-                            <p>Tente ajustar o termo da pesquisa ou os filtros ativos para encontrar o que procura.</p>
-                            <button className="btn-reset-filters" onClick={resetFilters}>
-                                Limpar todos os filtros
+                        <div className="pagination-controls simple">
+                            <button 
+                                className="pagination-btn" 
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+                                disabled={currentPage === 1}
+                            >
+                                <ChevronLeft size={18} />
+                                <span className="btn-text">Anterior</span>
+                            </button>
+                            
+                            <div className="pagination-status">
+                                <span className="mobile-only">Pág. </span>
+                                <span className="desktop-only">Página </span>
+                                <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+                            </div>
+
+                            <button 
+                                className="pagination-btn" 
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+                                disabled={currentPage === totalPages}
+                            >
+                                <span className="btn-text">Próximo</span>
+                                <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>
                 )}
+                
             </div>
 
             {/* Details Side Panel */}
                 {isPanelOpen && (
-                    <div className="details-panel-overlay" onClick={() => setIsPanelOpen(false)}>
+                    <div 
+                        className={`details-panel-overlay ${isClosing ? 'closing' : ''}`} 
+                        onClick={handleClosePanel}
+                    >
                         <div 
-                            className="details-panel" 
+                            className={`details-panel ${isClosing ? 'closing' : ''}`} 
                             onClick={e => e.stopPropagation()}
                         >
                             <header className="panel-header">
                                 <h2>Detalhes do Contrato</h2>
-                                <button className="close-btn" onClick={() => setIsPanelOpen(false)}>
+                                <button className="close-btn" onClick={handleClosePanel}>
                                     <X size={20} />
                                 </button>
                             </header>
@@ -489,7 +588,7 @@ const AdminContracts = () => {
                                     </section>
 
                                     <section className="detail-section">
-                                        <h3><User size={18} /> Aluno Responsável</h3>
+                                        <h3><UserIcon size={18} /> Aluno Responsável</h3>
                                         <div className="detail-grid">
                                             <div className="detail-item full">
                                                 <label>Nome Completo</label>
@@ -511,11 +610,11 @@ const AdminContracts = () => {
                                             </div>
                                             <div className="detail-item">
                                                 <label>Início</label>
-                                                <span>{new Date(selectedRental.startDate).toLocaleDateString()}</span>
+                                                <span>{selectedRental.startDateFormatted}</span>
                                             </div>
                                             <div className="detail-item">
                                                 <label>Término</label>
-                                                <span>{new Date(selectedRental.expirationDate).toLocaleDateString()}</span>
+                                                <span>{selectedRental.expirationDateFormatted}</span>
                                             </div>
                                         </div>
                                     </section>
@@ -579,14 +678,17 @@ const AdminContracts = () => {
             
             {/* Swap Locker Modal */}
                 {showSwapModal && (
-                    <div className="details-panel-overlay swap-overlay" onClick={() => setShowSwapModal(false)}>
+                    <div 
+                        className={`details-panel-overlay swap-overlay ${isSwapClosing ? 'closing' : ''}`} 
+                        onClick={handleCloseSwapModal}
+                    >
                         <div 
-                            className="details-panel swap-modal" 
+                            className={`details-panel swap-modal ${isSwapClosing ? 'closing' : ''}`} 
                             onClick={e => e.stopPropagation()}
                         >
                             <header className="panel-header">
                                 <h2>Selecionar Novo Armário</h2>
-                                <button className="close-btn" onClick={() => setShowSwapModal(false)}>
+                                <button className="close-btn" onClick={handleCloseSwapModal}>
                                     <X size={20} />
                                 </button>
                             </header>

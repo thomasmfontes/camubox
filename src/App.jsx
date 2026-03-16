@@ -119,7 +119,7 @@ function App() {
         id_usuario: dbUser?.id_usuario || supabaseUser.id,
         name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
         email: dbUser?.dc_email || supabaseUser.email,
-        isAdmin: !!dbUser?.id_usuario, // For now, if they are in t_usuario we consider them known
+        isAdmin: !!dbUser?.is_adm, // Real admin check from DB
         isOAuth: true
       };
 

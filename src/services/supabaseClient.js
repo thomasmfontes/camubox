@@ -186,7 +186,22 @@ export const dbService = {
     users: {
         getAll: async () => {
             if (isMockMode) return { data: [], error: null };
-            return await supabase.from('t_usuario').select('id_usuario, nm_usuario');
+            return await supabase.from('t_usuario').select('id_usuario, nm_usuario, dc_email, is_adm');
+        },
+        getAdmins: async () => {
+            if (isMockMode) {
+                return {
+                    data: [
+                        { nm_usuario: 'Thomas Ed', dc_email: 'thomas@example.com', role: 'Super Admin', id_usuario: 1 },
+                        { nm_usuario: 'Admin CAMU', dc_email: 'admin@camubox.com', role: 'Admin', id_usuario: 2 }
+                    ],
+                    error: null
+                };
+            }
+            return await supabase
+                .from('t_usuario')
+                .select('id_usuario, nm_usuario, dc_email, is_adm')
+                .eq('is_adm', true);
         },
         getByEmail: async (email) => {
             if (isMockMode) return { data: null, error: null };
@@ -206,9 +221,11 @@ export const dbService = {
         },
         create: async (userData) => {
             if (isMockMode) return { data: { id_usuario: 'mock-id', ...userData }, error: null };
+            // Ensure is_adm is false by default if not specified
+            const dataToInsert = { ...userData, is_adm: userData.is_adm || false };
             return await supabase
                 .from('t_usuario')
-                .insert([userData])
+                .insert([dataToInsert])
                 .select()
                 .single();
         },
@@ -226,6 +243,16 @@ export const dbService = {
                 .from('t_usuario')
                 .update({ dc_email: email })
                 .eq('id_usuario', id);
+        },
+        updateAdminStatus: async (email, isAdmin) => {
+            if (isMockMode) {
+                console.log(`Mock: Setting admin status of ${email} to ${isAdmin}`);
+                return { data: null, error: null };
+            }
+            return await supabase
+                .from('t_usuario')
+                .update({ is_adm: isAdmin })
+                .eq('dc_email', email);
         }
     },
     fcmTokens: {
