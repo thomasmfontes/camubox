@@ -257,11 +257,10 @@ const LockerInspection = () => {
                                             <div className="action-row-compact">
                                                 <button
                                                     className="btn-compact-success"
-                                                    style={{ width: '100%' }}
                                                     onClick={() => handleAction(item.dbId, 'confirm')}
                                                 >
                                                     <CheckCircle2 size={16} />
-                                                    <span>Reparo Concluído (Liberar)</span>
+                                                    <span>Reparo Concluído</span>
                                                 </button>
                                             </div>
                                         )}
