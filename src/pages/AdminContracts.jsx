@@ -1,6 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { IoMdPricetag } from 'react-icons/io';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Search,
     Filter,
@@ -47,37 +45,28 @@ const AdminContracts = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
-    const mapRentalData = (data) => {
-        const today = new Date(2026, 2, 16);
+    const mapRentalData = useCallback((data) => {
+        const today = new Date();
         const mapped = [];
         
-        for (let i = 0; i < data.length; i++) {
-            const contrato = data[i];
-            
-            let startDate = null;
-            if (contrato.dt_inicio) {
-                const [y, m, d] = contrato.dt_inicio.split('-').map(Number);
-                startDate = new Date(y, m - 1, d);
-            }
+        for (const contrato of (data || [])) {
+            const startDate = contrato.dt_inicio ? new Date(contrato.dt_inicio + 'T00:00:00') : null;
+            const expirationDate = contrato.dt_vencimento ? new Date(contrato.dt_vencimento + 'T00:00:00') : null;
 
-            let expirationDate = null;
-            if (contrato.dt_vencimento) {
-                const [y, m, d] = contrato.dt_vencimento.split('-').map(Number);
-                expirationDate = new Date(y, m - 1, d);
-            }
-
-            let finalStatus = contrato.id_status === 1 ? 'ATIVA' : contrato.dc_status_locacao || 'ENCERRADA';
-            if (finalStatus === 'ATIVA' && expirationDate && expirationDate < today) {
+            let finalStatus = contrato.dc_status_locacao || 'ATIVA';
+            if (expirationDate && expirationDate < today && finalStatus === 'ATIVA') {
                 finalStatus = 'VENCIDA';
             }
 
             mapped.push({
                 id: contrato.id_locacao,
                 lockerId: contrato.id_armario,
-                lockerNumber: String(contrato.nr_armario || 0).padStart(3, '0'),
-                floor: contrato.dc_andar || 'Térreo',
-                student: contrato.nm_aluno || 'Estudante não identificado',
-                contractType: (contrato.dc_tipo_contrato || 'Personalizado').toUpperCase(),
+                lockerNumber: String(contrato.nr_armario || '---'),
+                student: contrato.nm_aluno || '---',
+                ra: contrato.nm_ra || '---',
+                floor: contrato.dc_andar || '---',
+                type: contrato.dc_tipo_contrato || '---',
+                contractType: contrato.dc_tipo_contrato || '---',
                 startDate,
                 expirationDate,
                 startDateFormatted: startDate ? startDate.toLocaleDateString() : '---',
@@ -89,13 +78,12 @@ const AdminContracts = () => {
             });
         }
         return mapped;
-    };
+    }, []);
 
-    const fetchRentals = async (showLoading = true) => {
+    const fetchRentals = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
         try {
-            if (showLoading) setIsLoading(true);
-            setError(null);
-            
             const [rentalsRes, configRes] = await Promise.all([
                 dbService.rentals.getAll(),
                 dbService.lockers.getConfig()
@@ -103,22 +91,13 @@ const AdminContracts = () => {
 
             if (configRes.data) setConfig(configRes.data);
 
-            const { data, dbError } = rentalsRes;
-
-            if (dbError) {
-                console.error('Database Error:', dbError);
-                setError(`Erro no banco de dados: ${dbError.message}`);
-                setIsLoading(false);
-                return;
-            }
+            const { data, error: rentalError } = rentalsRes;
+            if (rentalError) throw rentalError;
 
             if (data) {
-                // Mapping can be heavy, but it's done once.
                 const mapped = mapRentalData(data);
                 setRentals(mapped);
                 
-                // Crucial step: Wait for the state update to be processed by the browser
-                // before hiding the loading indicator. This avoids the "static frozen loading" look.
                 requestAnimationFrame(() => {
                     setTimeout(() => setIsLoading(false), 0);
                 });
@@ -131,16 +110,11 @@ const AdminContracts = () => {
             setError(`Erro inesperado: ${err.message}`);
             setIsLoading(false);
         }
-    };
+    }, [mapRentalData]);
 
     useEffect(() => {
         fetchRentals();
-    }, []);
-    const resetFilters = () => {
-        setSearchTerm('');
-        setFilters({ status: 'All', contractType: 'All', floor: 'All' });
-        setCurrentPage(1);
-    };
+    }, [fetchRentals]);
 
     const filteredRentals = useMemo(() => {
         const term = searchTerm.trim().toLowerCase();

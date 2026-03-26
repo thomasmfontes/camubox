@@ -281,7 +281,7 @@ export const dbService = {
                 // Check if response is JSON (avoid SyntaxError on 404/500 HTML responses)
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
+                    const _text = await response.text();
                     throw new Error(`Server returned non-JSON response: ${response.status}`);
                 }
 
@@ -319,7 +319,7 @@ export const dbService = {
 
             // 2. Get locker details from v_armario for these rentals
             const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
-            const { data: lockers, error: lockerError } = await supabase
+            const { data: lockers } = await supabase
                 .from('v_armario')
                 .select('*')
                 .in('id_armario', lockerIds);
@@ -372,8 +372,7 @@ export const dbService = {
                             dc_tamanho: 'GRANDE',
                             dc_andar: 'Térreo',
                             nm_aluno: 'Thomas Ed',
-                            nm_ra: '123456',
-                            id_locacao: 1
+                            nm_ra: '123456'
                         },
                         {
                             id_locacao: '2',
@@ -386,8 +385,7 @@ export const dbService = {
                             dc_tamanho: 'PEQUENO',
                             dc_andar: 'Térreo',
                             nm_aluno: 'Maria Silva',
-                            nm_ra: '654321',
-                            id_locacao: 2
+                            nm_ra: '654321'
                         }
                     ], error: null
                 };
@@ -402,12 +400,12 @@ export const dbService = {
             if (rentalError) return { data: null, error: rentalError };
 
             // 2. Fetch all lockers (or just those in rentals)
-            const { data: lockers, error: lockerError } = await supabase
+            const { data: lockers } = await supabase
                 .from('v_armario')
                 .select('*');
 
             // 3. Fetch all users (the students)
-            const { data: users, error: userError } = await supabase
+            const { data: users } = await supabase
                 .from('t_usuario')
                 .select('id_usuario, nm_usuario');
 
@@ -479,7 +477,7 @@ export const dbService = {
 
             if (!fetchError && oldRental) {
                 // Remove primary key to insert as new history record
-                const { id_locacao, ...historyRecord } = oldRental;
+                const { id_locacao: _, ...historyRecord } = oldRental;
                 // Set to 'ENCERRADA' (2) for history and update dt_termino to today
                 historyRecord.id_status = 2;
                 historyRecord.dt_termino = new Date().toISOString().split('T')[0];

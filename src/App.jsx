@@ -52,6 +52,39 @@ function App() {
 
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
+  const handleFCMRegistration = async (email) => {
+    try {
+      const token = await requestFirebaseToken();
+      if (token && email) {
+        await dbService.fcmTokens.upsert(email, token);
+      }
+    } catch (err) {
+      console.error('[App] FCM Registration error:', err);
+    }
+  };
+
+  const syncUserSession = async (supabaseUser) => {
+    try {
+      // Try to find user in our t_usuario table
+      const { data: dbUser } = await dbService.users.getByEmail(supabaseUser.email);
+      
+      const userData = {
+        uid: supabaseUser.id, // Auth UUID para FCM e referências nativas
+        id_usuario: dbUser?.id_usuario || supabaseUser.id,
+        name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
+        email: dbUser?.dc_email || supabaseUser.email,
+        isAdmin: !!dbUser?.is_adm, // Real admin check from DB
+        isOAuth: true
+      };
+
+      console.log('[App] Syncing user data into state/storage:', userData);
+      setUser(userData);
+      localStorage.setItem('camubox_user', JSON.stringify(userData));
+    } catch (err) {
+      console.error('[App] Error syncing user session:', err);
+    }
+  };
+
   useEffect(() => {
     // 1. Initial Session Check
     const checkSession = async () => {
@@ -98,39 +131,6 @@ function App() {
     }
   }, [user?.email]);
 
-  const handleFCMRegistration = async (email) => {
-    try {
-      const token = await requestFirebaseToken();
-      if (token && email) {
-        await dbService.fcmTokens.upsert(email, token);
-      }
-    } catch (err) {
-      console.error('[App] FCM Registration error:', err);
-    }
-  };
-
-  const syncUserSession = async (supabaseUser) => {
-    try {
-      // Try to find user in our t_usuario table
-      const { data: dbUser } = await dbService.users.getByEmail(supabaseUser.email);
-      
-      const userData = {
-        uid: supabaseUser.id, // Auth UUID para FCM e referências nativas
-        id_usuario: dbUser?.id_usuario || supabaseUser.id,
-        name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
-        email: dbUser?.dc_email || supabaseUser.email,
-        isAdmin: !!dbUser?.is_adm, // Real admin check from DB
-        isOAuth: true
-      };
-
-      console.log('[App] Syncing user data into state/storage:', userData);
-      setUser(userData);
-      localStorage.setItem('camubox_user', JSON.stringify(userData));
-    } catch (err) {
-      console.error('[App] Error syncing user session:', err);
-    }
-  };
-
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('camubox_user', JSON.stringify(userData));
@@ -141,6 +141,22 @@ function App() {
     setUser(null);
     localStorage.removeItem('camubox_user');
   };
+
+  if (isLoadingAuth) {
+    return (
+      <div style={{ 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#0f172a',
+        color: 'white',
+        fontFamily: 'system-ui'
+      }}>
+        <div className="loading-spinner">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -155,33 +171,7 @@ function App() {
           path="/dashboard/*"
           element={
             user ? (
-              <MainLayout user={user} onLogout={handleLogout}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={location.pathname}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
-                    style={{ width: '100%', height: '100%' }}
-                  >
-                    <Routes location={location}>
-                      <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
-                      <Route path="/admin" element={<AdminHome />} />
-                      <Route path="/admin/lockers" element={<LockerManagement />} />
-                      <Route path="/admin/contracts" element={<AdminContracts />} />
-                      <Route path="/admin/inspections" element={<LockerInspection />} />
-                      <Route path="/admin/settings" element={<AdminSettings />} />
-                      <Route path="/lockers" element={<UserLockerSelection user={user} />} />
-                      <Route path="/checkout/contract" element={<DigitalContract />} />
-                      <Route path="/checkout/payment" element={<PixPayment user={user} />} />
-                      <Route path="/my-locker" element={<UserMyLockers user={user} />} />
-                      <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
-                      <Route path="*" element={<div>Página em construção...</div>} />
-                    </Routes>
-                  </motion.div>
-                </AnimatePresence>
-              </MainLayout>
+              <DashboardLayout user={user} handleLogout={handleLogout} location={location} />
             ) : (
               <Navigate to="/" />
             )
@@ -190,6 +180,40 @@ function App() {
       </Routes>
       <InstallPWA />
     </>
+  );
+}
+
+// Separate component to help ESLint and clean up App
+function DashboardLayout({ user, handleLogout, location }) {
+  const MotionDiv = motion.div;
+  return (
+    <MainLayout user={user} onLogout={handleLogout}>
+      <AnimatePresence mode="wait">
+        <MotionDiv
+          key={location.pathname}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <Routes location={location}>
+            <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
+            <Route path="/admin" element={<AdminHome />} />
+            <Route path="/admin/lockers" element={<LockerManagement />} />
+            <Route path="/admin/contracts" element={<AdminContracts />} />
+            <Route path="/admin/inspections" element={<LockerInspection />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/lockers" element={<UserLockerSelection user={user} />} />
+            <Route path="/checkout/contract" element={<DigitalContract />} />
+            <Route path="/checkout/payment" element={<PixPayment user={user} />} />
+            <Route path="/my-locker" element={<UserMyLockers user={user} />} />
+            <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
+            <Route path="*" element={<div>Página em construção...</div>} />
+          </Routes>
+        </MotionDiv>
+      </AnimatePresence>
+    </MainLayout>
   );
 }
 

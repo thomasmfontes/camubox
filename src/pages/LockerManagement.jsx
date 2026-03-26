@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
     MapPin,
@@ -254,7 +253,6 @@ const LockerManagement = () => {
 
         let title = '';
         let message = '';
-        let confirmText = 'Confirmar';
 
         if (newStatus === 'manutencao') {
             title = 'Colocar em Manutenção';
@@ -572,76 +570,56 @@ const LockerManagement = () => {
                 )}
 
             {/* Custom Action Modal */}
-            <AnimatePresence>
-                {modalConfig.isOpen && (
-                    <motion.div 
-                        className="action-modal-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div 
-                            className="action-modal-card"
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        >
-                            <div className={`modal-icon-container ${modalConfig.type}`}>
-                                {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
-                                {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
-                                {modalConfig.type === 'error' && <XCircle size={32} />}
-                            </div>
-                            
-                            <h3>{modalConfig.title}</h3>
-                            <p>{modalConfig.message}</p>
-                            
-                            <div className="modal-footer-actions">
-                                {modalConfig.type === 'confirm' ? (
-                                    <>
-                                        <button className="modal-btn-cancel" onClick={closeModal} disabled={modalConfig.isLoading}>Cancelar</button>
-                                        <button 
-                                            className="modal-btn-confirm" 
-                                            disabled={modalConfig.isLoading}
-                                            onClick={async () => {
-                                                if (modalConfig.onConfirm) {
-                                                    setModalConfig(prev => ({ ...prev, isLoading: true }));
-                                                    await modalConfig.onConfirm();
-                                                } else {
-                                                    closeModal();
-                                                }
-                                            }}
-                                        >
-                                            {modalConfig.isLoading ? <Loader2 className="spinner" size={18} color="white" /> : 'Confirmar'}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
-                                )}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {modalConfig.isOpen && (
+                <div className="action-modal-overlay">
+                    <div className="action-modal-card">
+                        <div className={`modal-icon-container ${modalConfig.type}`}>
+                            {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
+                            {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
+                            {modalConfig.type === 'error' && <XCircle size={32} />}
+                        </div>
+                        
+                        <h3>{modalConfig.title}</h3>
+                        <p>{modalConfig.message}</p>
+                        
+                        <div className="modal-footer-actions">
+                            {modalConfig.type === 'confirm' ? (
+                                <>
+                                    <button className="modal-btn-cancel" onClick={closeModal} disabled={modalConfig.isLoading}>Cancelar</button>
+                                    <button 
+                                        className="modal-btn-confirm" 
+                                        disabled={modalConfig.isLoading}
+                                        onClick={async () => {
+                                            if (modalConfig.onConfirm) {
+                                                setModalConfig(prev => ({ ...prev, isLoading: true }));
+                                                await modalConfig.onConfirm();
+                                            } else {
+                                                closeModal();
+                                            }
+                                        }}
+                                    >
+                                        {modalConfig.isLoading ? <Loader2 className="spinner" size={18} color="white" /> : 'Confirmar'}
+                                    </button>
+                                </>
+                            ) : (
+                                <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Toast Notification */}
-            <AnimatePresence>
-                {toast && (
-                    <motion.div 
-                        className="toast-container"
-                        initial={{ opacity: 0, x: 20, y: 0 }}
-                        animate={{ opacity: 1, x: 0, y: 0 }}
-                        exit={{ opacity: 0, x: 20, y: 0 }}
-                    >
-                        <div className={`toast-notification ${toast.type}`}>
-                            <div className="toast-icon">
-                                {toast.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                            </div>
-                            <span className="toast-message">{toast.message}</span>
+            {toast && (
+                <div className="toast-container">
+                    <div className={`toast-notification ${toast.type}`}>
+                        <div className="toast-icon">
+                            {toast.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        <span className="toast-message">{toast.message}</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
