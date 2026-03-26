@@ -600,6 +600,12 @@ export const dbService = {
                 .eq('id_armario', lockerId)
                 .eq('id_usuario', userId)
                 .eq('id_status', 2); // Only if it was reserved
+        },
+        getAllActiveReservations: async () => {
+            return await supabase
+                .from('t_fila_espera')
+                .select('*, t_usuario(nm_usuario)')
+                .eq('id_status', 2); // 2 = RESERVADO
         }
     }
 };

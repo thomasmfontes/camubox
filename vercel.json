@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/notify-expiring",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-waiting-list",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

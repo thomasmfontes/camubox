@@ -42,11 +42,12 @@ const LockerManagement = () => {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [lockersRes, lookupRes, usersRes, rentalsRes] = await Promise.all([
+            const [lockersRes, lookupRes, usersRes, rentalsRes, waitingRes] = await Promise.all([
                 dbService.lockers.getAll(),
                 dbService.lockers.getLookups(),
                 dbService.users.getAll(),
-                dbService.rentals.getAll()
+                dbService.rentals.getAll(),
+                dbService.waitingList.getAllActiveReservations ? dbService.waitingList.getAllActiveReservations() : Promise.resolve({ data: [] })
             ]);
 
             if (lookupRes.error) throw lookupRes.error;
@@ -54,15 +55,26 @@ const LockerManagement = () => {
 
             const userMap = (usersRes.data || []).reduce((acc, u) => ({ ...acc, [u.id_usuario]: u.nm_usuario }), {});
 
-            const activeRentalsMap = (rentalsRes.data || []).reduce((acc, r) => {
+            // Map standard active rentals
+            const activeDataMap = (rentalsRes.data || []).reduce((acc, r) => {
                 if (r.dc_status_locacao === 'ATIVA' && r.id_armario) {
                     acc[r.id_armario] = {
                         name: r.nm_aluno,
-                        expiry: r.dt_termino
+                        expiry: r.dt_termino,
+                        type: 'rental'
                     };
                 }
                 return acc;
             }, {});
+
+            // Map waiting list reservations (Priority if locker is in 'reservado' status)
+            (waitingRes.data || []).forEach(res => {
+                activeDataMap[res.id_armario] = {
+                    name: res.t_usuario?.nm_usuario || userMap[res.id_usuario] || 'Interessado',
+                    expiry: res.dt_expiracao_reserva,
+                    type: 'reservation'
+                };
+            });
 
             if (!lockersRes.error && lockersRes.data) {
                 const normalizeStatus = (str) => {
@@ -75,7 +87,9 @@ const LockerManagement = () => {
                 const uniqueMap = new Map();
                 lockersRes.data.forEach(l => {
                     if (l.id_armario && !uniqueMap.has(l.id_armario)) {
-                        const activeRental = activeRentalsMap[l.id_armario];
+                        const activeData = activeDataMap[l.id_armario];
+                        const isReservation = activeData?.type === 'reservation';
+
                         uniqueMap.set(l.id_armario, {
                             id: (l.nr_armario || l.cd_armario || '').toString().padStart(3, '0'),
                             nr: l.nr_armario || l.cd_armario,
@@ -86,11 +100,18 @@ const LockerManagement = () => {
                             size: l.nm_tamanho || l.dc_tamanho || 'Pequeno',
                             position: l.nm_posicao || l.dc_posicao || 'MÉDIO',
                             status: normalizeStatus(l.situacao || l.dc_status || 'disponivel'),
-                            responsible: (activeRental && activeRental.name) || userMap[l.id_usuario] || l.id_usuario || 'Disponível',
-                            expiry: (activeRental && activeRental.expiry) ? (function (dt) {
+                            responsible: (activeData && activeData.name) || userMap[l.id_usuario] || l.id_usuario || 'Disponível',
+                            isReservation,
+                            expiry: (activeData && activeData.expiry) ? (function (dt) {
+                                if (isReservation) {
+                                    // Reservations use Full Timestamp (ISO)
+                                    const d = new Date(dt);
+                                    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                                }
+                                // Rentals use YYYY-MM-DD
                                 const [y, m, d] = dt.split('-').map(Number);
                                 return new Date(y, m - 1, d).toLocaleDateString();
-                            })(activeRental.expiry) : l.dt_termino ? (function (dt) {
+                            })(activeData.expiry) : l.dt_termino ? (function (dt) {
                                 const [y, m, d] = dt.split('-').map(Number);
                                 return new Date(y, m - 1, d).toLocaleDateString();
                             })(l.dt_termino) : 'N/A'
@@ -427,9 +448,9 @@ const LockerManagement = () => {
                                             </div>
                                         </div>
 
-                                        {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito') && (
+                                        {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado') && (
                                             <div className="drawer-section">
-                                                <h3 className="section-title">Responsável</h3>
+                                                <h3 className="section-title">{selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 'Responsável'}</h3>
                                                 <div className="admin-info-card">
                                                     <div className="admin-info-row">
                                                         <User size={16} />
@@ -441,7 +462,7 @@ const LockerManagement = () => {
                                                     <div className="admin-info-row">
                                                         <Calendar size={16} />
                                                         <div>
-                                                            <label>Vencimento</label>
+                                                            <label>{selectedLocker.status === 'reservado' ? 'Expira em' : 'Vencimento'}</label>
                                                             <p>{selectedLocker.expiry}</p>
                                                         </div>
                                                     </div>
