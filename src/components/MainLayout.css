@@ -9,6 +9,7 @@
     /* Width of sidebar */
     display: flex;
     flex-direction: column;
+    padding-top: 70px; /* Space for fixed Topbar */
 }
 
 .page-content {

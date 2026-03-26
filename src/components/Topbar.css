@@ -6,10 +6,19 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 1rem;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 100%;
     z-index: 90;
     transition: all 0.2s ease;
+}
+
+@media (min-width: 769px) {
+    .topbar {
+        left: 260px;
+        width: calc(100% - 260px);
+    }
 }
 
 @media (min-width: 768px) {

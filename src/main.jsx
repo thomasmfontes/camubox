@@ -8,6 +8,10 @@ import { registerSW } from 'virtual:pwa-register'
 
 registerSW({ immediate: true })
 
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
