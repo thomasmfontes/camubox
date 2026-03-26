@@ -142,6 +142,18 @@ const UserLockerSelection = ({ user }) => {
         checkWaitingList();
     }, [statusModal, user]);
 
+    // Deep-linking: Open locker details from URL parameter
+    useEffect(() => {
+        const lockerIdToOpen = queryParams.get('openLockerId');
+        if (lockerIdToOpen && lockers.length > 0 && !statusModal && !isPanelOpen) {
+            const locker = lockers.find(l => l.dbId.toString() === lockerIdToOpen.toString());
+            if (locker) {
+                console.log('[DeepLink] Opening locker:', lockerIdToOpen);
+                openLockerDetails(locker);
+            }
+        }
+    }, [lockers, location.search, statusModal, isPanelOpen]);
+
     const displayLockers = useMemo(() => {
         const fFloorId = filters.floorId;
         const fSizeId = filters.sizeId;

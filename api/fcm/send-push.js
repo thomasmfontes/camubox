@@ -85,7 +85,10 @@ export default async function handler(req, res) {
                   body: record.dc_mensagem,
                   icon: 'https://camubox.com/pwa-icon.png',
                   badge: 'https://camubox.com/badge-72.png',
-                  url: 'https://camubox.com/dashboard/locker'
+                  url: record.tp_entidade === 'armario' 
+                    ? `https://camubox.com/dashboard/locker?openLockerId=${record.id_entidade}`
+                    : 'https://camubox.com/dashboard/locker',
+                  lockerId: record.tp_entidade === 'armario' ? record.id_entidade : undefined
                 },
                 android: {
                   priority: 'high'
@@ -95,7 +98,9 @@ export default async function handler(req, res) {
                     Urgency: 'high'
                   },
                   fcm_options: {
-                    link: 'https://camubox.com/dashboard/locker'
+                    link: record.tp_entidade === 'armario' 
+                      ? `https://camubox.com/dashboard/locker?openLockerId=${record.id_entidade}`
+                      : 'https://camubox.com/dashboard/locker'
                   }
                 }
               }
