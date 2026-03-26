@@ -87,6 +87,11 @@ export default async function handler(req, res) {
                 data: {
                   url: 'https://camubox.com/dashboard/locker'
                 },
+                android: {
+                  notification: {
+                    icon: 'https://camubox.com/badge-72.png'
+                  }
+                },
                 webpush: {
                   notification: {
                     icon: 'https://camubox.com/pwa-icon.png',
