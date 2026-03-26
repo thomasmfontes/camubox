@@ -82,14 +82,16 @@ export default async function handler(req, res) {
                 token: t.token,
                 notification: {
                   title: record.dc_titulo || 'CAMUBOX 📦',
-                  body: record.dc_mensagem,
-                  icon: 'https://camubox.com/pwa-icon.png',
-                  badge: 'https://camubox.com/badge-72.png'
+                  body: record.dc_mensagem
                 },
                 data: {
                   url: 'https://camubox.com/dashboard/locker'
                 },
                 webpush: {
+                  notification: {
+                    icon: 'https://camubox.com/pwa-icon.png',
+                    badge: 'https://camubox.com/badge-72.png'
+                  },
                   fcm_options: {
                     link: 'https://camubox.com/dashboard/locker'
                   }
@@ -98,7 +100,8 @@ export default async function handler(req, res) {
             })
           }
         );
-        results.push({ token: '...', status: fcmResponse.status });
+        const resData = await fcmResponse.json();
+        results.push({ token: t.token.substring(0, 10) + '...', status: fcmResponse.status, details: resData });
       } catch (err) {
         results.push({ token: '...', error: err.message });
       }
