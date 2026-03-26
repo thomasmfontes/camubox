@@ -4,7 +4,6 @@ import { IoMdPricetag } from 'react-icons/io';
 import {
     FileText,
     Calendar,
-    MapPin,
     ArrowRight,
     ChevronLeft,
     Book,
@@ -88,7 +87,6 @@ const DigitalContract = () => {
                         <span>#{rentalSummary.id} ({rentalSummary.size})</span>
                     </div>
                     <div className="summary-item">
-                        <MapPin size={16} />
                         <span>{rentalSummary.floor}</span>
                     </div>
                     <div className="summary-item">

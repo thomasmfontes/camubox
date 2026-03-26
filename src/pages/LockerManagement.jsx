@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
     Search,
-    MapPin,
     Maximize2,
     Clock,
     Wrench,
@@ -335,7 +334,7 @@ const LockerManagement = () => {
                 </div>
 
                 <div className="filter-group">
-                    <span className="filter-icon"><MapPin size={20} /></span>
+                    <span className="filter-icon"><Search size={20} /></span>
                     <select
                         value={filters.floorId}
                         onChange={(e) => setFilters({ ...filters, floorId: e.target.value })}
@@ -492,7 +491,6 @@ const LockerManagement = () => {
                                             <h3 className="section-title">Localização e Specs</h3>
                                             <div className="specs-grid">
                                                 <div className="spec-item">
-                                                    <MapPin size={18} className="spec-icon" />
                                                     <div className="spec-info">
                                                         <label>Andar</label>
                                                         <span>{selectedLocker.floor}</span>

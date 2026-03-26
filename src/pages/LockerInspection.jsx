@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 import {
     ClipboardCheck,
-    MapPin,
     User as UserIcon,
     Calendar,
     AlertCircle,
@@ -209,7 +208,7 @@ const LockerInspection = () => {
                             </tr>
                         </thead>
                             <tbody>
-                                {filteredInspections.map((item, index) => (
+                                {filteredInspections.map((item) => (
                                     <tr 
                                         key={item.dbId}
                                     >
@@ -217,7 +216,6 @@ const LockerInspection = () => {
                                         <div className="unified-locker-badge">
                                             <span className="locker-id-part">{item.id}</span>
                                             <div className="floor-part">
-                                                <MapPin size={10} />
                                                 <span>{item.floor}</span>
                                             </div>
                                         </div>

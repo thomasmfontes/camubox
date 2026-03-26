@@ -16,7 +16,7 @@ firebase.initializeApp({
   appId: "1:399118885219:web:d5b8c6c09e384d5668b356"
 });
 
-const messaging = firebase.messaging();
+// const messaging = firebase.messaging();
 
 // Interceptação nativa ultra-robusta (Garante que a notificação apareça com os ícones corretos)
 self.addEventListener('push', (event) => {

@@ -87,7 +87,7 @@ const AdminHome = () => {
                             uniqueMap.set(l.id_armario, true);
 
                             counts.total++;
-                            if (counts.hasOwnProperty(status)) {
+                            if (Object.prototype.hasOwnProperty.call(counts, status)) {
                                 counts[status]++;
                             }
                         }

@@ -174,7 +174,7 @@ export const dbService = {
                 .from('t_usuario')
                 .select('*')
                 .eq('nm_ra', ra)
-                .single();
+                .maybeSingle();
         },
         getById: async (id) => {
             if (isMockMode) return { data: null, error: null };
@@ -182,7 +182,7 @@ export const dbService = {
                 .from('t_usuario')
                 .select('*')
                 .eq('id_usuario', id)
-                .single();
+                .maybeSingle();
         }
     },
     users: {
@@ -211,7 +211,7 @@ export const dbService = {
                 .from('t_usuario')
                 .select('*')
                 .eq('dc_email', email)
-                .single();
+                .maybeSingle();
         },
         getById: async (id) => {
             if (isMockMode) return { data: null, error: null };
@@ -219,7 +219,7 @@ export const dbService = {
                 .from('t_usuario')
                 .select('*')
                 .eq('id_usuario', id)
-                .single();
+                .maybeSingle();
         },
         create: async (userData) => {
             if (isMockMode) return { data: { id_usuario: 'mock-id', ...userData }, error: null };
@@ -229,7 +229,7 @@ export const dbService = {
                 .from('t_usuario')
                 .insert([dataToInsert])
                 .select()
-                .single();
+                .maybeSingle();
         },
         getByPhone: async (phone) => {
             if (isMockMode) return { data: null, error: null };
@@ -237,7 +237,7 @@ export const dbService = {
                 .from('t_usuario')
                 .select('*')
                 .eq('nr_celular', phone)
-                .single();
+                .maybeSingle();
         },
         updateEmail: async (id, email) => {
             if (isMockMode) return { data: null, error: null };
@@ -346,8 +346,7 @@ export const dbService = {
                 .from('t_locacao')
                 .select('*, t_usuario(*)')
                 .eq('id_armario', lockerId)
-                .eq('dc_status_locacao', 'ATIVA')
-                .single();
+                .maybeSingle();
         },
         getHistoryByLockers: async (lockerIds) => {
             if (isMockMode) return { data: [], error: null };
@@ -473,7 +472,7 @@ export const dbService = {
                 .from('t_locacao')
                 .select('*')
                 .eq('id_locacao', rentalId)
-                .single();
+                .maybeSingle();
 
             if (!fetchError && oldRental) {
                 // Remove primary key to insert as new history record
@@ -588,7 +587,7 @@ export const dbService = {
                 .eq('id_usuario', userId)
                 .order('dt_entrada', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
         },
         complete: async (lockerId, userId) => {
             if (isMockMode) return { data: null, error: null };

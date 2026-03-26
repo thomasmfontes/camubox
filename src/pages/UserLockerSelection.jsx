@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Search,
-    MapPin,
     Maximize2,
     Clock,
     CheckCircle2,
@@ -22,7 +21,7 @@ import './UserLockerSelection.css';
 const UserLockerSelection = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
+    const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const exchangeFor = queryParams.get('exchange_for');
     const exchangeSize = queryParams.get('size');
     const oldLockerId = queryParams.get('old_id');
@@ -142,18 +141,6 @@ const UserLockerSelection = ({ user }) => {
         checkWaitingList();
     }, [statusModal, user]);
 
-    // Deep-linking: Open locker details from URL parameter
-    useEffect(() => {
-        const lockerIdToOpen = queryParams.get('openLockerId');
-        if (lockerIdToOpen && lockers.length > 0 && !statusModal && !isPanelOpen) {
-            const locker = lockers.find(l => l.dbId.toString() === lockerIdToOpen.toString());
-            if (locker) {
-                console.log('[DeepLink] Opening locker:', lockerIdToOpen);
-                openLockerDetails(locker);
-            }
-        }
-    }, [lockers, location.search, statusModal, isPanelOpen]);
-
     const displayLockers = useMemo(() => {
         const fFloorId = filters.floorId;
         const fSizeId = filters.sizeId;
@@ -184,7 +171,7 @@ const UserLockerSelection = ({ user }) => {
             .sort((a, b) => (parseInt(a.nr) || 0) - (parseInt(b.nr) || 0));
     }, [lockers, filters.floorId, filters.sizeId, searchTerm, lookups, exchangeSize]);
 
-    const openLockerDetails = async (locker) => {
+    const openLockerDetails = useCallback(async (locker) => {
         // If locker is reserved, check if it's for this user
         if (locker.status === 'reservado' && user) {
             const { data } = await dbService.waitingList.getStatus(locker.dbId, user.id_usuario);
@@ -202,7 +189,19 @@ const UserLockerSelection = ({ user }) => {
         } else {
             setStatusModal(locker);
         }
-    };
+    }, [user]);
+
+    // Deep-linking: Open locker details from URL parameter
+    useEffect(() => {
+        const lockerIdToOpen = queryParams.get('openLockerId');
+        if (lockerIdToOpen && lockers.length > 0 && !statusModal && !isPanelOpen) {
+            const locker = lockers.find(l => l.dbId.toString() === lockerIdToOpen.toString());
+            if (locker) {
+                console.log('[DeepLink] Opening locker:', lockerIdToOpen);
+                openLockerDetails(locker);
+            }
+        }
+    }, [lockers, location.search, statusModal, isPanelOpen, queryParams, openLockerDetails]);
 
     const handleJoinWaitingList = async () => {
         if (!statusModal || !user) return;
@@ -256,7 +255,7 @@ const UserLockerSelection = ({ user }) => {
                 </div>
 
                 <div className="filter-group">
-                    <span className="filter-icon"><MapPin size={20} /></span>
+                    <span className="filter-icon"><Search size={20} /></span>
                     <select
                         value={filters.floorId}
                         onChange={(e) => setFilters({ ...filters, floorId: e.target.value })}
@@ -364,7 +363,6 @@ const UserLockerSelection = ({ user }) => {
                                     <h3 className="section-title">Localização e Specs</h3>
                                     <div className="specs-grid">
                                         <div className="spec-item">
-                                            <MapPin size={18} className="spec-icon" />
                                             <div className="spec-info">
                                                 <label>Andar</label>
                                                 <span>{selectedLocker.floor}</span>

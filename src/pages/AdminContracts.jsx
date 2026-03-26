@@ -18,7 +18,6 @@ import {
     MinusCircle,
     ChevronRight,
     ChevronLeft,
-    MapPin,
     Tag
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
@@ -419,7 +418,7 @@ const AdminContracts = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                    {paginatedRentals.map((rental, index) => (
+                                    {paginatedRentals.map((rental) => (
                                         <tr 
                                             key={rental.id} 
                                             onClick={() => openDetails(rental)}
@@ -429,7 +428,6 @@ const AdminContracts = () => {
                                             <div className="unified-locker-badge">
                                                 <span className="locker-id-part">{rental.lockerNumber}</span>
                                                 <div className="floor-part">
-                                                    <MapPin size={10} />
                                                     <span>{rental.floor}</span>
                                                 </div>
                                             </div>
@@ -680,8 +678,7 @@ const AdminContracts = () => {
                                                                 <span className="locker-label">ARMÁRIO</span>
                                                                 <span className="locker-number">#{String(l.nr_armario || l.cd_armario).padStart(3, '0')}</span>
                                                             </div>
-                                                            <div className="locker-floor-row">
-                                                                <MapPin size={12} />
+                                                            <div className="floor-part-simple">
                                                                 <span>{l.nm_local || l.dc_andar || 'Térreo'}</span>
                                                             </div>
                                                         </div>

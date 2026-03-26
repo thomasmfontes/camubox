@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Clock, RefreshCcw, MapPin, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
+import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
 
@@ -14,7 +14,7 @@ const UserMyLockers = ({ user }) => {
     const [newPassValue, setNewPassValue] = useState('');
     const [isSavingPass, setIsSavingPass] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!user?.id_usuario) return;
         setIsLoading(true);
         try {
@@ -61,11 +61,11 @@ const UserMyLockers = ({ user }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [user?.id_usuario]);
 
     useEffect(() => {
         fetchData();
-    }, [user]);
+    }, [fetchData]);
 
     const handleOpenPass = (locker) => {
         setViewPassword(locker);
@@ -126,7 +126,7 @@ const UserMyLockers = ({ user }) => {
             <div className="lockers-section">
                     {myLockers.length > 0 ? (
                         <div className="lockers-matrix">
-                            {myLockers.map((locker, index) => (
+                            {myLockers.map((locker) => (
                                 <div
                                     key={locker.id}
                                     className={`locker-card-premium ${locker.isExpired ? 'expired' : ''}`}
@@ -147,7 +147,6 @@ const UserMyLockers = ({ user }) => {
                                         </div>
                                         <div className="locker-specs">
                                             <div className="spec-item" title="Localização">
-                                                <MapPin size={14} />
                                                 <span>{locker.floor}</span>
                                             </div>
                                             <div className="spec-item" title="Tamanho">

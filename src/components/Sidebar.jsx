@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home,
@@ -14,7 +13,7 @@ import {
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = ({ user, role = 'user', onLogout, isOpen, onClose }) => {
+const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     

@@ -207,5 +207,37 @@ button:focus {
 .back-btn-premium:hover {
   border-color: var(--primary);
   background: var(--bg-main);
-  transform: translateX(-2px);
+  transform: translateX(-4px);
+}
+
+/* --- Premium Micro-interactions (Global) --- */
+
+/* Tactical Button Feedback */
+button:active, 
+.btn-premium:active,
+.btn-action-glass:active,
+.admin-btn:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* Interactive Card Base */
+.interactive-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.interactive-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 25px -5px rgba(0, 43, 31, 0.1), 0 10px 10px -5px rgba(0, 43, 31, 0.04);
+}
+
+.interactive-card:active {
+  transform: scale(0.98);
+}
+
+/* Glassmorphism Hover */
+.glass:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--primary);
 }

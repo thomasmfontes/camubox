@@ -9,10 +9,9 @@ import {
     Clock,
     XCircle,
     ChevronLeft,
-    ArrowRight,
-    MapPin
+    ArrowRight
 } from 'lucide-react';
-import { supabase } from '../services/supabaseClient';
+import { supabase, dbService } from '../services/supabaseClient';
 import './PixPayment.css';
 
 const PixPayment = ({ user }) => {
@@ -55,7 +54,7 @@ const PixPayment = ({ user }) => {
                 let correlationID;
 
                 if (isExchange) {
-                    correlationID = `${exchangeInfo.rentalId}`;
+                    correlationID = `${exchangeInfo?.rentalId || 'new'}`;
                 } else {
                     const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
                         id_armario: selectedLocker.dbId,
@@ -122,7 +121,7 @@ const PixPayment = ({ user }) => {
         };
 
         generatePix();
-    }, [user]);
+    }, [user, exchangeInfo?.rentalId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id]);
 
     const handleCopy = () => {
         if (qrCodeData?.brCode) {
@@ -132,44 +131,6 @@ const PixPayment = ({ user }) => {
         }
     };
 
-    const handleMockPayment = async () => {
-        setStatus('verifying');
-        try {
-            if (!user) throw new Error('Usuário não logado');
-
-            if (isExchange) {
-                // MOCK Exchange logic
-                const { data: oldRental } = await supabase.from('t_locacao').select('*').eq('id_locacao', exchangeInfo.rentalId).single();
-                if (oldRental) {
-                    const historyRecord = { ...oldRental };
-                    delete historyRecord.id_locacao;
-                    historyRecord.id_status = 2; // Historico
-                    historyRecord.dt_termino = new Date().toISOString().split('T')[0];
-                    await supabase.from('t_locacao').insert([historyRecord]);
-                }
-                await supabase.from('t_locacao').update({ id_armario: selectedLocker.dbId }).eq('id_locacao', exchangeInfo.rentalId);
-            } else {
-                // MOCK Rental logic
-                await supabase.from('t_locacao').insert({
-                    id_armario: selectedLocker.dbId,
-                    id_usuario: user.id_usuario,
-                    id_tipo: 1,
-                    id_status: 1,
-                    dt_inicio: new Date().toISOString(),
-                    dt_termino: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString()
-                });
-            }
-
-            // Mark waiting list as complete if this was a reserved locker
-            await dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
-
-            setStatus('confirmed');
-        } catch (error) {
-            console.error(error);
-            setErrorMsg('Erro ao confirmar pagamento. Tente novamente.');
-            setStatus('error');
-        }
-    };
 
     return (
         <div className="pix-payment-page premium-theme">
@@ -192,7 +153,6 @@ const PixPayment = ({ user }) => {
                     </div>
                     {selectedLocker.floor && (
                         <div className="summary-item">
-                            <MapPin size={16} />
                             <span>{selectedLocker.floor}</span>
                         </div>
                     )}

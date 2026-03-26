@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+// import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,10 +11,10 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+initializeApp(firebaseConfig);
+// const messaging = getMessaging(app);
 
-export { messaging };
+// export { messaging };
 
 export const requestFirebaseToken = async () => {
   try {
@@ -34,10 +34,13 @@ export const requestFirebaseToken = async () => {
       
       if (!registration.pushManager) return null;
 
+      /*
       return await getToken(messaging, {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
         serviceWorkerRegistration: registration
       });
+      */
+      return null;
     }
     return null;
   } catch {
@@ -46,6 +49,7 @@ export const requestFirebaseToken = async () => {
 };
 
 export const setupForegroundListener = () => {
+  /*
   return onMessage(messaging, (payload) => {
     // Tenta mostrar notificação nativa mesmo em foreground
     if (Notification.permission === 'granted' && payload.notification) {
@@ -57,4 +61,6 @@ export const setupForegroundListener = () => {
       });
     }
   });
+  */
+  return () => {};
 };

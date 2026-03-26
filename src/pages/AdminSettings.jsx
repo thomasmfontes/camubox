@@ -13,7 +13,8 @@ import {
     CheckCircle2,
     XCircle
 } from 'lucide-react';
-import { authService } from '../services/supabaseClient';
+import Toast from '../components/Toast';
+
 import './AdminSettings.css';
 
 const AdminSettings = () => {
@@ -40,6 +41,12 @@ const AdminSettings = () => {
         type: 'confirm', 
         onConfirm: null 
     });
+
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+    };
 
     const showModal = (config) => {
         setModalConfig({
@@ -104,11 +111,7 @@ const AdminSettings = () => {
             const { data: user, error: fetchError } = await dbService.users.getByEmail(email);
             
             if (fetchError || !user) {
-                showModal({
-                    title: 'Usuário não Encontrado',
-                    message: `O e-mail ${email} ainda não está cadastrado no sistema. O usuário precisa fazer login pelo menos uma vez antes de ser promovido a admin.`,
-                    type: 'error'
-                });
+                showToast(`O e-mail ${email} ainda não está cadastrado no sistema.`, 'error');
                 return;
             }
 
@@ -118,20 +121,12 @@ const AdminSettings = () => {
             if (!updateError) {
                 setNewAdminEmail('');
                 await fetchAdmins();
-                showModal({
-                    title: 'Sucesso!',
-                    message: 'Novo administrador adicionado com sucesso.',
-                    type: 'success'
-                });
+                showToast('Novo administrador adicionado com sucesso!');
             } else {
                 throw updateError;
             }
         } catch (err) {
-            showModal({
-                title: 'Erro',
-                message: 'Não foi possível adicionar o administrador: ' + err.message,
-                type: 'error'
-            });
+            showToast('Erro ao adicionar administrador: ' + err.message, 'error');
         } finally {
             setIsLoadingAdmins(false);
         }
@@ -148,20 +143,12 @@ const AdminSettings = () => {
                     const { error } = await dbService.users.updateAdminStatus(email, false);
                     if (!error) {
                         setAdmins(prev => prev.filter(a => a.email !== email));
-                        showModal({
-                            title: 'Sucesso!',
-                            message: 'Acesso administrativo removido com sucesso.',
-                            type: 'success'
-                        });
+                        showToast('Acesso administrativo removido com sucesso!');
                     } else {
                         throw error;
                     }
                 } catch (err) {
-                    showModal({
-                        title: 'Erro',
-                        message: 'Erro ao remover acesso: ' + err.message,
-                        type: 'error'
-                    });
+                    showToast('Erro ao remover acesso: ' + err.message, 'error');
                 } finally {
                     setIsLoadingAdmins(false);
                 }
@@ -173,17 +160,9 @@ const AdminSettings = () => {
         setIsLoading(true);
         const { error } = await dbService.settings.update(config);
         if (!error) {
-            showModal({
-                title: 'Sucesso!',
-                message: `Configurações de ${sectionLabel} salvas com sucesso!`,
-                type: 'success'
-            });
+            showToast(`Configurações de ${sectionLabel} salvas com sucesso!`);
         } else {
-            showModal({
-                title: 'Erro ao Salvar',
-                message: `Erro ao salvar: ${error.message}`,
-                type: 'error'
-            });
+            showToast(`Erro ao salvar: ${error.message}`, 'error');
         }
         setIsLoading(false);
     };
@@ -413,6 +392,14 @@ const AdminSettings = () => {
                         </div>
                     </div>
                 )}
+
+            {toast && (
+                <Toast 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToast(null)} 
+                />
+            )}
         </div>
     );
 };

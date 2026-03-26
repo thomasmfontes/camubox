@@ -3,15 +3,22 @@ import { Download, X, Smartphone } from 'lucide-react';
 import './InstallPWA.css';
 
 const InstallPWA = () => {
-  const [supportsPWA, setSupportsPWA] = useState(false);
   const [promptInstall, setPromptInstall] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    // Let the slideDown animation play (0.5s)
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsClosing(false);
+    }, 500);
+  };
+
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
-      setSupportsPWA(true);
       setPromptInstall(e);
       
       // Show after a small delay to not annoy immediately
@@ -28,20 +35,10 @@ const InstallPWA = () => {
     // Also check if already installed
     window.addEventListener('appinstalled', () => {
       handleClose();
-      setSupportsPWA(false);
     });
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    // Let the slideDown animation play (0.5s)
-    setTimeout(() => {
-      setIsVisible(false);
-      setIsClosing(false);
-    }, 500);
-  };
 
   const onClickInstall = async () => {
     if (!promptInstall) return;

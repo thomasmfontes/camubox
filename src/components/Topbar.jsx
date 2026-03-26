@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, User, Menu, X, Trash2, Check } from 'lucide-react';
 import './Topbar.css';
 import { dbService } from '../services/supabaseClient';
@@ -22,7 +22,7 @@ const Topbar = ({ user, onMenuToggle }) => {
         }
     };
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         if (!user?.id_usuario && !user?.uid) {
             console.log('[Topbar] No user identifier (id_usuario or uid) found in session:', user);
             return;
@@ -44,14 +44,15 @@ const Topbar = ({ user, onMenuToggle }) => {
             setNotifications(data);
             setUnreadCount(data.filter(n => !n.is_lida).length);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
         // Poll for new notifications every 2 minutes
         const interval = setInterval(fetchNotifications, 120000);
         return () => clearInterval(interval);
-    }, [user?.id_usuario, user?.uid]);
+    }, [fetchNotifications]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
