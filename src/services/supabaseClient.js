@@ -150,6 +150,8 @@ export const dbService = {
                     finalStatusId = 2;
                 } else if (normalized === 'MANUTENCAO') {
                     finalStatusId = 3;
+                } else if (normalized === 'RESERVADO' || normalized === 'RESERVADO_FILA') {
+                    finalStatusId = 5;
                 }
             }
 
@@ -527,16 +529,14 @@ export const dbService = {
             // Build query
             let query = supabase.from('t_notificacao').select('*');
             
-            // We want to fetch notifications that match EITHER the integer ID OR the UUID
-            // This handles cases where different parts of the system used different identifiers
-            if (userId && userUid) {
-                // If we have both, we use an 'OR' filter
-                // However, id_usuario is often an integer in the DB, so we must be careful with types
-                // If one is definitely a string (uuid) and the other is numeric, supabase .or handles it if the column type matches
-                query = query.or(`id_usuario.eq.${userId},id_usuario.eq.${userUid}`);
-            } else if (userId) {
-                query = query.eq('id_usuario', userId);
+            // If the column id_usuario is integer in DB, only query if userId is numeric to avoid 400 error
+            const isNumericId = (id) => !isNaN(parseInt(id)) && /^\d+$/.test(id.toString());
+
+            if (userId && isNumericId(userId)) {
+                query = query.eq('id_usuario', parseInt(userId));
             } else if (userUid) {
+                // If id_usuario_auth column exists, use it, otherwise don't filter or use correctly
+                // For now, if we only have UUID and id_usuario is int, we can't find it by UUID unless we use id_usuario_auth
                 query = query.eq('id_usuario', userUid);
             } else {
                 return { data: [], error: null };
@@ -557,6 +557,49 @@ export const dbService = {
                 .from('t_notificacao')
                 .delete()
                 .eq('id_notificacao', notificationId);
+        }
+    },
+    
+    // WAITING LIST
+    waitingList: {
+        join: async (lockerId, userId) => {
+            if (isMockMode) {
+                console.log(`Mock: Joining waiting list for locker ${lockerId}`);
+                return { data: { id_fila: 'mock-id' }, error: null };
+            }
+            return await supabase
+                .from('t_fila_espera')
+                .insert([{ id_armario: lockerId, id_usuario: userId, id_status: 1 }])
+                .select();
+        },
+        leave: async (lockerId, userId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_fila_espera')
+                .delete()
+                .eq('id_armario', lockerId)
+                .eq('id_usuario', userId)
+                .eq('id_status', 1); // Only leave if still waiting
+        },
+        getStatus: async (lockerId, userId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_fila_espera')
+                .select('*')
+                .eq('id_armario', lockerId)
+                .eq('id_usuario', userId)
+                .order('dt_entrada', { ascending: false })
+                .limit(1)
+                .single();
+        },
+        complete: async (lockerId, userId) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_fila_espera')
+                .update({ id_status: 3 }) // 3: CONCLUIDO
+                .eq('id_armario', lockerId)
+                .eq('id_usuario', userId)
+                .eq('id_status', 2); // Only if it was reserved
         }
     }
 };

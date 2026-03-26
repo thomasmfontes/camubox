@@ -19,7 +19,7 @@ import {
 import { dbService } from '../services/supabaseClient';
 import './UserLockerSelection.css';
 
-const UserLockerSelection = () => {
+const UserLockerSelection = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -39,6 +39,8 @@ const UserLockerSelection = () => {
     });
     const [lookups, setLookups] = useState({ floors: {}, sizes: {}, statuses: {}, positions: {} });
     const [statusModal, setStatusModal] = useState(null);
+    const [waitingListStatus, setWaitingListStatus] = useState(null);
+    const [isProcessingWaitingList, setIsProcessingWaitingList] = useState(false);
 
     useEffect(() => {
         if (exchangeSize) {
@@ -66,11 +68,15 @@ const UserLockerSelection = () => {
                     // Normalize status helper
                     const normalizeStatus = (str) => {
                         if (!str) return 'disponivel';
-                        return str.normalize("NFD")
+                        const normalized = str.normalize("NFD")
                             .replace(/[\u0300-\u036f]/g, "")
                             .toLowerCase()
                             .trim()
                             .replace(/\s+/g, '-');
+                        
+                        // Map reservado to a specific string
+                        if (normalized.includes('reservado')) return 'reservado';
+                        return normalized;
                     };
 
                     const uniqueMap = new Map();
@@ -123,6 +129,19 @@ const UserLockerSelection = () => {
         };
     }, [isPanelOpen, statusModal]);
 
+    // Check waiting list status when modal opens
+    useEffect(() => {
+        const checkWaitingList = async () => {
+            if (statusModal && user) {
+                const { data } = await dbService.waitingList.getStatus(statusModal.dbId, user.id_usuario);
+                setWaitingListStatus(data);
+            } else {
+                setWaitingListStatus(null);
+            }
+        };
+        checkWaitingList();
+    }, [statusModal, user]);
+
     const displayLockers = useMemo(() => {
         const fFloorId = filters.floorId;
         const fSizeId = filters.sizeId;
@@ -153,7 +172,18 @@ const UserLockerSelection = () => {
             .sort((a, b) => (parseInt(a.nr) || 0) - (parseInt(b.nr) || 0));
     }, [lockers, filters.floorId, filters.sizeId, searchTerm, lookups, exchangeSize]);
 
-    const openLockerDetails = (locker) => {
+    const openLockerDetails = async (locker) => {
+        // If locker is reserved, check if it's for this user
+        if (locker.status === 'reservado' && user) {
+            const { data } = await dbService.waitingList.getStatus(locker.dbId, user.id_usuario);
+            // If user is the one who has the reservation (status 2 in queue)
+            if (data && data.id_status === 2) {
+                setSelectedLocker(locker);
+                setIsPanelOpen(true);
+                return;
+            }
+        }
+
         if (locker.status === 'disponivel') {
             setSelectedLocker(locker);
             setIsPanelOpen(true);
@@ -162,11 +192,30 @@ const UserLockerSelection = () => {
         }
     };
 
+    const handleJoinWaitingList = async () => {
+        if (!statusModal || !user) return;
+        setIsProcessingWaitingList(true);
+        try {
+            const { error } = await dbService.waitingList.join(statusModal.dbId, user.id_usuario);
+            if (error) throw error;
+            
+            // Refresh status
+            const { data } = await dbService.waitingList.getStatus(statusModal.dbId, user.id_usuario);
+            setWaitingListStatus(data);
+        } catch (err) {
+            console.error('[WAITING LIST ERROR]', err);
+            alert('Erro ao entrar na fila: ' + (err.message || 'Tente novamente.'));
+        } finally {
+            setIsProcessingWaitingList(false);
+        }
+    };
+
     const getStatusClass = (status) => {
         if (status === 'disponivel') return 'status-available';
         if (status === 'ocupado' || status === 'em-uso') return 'status-occupied';
         if (status === 'vistoria') return 'status-inspection';
         if (status === 'manutencao') return 'status-maintenance';
+        if (status === 'reservado') return 'status-reserved';
         return '';
     };
 
@@ -240,7 +289,7 @@ const UserLockerSelection = () => {
                                     onClick={() => openLockerDetails(locker)}
                                 >
                                     <span className="unit-number">{locker.id}</span>
-                                    {locker.status === 'ocupado' && <Lock size={12} className="unit-icon" />}
+                                    {(locker.status === 'ocupado' || locker.status === 'reservado') && <Lock size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
                                 </button>
@@ -285,6 +334,16 @@ const UserLockerSelection = () => {
                             </header>
 
                             <div className="drawer-content">
+                                {selectedLocker.status === 'reservado' && (
+                                    <div className="info-card-premium pink" style={{ marginBottom: '1.5rem' }}>
+                                        <Sparkles size={18} />
+                                        <div className="info-content">
+                                            <h4>Unidade Reservada para Você!</h4>
+                                            <p>Este armário foi liberado da fila de espera e está aguardando sua contratação.</p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="drawer-section">
                                     <h3 className="section-title">Localização e Specs</h3>
                                     <div className="specs-grid">
@@ -363,7 +422,7 @@ const UserLockerSelection = () => {
                             <footer className="drawer-footer">
                                 <button
                                     className="confirm-selection-btn"
-                                    disabled={selectedLocker.status !== 'disponivel'}
+                                    disabled={selectedLocker.status !== 'disponivel' && selectedLocker.status !== 'reservado'}
                                     onClick={() => {
                                         if (exchangeFor) {
                                             navigate('/dashboard/checkout/payment', {
@@ -388,7 +447,7 @@ const UserLockerSelection = () => {
                                         }
                                     }}
                                 >
-                                    {selectedLocker.status === 'disponivel' 
+                                    {(selectedLocker.status === 'disponivel' || selectedLocker.status === 'reservado') 
                                         ? (exchangeFor ? 'Confirmar Troca (R$ 20,00)' : 'Prosseguir para o Contrato') 
                                         : 'Unidade Indisponível'}
                                     <ChevronRight size={20} />
@@ -404,17 +463,39 @@ const UserLockerSelection = () => {
                     <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
                         <div className="status-modal" onClick={e => e.stopPropagation()}>
                             <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
-                                {statusModal.status === 'ocupado' && <Lock size={40} />}
+                                {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
                                 {statusModal.status === 'vistoria' && <Clock size={40} />}
                                 {statusModal.status === 'manutencao' && <Wrench size={40} />}
                             </div>
                             <h2>Armário {statusModal.id}</h2>
                             <p className="status-modal-message">
-                                {statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para este semestre.'}
+                                {statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para o período selecionado.'}
+                                {statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
                                 {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
                                 {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
                             </p>
-                            <button className="status-modal-close" onClick={() => setStatusModal(null)}>
+
+                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
+                                <div className="waiting-list-container">
+                                    {waitingListStatus ? (
+                                        <div className="waiting-list-status">
+                                            <CheckCircle2 size={18} />
+                                            {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            className="btn-waiting-list" 
+                                            onClick={handleJoinWaitingList}
+                                            disabled={isProcessingWaitingList}
+                                        >
+                                            {isProcessingWaitingList ? <Loader2 size={18} className="spinner" /> : <Clock size={16} />}
+                                            Entrar na Fila de Espera
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            <button className="status-modal-close" onClick={() => setStatusModal(null)} style={{ marginTop: '1rem' }}>
                                 Entendido
                             </button>
                         </div>

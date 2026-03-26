@@ -68,6 +68,7 @@ const LockerManagement = () => {
                 const normalizeStatus = (str) => {
                     if (!str) return 'disponivel';
                     const normalized = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/\s+/g, '-');
+                    if (normalized.includes('reservado')) return 'reservado';
                     return normalized === 'ocupado' ? 'em-uso' : normalized;
                 };
 
@@ -210,7 +211,8 @@ const LockerManagement = () => {
             'em-uso': 'Em uso',
             'vistoria': 'Aguardando Vistoria',
             'manutencao': 'Manutenção',
-            'gratuito': 'Gratuito'
+            'gratuito': 'Gratuito',
+            'reservado': 'Reservado'
         };
         return (labels[status] || status).toUpperCase();
     };
@@ -220,6 +222,7 @@ const LockerManagement = () => {
         if (status === 'em-uso') return 'status-occupied';
         if (status === 'vistoria') return 'status-inspection';
         if (status === 'manutencao') return 'status-maintenance';
+        if (status === 'reservado') return 'status-reserved';
         return '';
     };
 
@@ -305,6 +308,7 @@ const LockerManagement = () => {
                                     {locker.status === 'em-uso' && <Lock size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
+                                    {locker.status === 'reservado' && <Calendar size={12} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (

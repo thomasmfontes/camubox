@@ -172,7 +172,7 @@ function App() {
                       <Route path="/admin/contracts" element={<AdminContracts />} />
                       <Route path="/admin/inspections" element={<LockerInspection />} />
                       <Route path="/admin/settings" element={<AdminSettings />} />
-                      <Route path="/lockers" element={<UserLockerSelection />} />
+                      <Route path="/lockers" element={<UserLockerSelection user={user} />} />
                       <Route path="/checkout/contract" element={<DigitalContract />} />
                       <Route path="/checkout/payment" element={<PixPayment user={user} />} />
                       <Route path="/my-locker" element={<UserMyLockers user={user} />} />

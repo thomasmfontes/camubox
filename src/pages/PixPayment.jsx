@@ -49,25 +49,19 @@ const PixPayment = ({ user }) => {
     // Gerar cobrança real na Woovi
     useEffect(() => {
         const generatePix = async () => {
+            if (!user) return;
             try {
                 // 1. Criar o registro da locação no Supabase primeiro para ter o ID
-                // Usaremos um status temporário se existir, ou o status 1 (ativa) 
-                // para simplificar o mock atual do usuário, mas o ideal seria um status 'pendente'
-                const { data: { user: currentUser } } = await supabase.auth.getUser();
-                if (!currentUser) throw new Error('Usuário não logado');
-
                 let correlationID;
 
                 if (isExchange) {
-                    // Para troca, usaremos o ID da locação existente concatenado com algo único
                     correlationID = `${exchangeInfo.rentalId}`;
                 } else {
                     const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
                         id_armario: selectedLocker.dbId,
-                        id_usuario: currentUser.id,
-                        nm_texto_contrato: 'Contrato Aceito Digitalmente',
+                        id_usuario: user.id_usuario,
                         id_tipo: isSemestral ? 1 : 2,
-                        id_status: 3, // Assumindo 3 como Pendente (visto que 1=Ativa, 2=Encerrada)
+                        id_status: 3, // Assumindo 3 como Pendente
                         dt_inicio: new Date().toISOString(),
                         dt_termino: isSemestral 
                            ? new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString()
@@ -87,15 +81,18 @@ const PixPayment = ({ user }) => {
                         value: price * 100, // Woovi usa centavos
                         comment: isExchange ? `Troca Armário ${selectedLocker.id}` : `Locação Armário ${selectedLocker.id}`,
                         customer: {
-                            name: currentUser.user_metadata?.full_name || currentUser.email,
-                            email: currentUser.email,
+                            name: user.nm_usuario || user.email,
+                            email: user.email,
                         }
                     })
                 });
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Erro ao gerar cobrança');
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Erro ${response.status}: ${text.substring(0, 50)}...`);
+                }
 
+                const data = await response.json();
                 setQrCodeData(data.charge);
                 setStatus('pending');
 
@@ -110,6 +107,8 @@ const PixPayment = ({ user }) => {
                     }, (payload) => {
                         if (payload.new.id_status === 1) {
                             setStatus('confirmed');
+                            // Mark waiting list as complete if this was a reserved locker
+                            dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
                             subscription.unsubscribe();
                         }
                     })
@@ -123,7 +122,7 @@ const PixPayment = ({ user }) => {
         };
 
         generatePix();
-    }, []);
+    }, [user]);
 
     const handleCopy = () => {
         if (qrCodeData?.brCode) {
@@ -136,8 +135,7 @@ const PixPayment = ({ user }) => {
     const handleMockPayment = async () => {
         setStatus('verifying');
         try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) throw new Error('Usuário não logado');
+            if (!user) throw new Error('Usuário não logado');
 
             if (isExchange) {
                 // MOCK Exchange logic
@@ -154,14 +152,16 @@ const PixPayment = ({ user }) => {
                 // MOCK Rental logic
                 await supabase.from('t_locacao').insert({
                     id_armario: selectedLocker.dbId,
-                    id_usuario: currentUser.id,
-                    nm_texto_contrato: 'Contrato Aceito Digitalmente',
+                    id_usuario: user.id_usuario,
                     id_tipo: 1,
                     id_status: 1,
                     dt_inicio: new Date().toISOString(),
                     dt_termino: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString()
                 });
             }
+
+            // Mark waiting list as complete if this was a reserved locker
+            await dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
 
             setStatus('confirmed');
         } catch (error) {
