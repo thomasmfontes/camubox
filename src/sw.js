@@ -35,23 +35,14 @@ self.addEventListener('push', (event) => {
   const notification = payload.notification || {};
   const dataPayload = payload.data || {};
 
-  // CRITICAL: Se o payload já tem o objeto 'notification', o navegador exibe a notificação nativamente.
-  // Se exibirmos manualmente aqui, geramos uma duplicata. 
-  // No FCM v1, se enviamos ambos, o Service Worker ainda recebe o evento 'push', 
-  // mas o navegador já agendou a exibição da notificação nativa.
-  if (payload.notification) {
-    console.log('[SW] Browser is handling notification natively. Skipping manual showNotification.');
-    return;
-  }
+  // Se o payload for data-only (FCM v1), as infos virão em dataPayload
+  // OU se vier via o bloco 'notification', também extraímos para fallback
+  const title = dataPayload.title || notification.title || 'CAMUBOX';
+  const body = dataPayload.body || notification.body || 'Você tem uma nova atualização.';
+  const icon = dataPayload.icon || notification.icon || '/pwa-icon.png';
+  const badge = dataPayload.badge || notification.badge || '/badge-72.png';
 
-  // Se chegamos aqui, é um payload sem o bloco 'notification' (data-only).
-  // Nesse caso, o Service Worker PRECISA mostrar manualmente para algo aparecer.
-  const title = dataPayload.title || 'CAMUBOX';
-  const body = dataPayload.body || 'Você tem uma nova atualização.';
-  const icon = dataPayload.icon || '/pwa-icon.png';
-  const badge = dataPayload.badge || '/badge-72.png';
-
-  console.log('[SW] Manual display for data-only push:', { title, icon, badge });
+  console.log('[SW] Displaying notification:', { title, icon, badge });
 
   const options = {
     body,
