@@ -18,32 +18,41 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Interceptação nativa ultra-robusta (Garante que a notificação apareça)
+// Interceptação nativa ultra-robusta (Garante que a notificação apareça com os ícones corretos)
 self.addEventListener('push', (event) => {
-  let data = {};
+  let payload = {};
   if (event.data) {
     try {
-      data = event.data.json();
+      payload = event.data.json();
     } catch (e) {
-      data = { notification: { title: 'CAMUBOX', body: event.data.text() } };
+      payload = { notification: { title: 'CAMUBOX', body: event.data.text() } };
     }
   }
 
-  const notification = data.notification || {};
-  const dataPayload = data.data || {};
+  const notification = payload.notification || {};
+  const dataPayload = payload.data || {};
 
+  // Busca ícones do payload (vindo das APIs do Vercel) ou usa defaults
   const title = notification.title || dataPayload.title || 'CAMUBOX';
   const body = notification.body || dataPayload.body || 'Você tem uma nova atualização.';
+  const icon = notification.icon || dataPayload.icon || '/pwa-icon.png';
+  const badge = notification.badge || dataPayload.badge || '/badge-72.png';
 
   const options = {
     body,
-    icon: '/pwa-icon.png',
-    badge: '/pwa-icon.png',
+    icon,
+    badge,
     vibrate: [100, 50, 100],
-    data: dataPayload,
+    data: {
+      ...dataPayload,
+      link: dataPayload.url || dataPayload.link || '/'
+    },
     tag: 'camubox-push-id'
   };
 
+  // Se o navegador já estiver mostrando a notificação (por causa do campo 'notification' no FCM v1), 
+  // este showNotification pode gerar a duplicata. 
+  // Porém, em muitos navegadores, se a gente não chamar, nada aparece se o app estiver fechado.
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
