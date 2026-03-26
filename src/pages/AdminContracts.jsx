@@ -18,7 +18,8 @@ import {
     MinusCircle,
     ChevronRight,
     ChevronLeft,
-    MapPin
+    MapPin,
+    Tag
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import * as XLSX from 'xlsx';
@@ -379,7 +380,7 @@ const AdminContracts = () => {
                 </div>
 
                 <div className="filter-group">
-                    <span className="filter-icon"><IoMdPricetag size={20} /></span>
+                    <span className="filter-icon"><Tag size={20} /></span>
                     <select value={filters.contractType} onChange={e => setFilters({ ...filters, contractType: e.target.value })}>
                         <option value="All">Todos os Planos</option>
                         <option value="SEMESTRAL">Semestral</option>
