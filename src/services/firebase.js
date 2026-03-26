@@ -40,7 +40,7 @@ export const requestFirebaseToken = async () => {
       });
     }
     return null;
-  } catch (error) {
+  } catch {
     return null;
   }
 };

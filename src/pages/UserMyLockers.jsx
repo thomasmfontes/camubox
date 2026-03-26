@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Clock, RefreshCcw, MapPin, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
 
@@ -238,9 +237,6 @@ const UserMyLockers = ({ user }) => {
                     <div className="modal-overlay" onClick={() => setViewPassword(null)}>
                         <div
                             className="password-modal"
-                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.8, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="modal-header">

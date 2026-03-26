@@ -418,17 +418,12 @@ const AdminContracts = () => {
                                     <th className="col-status text-right">Status</th>
                                 </tr>
                             </thead>
-                            <AnimatePresence mode="wait">
-                                <motion.tbody key={currentPage + filters.status + filters.contractType + searchTerm}>
+                            <tbody>
                                     {paginatedRentals.map((rental, index) => (
-                                        <motion.tr 
+                                        <tr 
                                             key={rental.id} 
                                             onClick={() => openDetails(rental)}
                                             className="clickable-row"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            transition={{ duration: 0.2, delay: index * 0.03 }}
                                         >
                                         <td className="col-armario">
                                             <div className="unified-locker-badge">
@@ -468,18 +463,14 @@ const AdminContracts = () => {
                                         <td className="col-status actions-cell">
                                             {getStatusBadge(rental.status)}
                                         </td>
-                                        </motion.tr>
+                                        </tr>
                                     ))}
                                     {filteredRentals.length === 0 && (
-                                        <motion.tr
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                        >
+                                        <tr>
                                             <td colSpan="5" className="empty-state">Nenhum resultado encontrado.</td>
-                                        </motion.tr>
+                                        </tr>
                                     )}
-                                </motion.tbody>
-                            </AnimatePresence>
+                            </tbody>
                         </table>
                     )}
                 </div>

@@ -14,7 +14,6 @@ import {
     XCircle
 } from 'lucide-react';
 import { authService } from '../services/supabaseClient';
-import { motion, AnimatePresence } from 'framer-motion';
 import './AdminSettings.css';
 
 const AdminSettings = () => {
@@ -278,36 +277,27 @@ const AdminSettings = () => {
                         </div>
                         <div className="card-content-premium">
                             <div className="modern-admin-list">
-                                <AnimatePresence mode="popLayout">
+
                                     {isLoadingAdmins ? (
-                                        <motion.div 
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
+                                        <div 
                                             className="loading-admins-state"
                                         >
                                             <div className="spinner-mini-admin"></div>
                                             <span>Sincronizando equipe...</span>
-                                        </motion.div>
+                                        </div>
                                     ) : admins.length === 0 ? (
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
+                                        <div 
                                             className="empty-admin-list-premium"
                                         >
                                             <div className="empty-icon-shield">
                                                 <Shield size={32} />
                                             </div>
                                             <p>Nenhum administrador cadastrado.</p>
-                                        </motion.div>
+                                        </div>
                                     ) : (
                                         admins.map((admin) => (
-                                            <motion.div 
+                                            <div 
                                                 key={admin.email}
-                                                layout
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
                                                 className="modern-admin-item-premium"
                                             >
                                                 <div className="admin-avatar-premium">
@@ -327,10 +317,10 @@ const AdminSettings = () => {
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
-                                            </motion.div>
+                                            </div>
                                         ))
                                     )}
-                                </AnimatePresence>
+
                             </div>
 
                             <div className="add-admin-premium-box">
@@ -393,20 +383,10 @@ const AdminSettings = () => {
             )}
 
             {/* Modal de Ação Customizado */}
-            <AnimatePresence>
                 {modalConfig.isOpen && (
-                    <motion.div 
-                        className="action-modal-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div 
+                    <div className="action-modal-overlay">
+                        <div 
                             className="action-modal-card"
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         >
                             <div className={`modal-icon-container ${modalConfig.type}`}>
                                 {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
@@ -430,10 +410,9 @@ const AdminSettings = () => {
                                     <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
                                 )}
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import {
     ClipboardCheck,
     MapPin,
@@ -208,15 +208,10 @@ const LockerInspection = () => {
                                 <th className="actions-cell text-right">Ações</th>
                             </tr>
                         </thead>
-                        <AnimatePresence mode="wait">
-                            <motion.tbody key={activeTab}>
+                            <tbody>
                                 {filteredInspections.map((item, index) => (
-                                    <motion.tr 
+                                    <tr 
                                         key={item.dbId}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ duration: 0.2, delay: index * 0.03 }}
                                     >
                                     <td className="col-armario">
                                         <div className="unified-locker-badge">
@@ -269,15 +264,14 @@ const LockerInspection = () => {
                                             </div>
                                         )}
                                     </td>
-                                    </motion.tr>
+                                    </tr>
                                 ))}
                             {filteredInspections.length === 0 && (
                                 <tr>
                                     <td colSpan="4" className="empty-state">Nenhum resultado encontrado.</td>
                                 </tr>
                             )}
-                            </motion.tbody>
-                        </AnimatePresence>
+                            </tbody>
                     </table>
                 )}
             </div>

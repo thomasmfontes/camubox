@@ -15,7 +15,6 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
 import InstallPWA from './components/InstallPWA';
-import { motion, AnimatePresence } from 'framer-motion';
 import { requestFirebaseToken, setupForegroundListener } from './services/firebase';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import ScrollToTop from './components/ScrollToTop';
@@ -185,18 +184,9 @@ function App() {
 
 // Separate component to help ESLint and clean up App
 function DashboardLayout({ user, handleLogout, location }) {
-  const MotionDiv = motion.div;
   return (
     <MainLayout user={user} onLogout={handleLogout}>
-      <AnimatePresence mode="wait">
-        <MotionDiv
-          key={location.pathname}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          style={{ width: '100%', height: '100%' }}
-        >
+      <div style={{ width: '100%', height: '100%' }}>
           <Routes location={location}>
             <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
             <Route path="/admin" element={<AdminHome />} />
@@ -211,8 +201,7 @@ function DashboardLayout({ user, handleLogout, location }) {
             <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
             <Route path="*" element={<div>Página em construção...</div>} />
           </Routes>
-        </MotionDiv>
-      </AnimatePresence>
+      </div>
     </MainLayout>
   );
 }
