@@ -80,6 +80,10 @@ export default async function handler(req, res) {
             body: JSON.stringify({
               message: {
                 token: t.token,
+                notification: {
+                  title: record.dc_titulo || 'CAMUBOX 📦',
+                  body: record.dc_mensagem
+                },
                 data: {
                   title: record.dc_titulo || 'CAMUBOX 📦',
                   body: record.dc_mensagem,
@@ -88,6 +92,10 @@ export default async function handler(req, res) {
                   url: 'https://camubox.com/dashboard/locker'
                 },
                 webpush: {
+                  notification: {
+                    icon: 'https://camubox.com/pwa-icon.png',
+                    badge: 'https://camubox.com/badge-72.png'
+                  },
                   fcm_options: {
                     link: 'https://camubox.com/dashboard/locker'
                   }

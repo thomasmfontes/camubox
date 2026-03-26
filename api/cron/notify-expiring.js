@@ -157,6 +157,10 @@ export default async function handler(req, res) {
               body: JSON.stringify({
                 message: {
                   token: t.token,
+                  notification: {
+                    title: 'Vencimento de Armário 📦',
+                    body: notificationBody
+                  },
                   data: {
                     title: 'Vencimento de Armário 📦',
                     body: notificationBody,
@@ -165,6 +169,10 @@ export default async function handler(req, res) {
                     url: 'https://camubox.com/dashboard/my-locker'
                   },
                   webpush: {
+                    notification: {
+                      icon: 'https://camubox.com/pwa-icon.png',
+                      badge: 'https://camubox.com/badge-72.png'
+                    },
                     fcm_options: {
                       link: 'https://camubox.com/dashboard/my-locker'
                     }
