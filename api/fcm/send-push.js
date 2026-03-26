@@ -82,11 +82,16 @@ export default async function handler(req, res) {
                 token: t.token,
                 notification: {
                   title: record.dc_titulo || 'CAMUBOX 📦',
-                  body: record.dc_mensagem
+                  body: record.dc_mensagem,
+                  icon: 'https://camubox.com/pwa-icon.png',
+                  badge: 'https://camubox.com/badge-72.png'
+                },
+                data: {
+                  url: 'https://camubox.com/dashboard/locker'
                 },
                 webpush: {
                   fcm_options: {
-                    link: 'https://camubox.com' // Or dynamic link
+                    link: 'https://camubox.com/dashboard/locker'
                   }
                 }
               }

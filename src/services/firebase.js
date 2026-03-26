@@ -49,10 +49,11 @@ export const setupForegroundListener = () => {
   return onMessage(messaging, (payload) => {
     // Tenta mostrar notificação nativa mesmo em foreground
     if (Notification.permission === 'granted' && payload.notification) {
-      const { title, body } = payload.notification;
+      const { title, body, icon, badge } = payload.notification;
       new Notification(title || 'CAMUBOX', {
         body,
-        icon: '/pwa-icon.png'
+        icon: icon || '/pwa-icon.png',
+        badge: badge || '/badge-72.png'
       });
     }
   });
