@@ -14,7 +14,10 @@ import {
     PlusCircle,
     Heart,
     Unlock,
-    AlertCircle
+    AlertCircle,
+    CheckCircle2,
+    AlertTriangle,
+    XCircle
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './LockerManagement.css';
@@ -37,6 +40,8 @@ const LockerManagement = () => {
     const [foundStudents, setFoundStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null, isLoading: false });
+    const [toast, setToast] = useState(null);
 
 
     const fetchData = async () => {
@@ -158,13 +163,17 @@ const LockerManagement = () => {
             document.body.classList.remove('no-scroll');
         }
         return () => document.body.classList.remove('no-scroll');
-    }, [selectedLocker]);
+    }, [selectedLocker, modalConfig.isOpen]);
 
     const handleLockerClick = (locker) => {
         setSelectedLocker(locker);
         setIsGratuityMode(false);
         setStudentSearch('');
         setSelectedStudent(null);
+    };
+
+    const handleCloseDrawer = () => {
+        setSelectedLocker(null);
     };
 
     const handleStudentSearch = async (val) => {
@@ -177,52 +186,107 @@ const LockerManagement = () => {
         }
     };
 
+    const showModal = (config) => {
+        setModalConfig({
+            isOpen: true,
+            title: config.title || 'Confirmação',
+            message: config.message || '',
+            type: config.type || 'confirm',
+            onConfirm: config.onConfirm || null,
+            isLoading: false
+        });
+    };
+
+    const closeModal = () => {
+        setModalConfig(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const showToast = (message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    };
+
     const handleApplyGratuity = async () => {
         if (!selectedStudent || !selectedLocker) return;
 
-        setIsSaving(true);
-        try {
-            const now = new Date();
-            const expiryDate = new Date(now);
-            expiryDate.setMonth(now.getMonth() + 6); // Default 6 months for gratuity
+        showModal({
+            title: 'Conceder Gratuidade',
+            message: `Deseja conceder gratuidade vitalícia (semestral renovável) para ${selectedStudent.nm_usuario} no armário #${selectedLocker.id}?`,
+            type: 'confirm',
+            onConfirm: async () => {
+                setIsSaving(true);
+                try {
+                    const now = new Date();
+                    const expiryDate = new Date(now);
+                    expiryDate.setMonth(now.getMonth() + 6); // Default 6 months for gratuity
 
-            const rentalData = {
-                id_armario: selectedLocker.dbId,
-                id_usuario: selectedStudent.id_usuario,
-                dt_inicio: now.toISOString().split('T')[0],
-                dt_termino: expiryDate.toISOString().split('T')[0],
-                id_tipo: 1, // Semester type for gratuity
-                id_status: 1 // Ativa
-            };
+                    const rentalData = {
+                        id_armario: selectedLocker.dbId,
+                        id_usuario: selectedStudent.id_usuario,
+                        dt_inicio: now.toISOString().split('T')[0],
+                        dt_termino: expiryDate.toISOString().split('T')[0],
+                        id_tipo: 1, // Semester type for gratuity
+                        id_status: 1 // Ativa
+                    };
 
-            await dbService.rentals.create(rentalData);
-            await dbService.lockers.updateStatus(selectedLocker.dbId, 'GRATUITO');
+                    await dbService.rentals.create(rentalData);
+                    await dbService.lockers.updateStatus(selectedLocker.dbId, 'GRATUITO');
 
-            // Refresh lockers using common logic to ensure joins apply
-            await fetchData();
+                    await fetchData();
 
-            setSelectedLocker(null);
-            setIsGratuityMode(false);
-        } catch (error) {
-            console.error('Error applying gratuity:', error);
-        } finally {
-            setIsSaving(false);
-        }
+                    setSelectedLocker(null);
+                    setIsGratuityMode(false);
+                    closeModal();
+                    showToast('Gratuidade aplicada com sucesso!');
+                } catch (error) {
+                    console.error('Error applying gratuity:', error);
+                    closeModal();
+                    showToast('Erro ao aplicar gratuidade', 'error');
+                } finally {
+                    setIsSaving(false);
+                }
+            }
+        });
     };
 
     const handleStatusChange = async (newStatus) => {
         if (!selectedLocker) return;
 
-        try {
-            const dbStatus = newStatus.toUpperCase().replace('-', '_');
-            await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus);
+        let title = '';
+        let message = '';
+        let confirmText = 'Confirmar';
 
-            // Refresh lockers using common logic to ensure joins apply
-            await fetchData();
-            setSelectedLocker(null);
-        } catch (error) {
-            console.error('Error updating status:', error);
+        if (newStatus === 'manutencao') {
+            title = 'Colocar em Manutenção';
+            message = `Deseja bloquear o armário #${selectedLocker.id} para manutenção? Ele não poderá ser alugado até ser liberado.`;
+        } else if (newStatus === 'disponivel') {
+            title = 'Liberar Armário';
+            message = `Deseja liberar o armário #${selectedLocker.id}? Ele voltará ao status Disponível.`;
+        } else if (newStatus === 'vistoria') {
+            title = 'Encerrar Locação';
+            message = `Deseja encerrar IMEDIATAMENTE a locação de ${selectedLocker.responsible} no armário #${selectedLocker.id}?`;
         }
+
+        showModal({
+            title,
+            message,
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    const dbStatus = newStatus.toUpperCase().replace('-', '_');
+                    await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus);
+
+                    await fetchData();
+                    setSelectedLocker(null);
+                    closeModal();
+                    showToast('Status atualizado com sucesso!');
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    closeModal();
+                    showToast('Erro ao atualizar status', 'error');
+                }
+            }
+        });
     };
 
 
@@ -260,10 +324,15 @@ const LockerManagement = () => {
                 <div className="filter-group search">
                     <span className="filter-icon"><Search size={20} /></span>
                     <input
-                        type="text"
+                        type="search"
+                        name="q"
                         placeholder="Pesquisar por número do armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </div>
 
@@ -357,21 +426,21 @@ const LockerManagement = () => {
             </div>
 
             {/* Selection Drawer (Admin Mode) */}
-                {selectedLocker && (
+            {selectedLocker && (
+                <div 
+                    className="selection-drawer-overlay open"
+                    onClick={handleCloseDrawer}
+                >
                     <div 
-                        className="selection-drawer-overlay open"
-                        onClick={() => setSelectedLocker(null)}
+                        className="selection-drawer"
+                        onClick={e => e.stopPropagation()}
                     >
-                        <div 
-                            className="selection-drawer"
-                            onClick={e => e.stopPropagation()}
-                        >
                             <header className="drawer-header">
                                 <div className="drawer-header-main">
                                     <div className="drawer-badge">ARMÁRIO #{selectedLocker.id}</div>
                                     <h2>Detalhes e Ações</h2>
                                 </div>
-                                <button className="close-drawer-btn" onClick={() => setSelectedLocker(null)}>
+                                <button className="close-drawer-btn" onClick={handleCloseDrawer}>
                                     <X size={20} />
                                 </button>
                             </header>
@@ -406,7 +475,7 @@ const LockerManagement = () => {
                                             )}
                                             {selectedStudent && (
                                                 <div className="admin-selected-student">
-                                                    <User size={14} /> {selectedStudent.nm_aluno}
+                                                    <User size={14} /> {selectedStudent.nm_usuario}
                                                     <button onClick={() => setSelectedStudent(null)}><X size={14} /></button>
                                                 </div>
                                             )}
@@ -483,9 +552,11 @@ const LockerManagement = () => {
                                                         <Wrench size={18} /> Colocar em manutenção
                                                     </button>
                                                 )}
-                                                <button className="admin-btn" onClick={() => handleStatusChange('disponivel')}>
-                                                    <Unlock size={18} /> Liberar armário
-                                                </button>
+                                                {selectedLocker.status !== 'disponivel' && (
+                                                    <button className="admin-btn" onClick={() => handleStatusChange('disponivel')}>
+                                                        <Unlock size={18} /> Liberar armário
+                                                    </button>
+                                                )}
                                                 {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito') && (
                                                     <button className="admin-btn danger" onClick={() => handleStatusChange('vistoria')}>
                                                         <AlertCircle size={18} /> Encerrar locação
@@ -499,6 +570,78 @@ const LockerManagement = () => {
                         </div>
                     </div>
                 )}
+
+            {/* Custom Action Modal */}
+            <AnimatePresence>
+                {modalConfig.isOpen && (
+                    <motion.div 
+                        className="action-modal-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="action-modal-card"
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        >
+                            <div className={`modal-icon-container ${modalConfig.type}`}>
+                                {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
+                                {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
+                                {modalConfig.type === 'error' && <XCircle size={32} />}
+                            </div>
+                            
+                            <h3>{modalConfig.title}</h3>
+                            <p>{modalConfig.message}</p>
+                            
+                            <div className="modal-footer-actions">
+                                {modalConfig.type === 'confirm' ? (
+                                    <>
+                                        <button className="modal-btn-cancel" onClick={closeModal} disabled={modalConfig.isLoading}>Cancelar</button>
+                                        <button 
+                                            className="modal-btn-confirm" 
+                                            disabled={modalConfig.isLoading}
+                                            onClick={async () => {
+                                                if (modalConfig.onConfirm) {
+                                                    setModalConfig(prev => ({ ...prev, isLoading: true }));
+                                                    await modalConfig.onConfirm();
+                                                } else {
+                                                    closeModal();
+                                                }
+                                            }}
+                                        >
+                                            {modalConfig.isLoading ? <Loader2 className="spinner" size={18} color="white" /> : 'Confirmar'}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Toast Notification */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div 
+                        className="toast-container"
+                        initial={{ opacity: 0, x: 20, y: 0 }}
+                        animate={{ opacity: 1, x: 0, y: 0 }}
+                        exit={{ opacity: 0, x: 20, y: 0 }}
+                    >
+                        <div className={`toast-notification ${toast.type}`}>
+                            <div className="toast-icon">
+                                {toast.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+                            </div>
+                            <span className="toast-message">{toast.message}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

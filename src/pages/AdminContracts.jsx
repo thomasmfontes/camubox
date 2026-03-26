@@ -37,11 +37,9 @@ const AdminContracts = () => {
     });
     const [selectedRental, setSelectedRental] = useState(null);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const [isClosing, setIsClosing] = useState(false);
     const [config, setConfig] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSwapModal, setShowSwapModal] = useState(false);
-    const [isSwapClosing, setIsSwapClosing] = useState(false);
     const [availableLockers, setAvailableLockers] = useState([]);
     const [isFetchingAvailable, setIsFetchingAvailable] = useState(false);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null });
@@ -164,7 +162,7 @@ const AdminContracts = () => {
     }, [searchTerm, filters]);
 
     useEffect(() => {
-        const needsLock = (isPanelOpen && !isClosing) || (showSwapModal && !isSwapClosing);
+        const needsLock = isPanelOpen || showSwapModal;
         
         if (needsLock) {
             document.documentElement.classList.add('no-scroll');
@@ -182,28 +180,19 @@ const AdminContracts = () => {
             document.body.classList.remove('no-scroll');
             document.body.style.paddingRight = '';
         };
-    }, [isPanelOpen, isClosing, showSwapModal, isSwapClosing]);
+    }, [isPanelOpen, showSwapModal]);
 
     const handleCloseSwapModal = () => {
-        setIsSwapClosing(true);
-        setTimeout(() => {
-            setShowSwapModal(false);
-            setIsSwapClosing(false);
-        }, 350);
+        setShowSwapModal(false);
     };
 
     const handleClosePanel = () => {
-        setIsClosing(true);
-        setTimeout(() => {
-            setIsPanelOpen(false);
-            setIsClosing(false);
-            setSelectedRental(null);
-        }, 350); // Match CSS animation (0.35s)
+        setIsPanelOpen(false);
+        setSelectedRental(null);
     };
 
     const openDetails = (rental) => {
         setSelectedRental(rental);
-        setIsClosing(false);
         setIsPanelOpen(true);
     };
 
@@ -394,10 +383,15 @@ const AdminContracts = () => {
                 <div className="filter-group search">
                     <span className="filter-icon"><Search size={20} /></span>
                     <input
-                        type="text"
+                        type="search"
+                        name="q"
                         placeholder="Buscar por aluno ou número do armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </div>
 
@@ -553,11 +547,11 @@ const AdminContracts = () => {
             {/* Details Side Panel */}
                 {isPanelOpen && (
                     <div 
-                        className={`details-panel-overlay ${isClosing ? 'closing' : ''}`} 
+                        className="details-panel-overlay" 
                         onClick={handleClosePanel}
                     >
                         <div 
-                            className={`details-panel ${isClosing ? 'closing' : ''}`} 
+                            className="details-panel" 
                             onClick={e => e.stopPropagation()}
                         >
                             <header className="panel-header">
@@ -679,11 +673,11 @@ const AdminContracts = () => {
             {/* Swap Locker Modal */}
                 {showSwapModal && (
                     <div 
-                        className={`details-panel-overlay swap-overlay ${isSwapClosing ? 'closing' : ''}`} 
+                        className="details-panel-overlay swap-overlay" 
                         onClick={handleCloseSwapModal}
                     >
                         <div 
-                            className={`details-panel swap-modal ${isSwapClosing ? 'closing' : ''}`} 
+                            className="details-panel swap-modal" 
                             onClick={e => e.stopPropagation()}
                         >
                             <header className="panel-header">

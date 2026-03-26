@@ -171,6 +171,10 @@ const LockerInspection = () => {
                         placeholder="Pesquisar armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </div>
                 <div className="filter-group">

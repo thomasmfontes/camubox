@@ -79,9 +79,9 @@
     align-items: center;
     background: white;
     border: 1.5px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 0 0.75rem;
-    height: 42px;
+    border-radius: 14px;
+    padding: 14px;
+    height: 52px;
     transition: all 0.2s;
 }
 

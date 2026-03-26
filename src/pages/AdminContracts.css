@@ -38,7 +38,7 @@
     background: white;
     border: 1.5px solid var(--border);
     border-radius: 14px;
-    padding: 0 14px;
+    padding: 14px;
     height: 52px;
     box-shadow: var(--shadow);
     width: 100%;
@@ -341,22 +341,13 @@
     background: rgba(0, 43, 31, 0.45);
     backdrop-filter: blur(12px);
     z-index: 2000;
-    animation: fadeIn 0.3s ease-out;
 }
 
 .details-panel-overlay.closing {
-    animation: fadeOut 0.3s ease-in forwards;
+    visibility: hidden;
+    opacity: 0;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; backdrop-filter: blur(0px); }
-    to { opacity: 1; backdrop-filter: blur(12px); }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; backdrop-filter: blur(12px); }
-    to { opacity: 0; backdrop-filter: blur(0px); }
-}
 
 /* Specific overlay for the second layer (Swap) */
 .details-panel-overlay.swap-overlay {
@@ -377,22 +368,12 @@
     display: flex;
     flex-direction: column;
     box-shadow: -20px 0 60px rgba(0, 43, 31, 0.15);
-    animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .details-panel.closing {
-    animation: slideOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateX(100%);
 }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-}
-
-@keyframes slideOut {
-    from { transform: translateX(0); }
-    to { transform: translateX(100%); }
-}
 
 .panel-header {
     padding: 1.5rem 2rem;

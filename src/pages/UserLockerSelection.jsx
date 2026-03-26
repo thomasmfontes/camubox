@@ -248,6 +248,10 @@ const UserLockerSelection = ({ user }) => {
                         placeholder="Pesquisar por número do armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        autoComplete="off"
+                        spellCheck="false"
+                        autoCorrect="off"
+                        autoCapitalize="off"
                     />
                 </div>
 
