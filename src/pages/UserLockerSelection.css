@@ -349,16 +349,18 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 27, 20, 0.5);
     backdrop-filter: blur(8px);
     z-index: 2000;
+    display: flex;
+    align-items: flex-end; /* Bottom sheet on mobile */
+    justify-content: center;
+    padding: 0;
     visibility: hidden;
     opacity: 0;
-    display: flex;
-    align-items: flex-end;
-    /* Align to bottom for mobile */
+    transition: none !important;
 }
 
 .selection-drawer-overlay.open {
@@ -375,6 +377,7 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    transition: none !important;
     padding-bottom: var(--safe-area-inset-bottom);
 }
 
