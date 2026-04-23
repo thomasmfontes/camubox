@@ -7,13 +7,13 @@
     overflow-x: hidden; /* Preventive */
 }
 
-@keyframes spin {
-    from { transform: rotate(360deg); }
-    to { transform: rotate(0deg); }
+@keyframes spin-reverse {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
 }
 
 .animate-spin {
-    animation: spin 1s linear infinite;
+    animation: spin-reverse 1s linear infinite !important;
 }
 
 @media (max-width: 768px) {
@@ -360,23 +360,19 @@
     gap: 1rem;
 }
 
-.verify-btn-premium {
-    width: 100%;
-    padding: 1.4rem;
-    background: #10b981;
-    color: white;
-    border: none;
+.auto-verify-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 1.25rem;
+    background: #f0fdf4;
+    color: #166534;
     border-radius: 20px;
-    font-weight: 800;
-    font-size: 1.1rem;
-    cursor: pointer;
-    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
-    transition: all 0.3s ease;
-}
-
-.verify-btn-premium:hover:not(:disabled) {
-    box-shadow: 0 15px 30px rgba(16, 185, 129, 0.25);
-    background: #059669;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid #bbf7d0;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
 }
 
 .cancel-order-btn {

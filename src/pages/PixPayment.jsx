@@ -239,13 +239,10 @@ const PixPayment = ({ user }) => {
                     <div className="action-stack">
                         {status !== 'confirmed' ? (
                             <>
-                                <button
-                                    className={`verify-btn-premium ${status === 'verifying' ? 'loading' : ''}`}
-                                    onClick={() => setStatus('verifying')}
-                                    disabled={status === 'verifying' || status === 'generating'}
-                                >
-                                    {status === 'verifying' ? 'Verificando...' : 'Já paguei'}
-                                </button>
+                                <div className="auto-verify-badge">
+                                    <RefreshCcw size={16} className="animate-spin" />
+                                    <span>Aguardando confirmação automática...</span>
+                                </div>
                                 <button className="cancel-order-btn" onClick={() => navigate('/dashboard/lockers')}>
                                     Cancelar locação
                                 </button>
