@@ -69,6 +69,11 @@ const PixPayment = ({ user }) => {
                         .maybeSingle();
 
                     if (existingRental) {
+                        // Se a locação já estiver Paga (status 1), redireciona direto para Meus Armários
+                        if (existingRental.id_status === 1) {
+                            navigate('/dashboard/my-locker');
+                            return;
+                        }
                         correlationID = existingRental.id_locacao.toString();
                     }
                 }
