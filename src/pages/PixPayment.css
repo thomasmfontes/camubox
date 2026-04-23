@@ -7,6 +7,15 @@
     overflow-x: hidden; /* Preventive */
 }
 
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
 @media (max-width: 768px) {
     .pix-payment-page.premium-theme {
         padding: 0; /* MainLayout already provides 1rem padding */
