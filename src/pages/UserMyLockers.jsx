@@ -20,7 +20,9 @@ const UserMyLockers = ({ user }) => {
         try {
             const { data, error } = await dbService.rentals.getByUser(user.id_usuario);
             if (!error && data) {
-                const formatted = data.map(r => {
+                const formatted = data
+                    .filter(r => r.id_status_locacao !== 3)
+                    .map(r => {
                     const [sY, sM, sD] = r.dt_inicio.split('-').map(Number);
                     const start = new Date(sY, sM - 1, sD);
                     
