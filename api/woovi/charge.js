@@ -28,6 +28,27 @@ export default async function handler(req, res) {
     const data = await response.json();
     
     if (!response.ok) {
+      // Caso a cobrança já exista na Woovi, tentamos buscar a cobrança existente
+      // para evitar erro 400 no frontend ao dar refresh na página.
+      if (response.status === 400 && (JSON.stringify(data).includes('já existe') || JSON.stringify(data).includes('CorrelationID'))) {
+        try {
+          const getResponse = await fetch(`https://api.woovi.com/api/v1/charge/${correlationID}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': appId,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (getResponse.ok) {
+            const existingData = await getResponse.json();
+            return res.status(200).json(existingData);
+          }
+        } catch (getErr) {
+          console.error('Error fetching existing charge:', getErr);
+        }
+      }
+      
       return res.status(response.status).json(data);
     }
 
