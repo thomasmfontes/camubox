@@ -114,6 +114,7 @@ const PixPayment = ({ user }) => {
                         if (payload.new.id_status === 1) {
                             setStatus('confirmed');
                             dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
+                            triggerConfetti();
                         }
                     })
                     .subscribe();
@@ -128,6 +129,7 @@ const PixPayment = ({ user }) => {
                     
                     if (currentRental?.id_status === 1) {
                         setStatus('confirmed');
+                        triggerConfetti();
                         clearInterval(checkInterval);
                     }
                 }, 5000);
@@ -199,9 +201,11 @@ const PixPayment = ({ user }) => {
                                 {status === 'confirmed' && <><CheckCircle2 size={14} /> <span>Pago</span></>}
                                 {status === 'error' && <><XCircle size={14} /> <span>Erro</span></>}
                             </div>
-                            <div className="timer-text">
-                                Expira em: <strong>30:00</strong>
-                            </div>
+                            {status !== 'confirmed' && (
+                                <div className="timer-text">
+                                    Expira em: <strong>30:00</strong>
+                                </div>
+                            )}
                         </div>
 
                         <div className="qr-main-container">
@@ -225,19 +229,23 @@ const PixPayment = ({ user }) => {
                             </div>
                         </div>
 
-                        <p className="qr-instruction">Aponte a câmera do seu aplicativo de banco para o QR Code acima</p>
+                        {status !== 'confirmed' && (
+                            <>
+                                <p className="qr-instruction">Aponte a câmera do seu aplicativo de banco para o QR Code acima</p>
 
-                        <div className="pix-copy-area">
-                            <label>Código Copia e Cola</label>
-                            <div className="copy-input-group">
-                                <input type="text" value={status === 'generating' ? 'Gerando código...' : (qrCodeData?.brCode || 'Erro ao carregar')} readOnly />
-                                <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating' || !qrCodeData?.brCode}>
-                                    {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
-                                    <span>{copied ? 'Copiado' : 'Copiar'}</span>
-                                </button>
-                            </div>
-                            {errorMsg && <p className="error-message p-sm" style={{color: 'var(--red-500)', marginTop: 8}}>{errorMsg}</p>}
-                        </div>
+                                <div className="pix-copy-area">
+                                    <label>Código Copia e Cola</label>
+                                    <div className="copy-input-group">
+                                        <input type="text" value={status === 'generating' ? 'Gerando código...' : (qrCodeData?.brCode || 'Erro ao carregar')} readOnly />
+                                        <button className={`copy-btn-premium ${copied ? 'success' : ''}`} onClick={handleCopy} disabled={status === 'generating' || !qrCodeData?.brCode}>
+                                            {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+                                            <span>{copied ? 'Copiado' : 'Copiar'}</span>
+                                        </button>
+                                    </div>
+                                    {errorMsg && <p className="error-message p-sm" style={{color: 'var(--red-500)', marginTop: 8}}>{errorMsg}</p>}
+                                </div>
+                            </>
+                        )}
                     </section>
                 </main>
 
