@@ -40,7 +40,7 @@ const PixPayment = ({ user }) => {
     const rentalDetails = {
         id: selectedLocker.id,
         contract: isExchange ? 'Taxa de Troca' : (isSemestral ? 'Semestral' : 'Anual'),
-        price: `R$ ${price},00`
+        price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
     };
 
     const [qrCodeData, setQrCodeData] = useState(null);
