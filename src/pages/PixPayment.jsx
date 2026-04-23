@@ -183,7 +183,10 @@ const PixPayment = ({ user }) => {
                         <div className="qr-main-container">
                             <div className={`qr-frame ${status === 'confirmed' ? 'paid' : ''}`}>
                                 {status === 'generating' ? (
-                                    <div className="qr-skeleton animate-pulse" style={{backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12}}></div>
+                                    <div className="qr-loader-container">
+                                        <RefreshCcw size={48} className="animate-spin" style={{ color: 'var(--primary)', opacity: 0.5 }} />
+                                        <span style={{ marginTop: 12, fontSize: '0.8rem', opacity: 0.5 }}>Gerando QR Code...</span>
+                                    </div>
                                 ) : status === 'error' ? (
                                     <XCircle size={80} color="var(--red-500)" />
                                 ) : (
