@@ -64,8 +64,8 @@
 
 .go-to-lockers-btn {
     width: 100%;
-    background: var(--primary);
-    color: white;
+    background: #10b981; /* Verde esmeralda sólido */
+    color: white !important;
     border: none;
     padding: 16px;
     border-radius: 14px;
@@ -76,12 +76,13 @@
     gap: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin-top: 10px;
 }
 
 .go-to-lockers-btn:hover {
-    background: var(--primary-dark);
+    background: #059669; /* Verde um pouco mais escuro no hover */
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.2);
+    box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3);
 }
 
 @keyframes spin-reverse {

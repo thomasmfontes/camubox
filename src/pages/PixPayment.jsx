@@ -56,12 +56,28 @@ const PixPayment = ({ user }) => {
             hasGenerated.current = true;
             
             try {
-                // 1. Criar o registro da locação no Supabase primeiro para ter o ID
+                // 0. Verificar se já existe uma locação pendente para este usuário e armário (Evita duplicatas no Refresh)
                 let correlationID;
 
-                if (isExchange) {
-                    correlationID = `${exchangeInfo?.rentalId || 'new'}`;
-                } else {
+                if (!isExchange) {
+                    const { data: existingRental } = await supabase
+                        .from('t_locacao')
+                        .select('id_locacao')
+                        .eq('id_usuario', user.id_usuario)
+                        .eq('id_armario', selectedLocker.dbId)
+                        .eq('id_status', 3) // Pendente
+                        .maybeSingle();
+
+                    if (existingRental) {
+                        correlationID = existingRental.id_locacao.toString();
+                    }
+                }
+
+                // 1. Criar o registro da locação no Supabase primeiro para ter o ID (se não houver um pendente)
+                if (!correlationID) {
+                    if (isExchange) {
+                        correlationID = `${exchangeInfo?.rentalId || 'new'}`;
+                    } else {
                     const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
                         id_armario: selectedLocker.dbId,
                         id_usuario: user.id_usuario,
@@ -76,6 +92,7 @@ const PixPayment = ({ user }) => {
                     if (rentalError) throw rentalError;
                     correlationID = newRental.id_locacao.toString();
                 }
+            }
 
                 // 2. Chamar nossa API de backend para criar a cobrança na Woovi
                 const response = await fetch('/api/woovi/charge', {
