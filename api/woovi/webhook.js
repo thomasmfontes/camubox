@@ -12,25 +12,21 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  console.log(`>>> WEBHOOK CONTACT: ${req.method} | Body:`, JSON.stringify(req.body));
-  
   // Resposta para o navegador (GET)
   if (req.method === 'GET') {
      return res.status(200).send('Webhook Camubox está Ativo e Blindado!');
   }
 
   const body = req.body || {};
-  const event = body.event || body.evento;
+  const event = body.event || body.evento || '';
+  const isTest = event === 'teste_webhook' || body.evento === 'teste_webhook';
 
-  console.log(`>>> WEBHOOK [${req.method}]: Event=${event} | Body:`, JSON.stringify(body));
-
+  console.log(`>>> WEBHOOK [${req.method}]: Event=${event} | Test=${isTest}`);
+  
   // 3. Resposta para o Teste da Woovi (Essencial para validação)
-  // Formato exato que funciona no Bus-Manager
-  if (req.method === 'POST') {
-    if (event === 'teste_webhook' || !event || Object.keys(body).length === 0) {
-       console.log('✅ Connectivity Test / Validation Received');
-       return res.status(200).json({ received: true, message: 'Test success' });
-    }
+  if (req.method === 'POST' && (isTest || !event || Object.keys(body).length === 0)) {
+     console.log('✅ Connectivity Test / Validation Received');
+     return res.status(200).json({ received: true, message: 'Test success' });
   }
 
   // 4. Lógica de Confirmação de Pagamento
@@ -39,21 +35,22 @@ export default async function handler(req, res) {
       const charge = body.charge || body.cobranca;
       const correlationID = charge?.correlationID || body.correlationID;
 
-      if (correlationID) {
+      if (correlationID && process.env.SUPABASE_URL) {
         const supabase = createClient(
           process.env.SUPABASE_URL,
           process.env.SUPABASE_SERVICE_ROLE_KEY
         );
 
-        await supabase
+        const { error } = await supabase
           .from('t_locacao')
           .update({ id_status: 1 })
           .eq('id_locacao', correlationID);
         
+        if (error) throw error;
         console.log(`✅ Pagamento Confirmado: ${correlationID}`);
       }
     } catch (err) {
-      console.error('❌ Erro no processamento:', err);
+      console.error('❌ Erro no processamento:', err.message);
     }
   }
 
