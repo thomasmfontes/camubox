@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { IoMdPricetag } from 'react-icons/io';
 import {
@@ -16,6 +16,7 @@ import './PixPayment.css';
 
 const PixPayment = ({ user }) => {
     const navigate = useNavigate();
+    const hasGenerated = useRef(false);
     const location = useLocation();
     const { state } = location;
     
@@ -48,7 +49,9 @@ const PixPayment = ({ user }) => {
     // Gerar cobrança real na Woovi
     useEffect(() => {
         const generatePix = async () => {
-            if (!user) return;
+            if (!user || hasGenerated.current) return;
+            hasGenerated.current = true;
+            
             try {
                 // 1. Criar o registro da locação no Supabase primeiro para ter o ID
                 let correlationID;
