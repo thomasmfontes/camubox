@@ -48,6 +48,9 @@ const PixPayment = ({ user }) => {
 
     // Gerar cobrança real na Woovi
     useEffect(() => {
+        let subscription;
+        let checkInterval;
+
         const generatePix = async () => {
             if (!user || hasGenerated.current) return;
             hasGenerated.current = true;
@@ -98,23 +101,36 @@ const PixPayment = ({ user }) => {
                 setQrCodeData(data.charge);
                 setStatus('pending');
 
-                // 3. Opcional: Escutar mudanças no Supabase via Realtime para confirmar automático
-                const subscription = supabase
-                    .channel('status-update')
+                // 3. Escutar mudanças via Realtime (Canal Único)
+                subscription = supabase
+                    .channel(`status-${correlationID}`)
                     .on('postgres_changes', { 
                         event: 'UPDATE', 
                         schema: 'public', 
                         table: 't_locacao',
                         filter: `id_locacao=eq.${correlationID}`
                     }, (payload) => {
+                        console.log('🔔 Realtime Update:', payload);
                         if (payload.new.id_status === 1) {
                             setStatus('confirmed');
-                            // Mark waiting list as complete if this was a reserved locker
                             dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
-                            subscription.unsubscribe();
                         }
                     })
                     .subscribe();
+
+                // 4. Fallback: Verificação Manual a cada 5 segundos
+                checkInterval = setInterval(async () => {
+                    const { data: currentRental } = await supabase
+                        .from('t_locacao')
+                        .select('id_status')
+                        .eq('id_locacao', correlationID)
+                        .single();
+                    
+                    if (currentRental?.id_status === 1) {
+                        setStatus('confirmed');
+                        clearInterval(checkInterval);
+                    }
+                }, 5000);
 
             } catch (err) {
                 console.error('Erro Woovi:', err);
@@ -124,6 +140,11 @@ const PixPayment = ({ user }) => {
         };
 
         generatePix();
+
+        return () => {
+            if (subscription) subscription.unsubscribe();
+            if (checkInterval) clearInterval(checkInterval);
+        };
     }, [user, exchangeInfo?.rentalId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id]);
 
     const handleCopy = () => {
