@@ -15,7 +15,8 @@ import {
     AlertCircle,
     CheckCircle2,
     AlertTriangle,
-    XCircle
+    XCircle,
+    ShieldOff
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './LockerManagement.css';
@@ -294,7 +295,8 @@ const LockerManagement = () => {
             'vistoria': 'Aguardando Vistoria',
             'manutencao': 'Manutenção',
             'gratuito': 'Gratuito',
-            'reservado': 'Reservado'
+            'reservado': 'Reservado',
+            'bloqueado': 'Uso CAMU'
         };
         return (labels[status] || status).toUpperCase();
     };
@@ -305,6 +307,7 @@ const LockerManagement = () => {
         if (status === 'vistoria') return 'status-inspection';
         if (status === 'manutencao') return 'status-maintenance';
         if (status === 'reservado') return 'status-reserved';
+        if (status === 'bloqueado') return 'status-blocked';
         return '';
     };
 
@@ -396,6 +399,7 @@ const LockerManagement = () => {
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
                                     {locker.status === 'reservado' && <Calendar size={12} className="unit-icon" />}
+                                    {locker.status === 'bloqueado' && <ShieldOff size={12} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (

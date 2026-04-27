@@ -13,7 +13,8 @@ import {
     X,
     Lock,
     Calendar,
-    TrendingDown
+    TrendingDown,
+    ShieldOff
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './UserLockerSelection.css';
@@ -227,6 +228,7 @@ const UserLockerSelection = ({ user }) => {
         if (status === 'vistoria') return 'status-inspection';
         if (status === 'manutencao') return 'status-maintenance';
         if (status === 'reservado') return 'status-reserved';
+        if (status === 'bloqueado') return 'status-blocked';
         return '';
     };
 
@@ -307,6 +309,7 @@ const UserLockerSelection = ({ user }) => {
                                     {(locker.status === 'ocupado' || locker.status === 'reservado') && <Lock size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
+                                    {locker.status === 'bloqueado' && <ShieldOff size={12} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (
@@ -480,6 +483,7 @@ const UserLockerSelection = ({ user }) => {
                                 {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
                                 {statusModal.status === 'vistoria' && <Clock size={40} />}
                                 {statusModal.status === 'manutencao' && <Wrench size={40} />}
+                                {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
                             </div>
                             <h2>Armário {statusModal.id}</h2>
                             <p className="status-modal-message">
@@ -487,6 +491,7 @@ const UserLockerSelection = ({ user }) => {
                                 {statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
                                 {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
                                 {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
+                                {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
                             </p>
 
                             {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (

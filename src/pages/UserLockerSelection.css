@@ -286,15 +286,20 @@
     border-color: #fecaca;
 }
 
-.status-reserved {
-    background: #fdf2f8; /* Soft Pink / Fuchsia */
-    color: #9d174d;
-    border-color: #fbcfe8;
-}
-
 .status-reserved:hover {
     background: #fce7f3;
     border-color: #f9a8d4;
+}
+
+.status-blocked {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.status-blocked:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
 }
 
 /* Waiting List UI in Modal */

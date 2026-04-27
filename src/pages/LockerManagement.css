@@ -177,6 +177,12 @@
     border-color: #fbcfe8;
 }
 
+.status-blocked {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
 /* Desktop Enhancements */
 @media (min-width: 768px) {
     .user-selection.premium-theme {
@@ -399,6 +405,10 @@
 
 .status-banner-def.reservado {
     background: #db2777;
+}
+
+.status-banner-def.bloqueado {
+    background: #64748b;
 }
 
 .drawer-section {
