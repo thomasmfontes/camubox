@@ -98,7 +98,7 @@ const UserLockerSelection = ({ user }) => {
                                 floor: l.dc_andar || l.nm_local || 'Térreo',
                                 size: sizeLabel,
                                 position: l.dc_posicao || l.nm_posicao || 'Não definida',
-                                status: normalizeStatus(l.situacao || l.dc_status || 'Disponivel'),
+                                status: normalizeStatus((l.id_status === 3 || l.id_status === 6) ? l.dc_status : (l.situacao || l.dc_status || 'Disponivel')),
                                 priceSem: isLarge ? config.vl_grande_semestral : config.vl_pequeno_semestral,
                                 priceAnn: isLarge ? config.vl_grande_anual : config.vl_pequeno_anual,
                             });

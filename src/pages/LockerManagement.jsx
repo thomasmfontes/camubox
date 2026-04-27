@@ -103,7 +103,7 @@ const LockerManagement = () => {
                             floor: l.nm_local || l.dc_andar || 'Térreo',
                             size: l.nm_tamanho || l.dc_tamanho || 'Pequeno',
                             position: l.nm_posicao || l.dc_posicao || 'MÉDIO',
-                            status: normalizeStatus(l.situacao || l.dc_status || 'disponivel'),
+                            status: normalizeStatus((l.id_status === 3 || l.id_status === 6) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel')),
                             responsible: (activeData && activeData.name) || userMap[l.id_usuario] || l.id_usuario || 'Disponível',
                             isReservation,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
