@@ -5,9 +5,10 @@ import {
     CheckCircle,
     Clock,
     Wrench,
-    Heart,
     LayoutGrid,
-    ClipboardCheck
+    ClipboardCheck,
+    Users,
+    ShieldOff
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './AdminHome.css';
@@ -50,7 +51,8 @@ const AdminHome = () => {
         { label: 'Em uso', value: 0, icon: <CheckCircle />, color: '#6366f1', key: 'em-uso' },
         { label: 'Vistoria', value: 0, icon: <Clock />, color: '#f59e0b', key: 'vistoria' },
         { label: 'Manutenção', value: 0, icon: <Wrench />, color: '#94a3b8', key: 'manutencao' },
-        { label: 'Gratuitos', value: 0, icon: <Heart />, color: '#8b5cf6', key: 'gratuito' },
+        { label: 'Bloqueados', value: 0, icon: <ShieldOff />, color: '#ec4899', key: 'bloqueado' },
+        { label: 'Ligas', value: 0, icon: <Users />, color: '#f97316', key: 'liga' },
     ]);
 
     useEffect(() => {
@@ -68,6 +70,8 @@ const AdminHome = () => {
                             .replace(/\s+/g, '-');
 
                         if (normalized === 'ocupado') return 'em-uso';
+                        if (normalized.includes('reservado')) return 'reservado';
+                        if (normalized === 'liga') return 'liga';
                         return normalized;
                     };
 
@@ -78,7 +82,8 @@ const AdminHome = () => {
                         'em-uso': 0,
                         'vistoria': 0,
                         manutencao: 0,
-                        gratuito: 0
+                        bloqueado: 0,
+                        liga: 0
                     };
 
                     data.forEach(l => {
@@ -87,7 +92,11 @@ const AdminHome = () => {
                             uniqueMap.set(l.id_armario, true);
 
                             counts.total++;
-                            if (Object.prototype.hasOwnProperty.call(counts, status)) {
+                            if (l.id_status === 6) {
+                                counts.bloqueado++;
+                            } else if (l.id_status === 7) {
+                                counts.liga++;
+                            } else if (Object.prototype.hasOwnProperty.call(counts, status)) {
                                 counts[status]++;
                             }
                         }

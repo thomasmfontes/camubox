@@ -384,8 +384,7 @@ const AdminContracts = () => {
                     options={{
                         'All': 'Todos os Planos',
                         'SEMESTRAL': 'Semestral',
-                        'ANUAL': 'Anual',
-                        'GRATUIDADE': 'Gratuidade'
+                        'ANUAL': 'Anual'
                     }}
                     onChange={(val) => setFilters({ ...filters, contractType: val })}
                 />

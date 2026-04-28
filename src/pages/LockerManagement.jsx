@@ -172,24 +172,12 @@ const LockerManagement = () => {
 
     const handleLockerClick = (locker) => {
         setSelectedLocker(locker);
-        setIsGratuityMode(false);
-        setStudentSearch('');
-        setSelectedStudent(null);
     };
 
     const handleCloseDrawer = () => {
         setSelectedLocker(null);
     };
 
-    const handleStudentSearch = async (val) => {
-        setStudentSearch(val);
-        if (val.length > 2) {
-            const { data } = await dbService.students.search(val);
-            setFoundStudents(data || []);
-        } else {
-            setFoundStudents([]);
-        }
-    };
 
     const showModal = (config) => {
         setModalConfig({
