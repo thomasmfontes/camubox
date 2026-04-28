@@ -152,6 +152,10 @@ export const dbService = {
                     finalStatusId = 3;
                 } else if (normalized === 'RESERVADO' || normalized === 'RESERVADO_FILA') {
                     finalStatusId = 5;
+                } else if (normalized === 'BLOQUEADO') {
+                    finalStatusId = 6;
+                } else if (normalized === 'LIGA') {
+                    finalStatusId = 7;
                 }
             }
 

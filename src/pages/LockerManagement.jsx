@@ -34,11 +34,6 @@ const LockerManagement = () => {
     });
     const [lookups, setLookups] = useState({ floors: {}, sizes: {} });
 
-    // Gratuity Flow State
-    const [isGratuityMode, setIsGratuityMode] = useState(false);
-    const [studentSearch, setStudentSearch] = useState('');
-    const [foundStudents, setFoundStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null, isLoading: false });
     const [toast, setToast] = useState(null);
@@ -207,48 +202,6 @@ const LockerManagement = () => {
         setTimeout(() => setToast(null), 3500);
     };
 
-    const handleApplyGratuity = async () => {
-        if (!selectedStudent || !selectedLocker) return;
-
-        showModal({
-            title: 'Conceder Gratuidade',
-            message: `Deseja conceder gratuidade vitalícia (semestral renovável) para ${selectedStudent.nm_usuario} no armário #${selectedLocker.id}?`,
-            type: 'confirm',
-            onConfirm: async () => {
-                setIsSaving(true);
-                try {
-                    const now = new Date();
-                    const expiryDate = new Date(now);
-                    expiryDate.setMonth(now.getMonth() + 6); // Default 6 months for gratuity
-
-                    const rentalData = {
-                        id_armario: selectedLocker.dbId,
-                        id_usuario: selectedStudent.id_usuario,
-                        dt_inicio: now.toISOString().split('T')[0],
-                        dt_termino: expiryDate.toISOString().split('T')[0],
-                        id_tipo: 1, // Semester type for gratuity
-                        id_status: 1 // Ativa
-                    };
-
-                    await dbService.rentals.create(rentalData);
-                    await dbService.lockers.updateStatus(selectedLocker.dbId, 'GRATUITO');
-
-                    await fetchData();
-
-                    setSelectedLocker(null);
-                    setIsGratuityMode(false);
-                    closeModal();
-                    showToast('Gratuidade aplicada com sucesso!');
-                } catch (error) {
-                    console.error('Error applying gratuity:', error);
-                    closeModal();
-                    showToast('Erro ao aplicar gratuidade', 'error');
-                } finally {
-                    setIsSaving(false);
-                }
-            }
-        });
-    };
 
     const handleStatusChange = async (newStatus) => {
         if (!selectedLocker) return;
@@ -259,6 +212,12 @@ const LockerManagement = () => {
         if (newStatus === 'manutencao') {
             title = 'Colocar em Manutenção';
             message = `Deseja bloquear o armário #${selectedLocker.id} para manutenção? Ele não poderá ser alugado até ser liberado.`;
+        } else if (newStatus === 'bloqueado') {
+            title = 'Bloquear para CAMU';
+            message = `Deseja reservar o armário #${selectedLocker.id} para uso exclusivo da CAMU?`;
+        } else if (newStatus === 'liga') {
+            title = 'Reservar para Liga';
+            message = `Deseja reservar o armário #${selectedLocker.id} para uso de uma Liga Acadêmica?`;
         } else if (newStatus === 'disponivel') {
             title = 'Liberar Armário';
             message = `Deseja liberar o armário #${selectedLocker.id}? Ele voltará ao status Disponível.`;
@@ -456,121 +415,89 @@ const LockerManagement = () => {
                                     {getStatusLabel(selectedLocker.status)}
                                 </div>
 
-                                {isGratuityMode ? (
-                                    <div className="rental-form-compact">
-                                        <h3 className="section-title">Conceder Gratuidade</h3>
-                                        <div className="form-group-compact">
-                                            <label>Buscar Aluno</label>
-                                            <div className="search-pill-input">
-                                                <Search size={18} />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nome ou RA..."
-                                                    value={studentSearch}
-                                                    onChange={(e) => handleStudentSearch(e.target.value)}
-                                                />
+                                <>
+                                    <div className="drawer-section">
+                                        <h3 className="section-title">Localização e Specs</h3>
+                                        <div className="specs-grid">
+                                            <div className="spec-item">
+                                                <div className="spec-info">
+                                                    <label>Andar</label>
+                                                    <span>{selectedLocker.floor}</span>
+                                                </div>
                                             </div>
-                                            {foundStudents.length > 0 && !selectedStudent && (
-                                                <div className="admin-search-results">
-                                                    {foundStudents.map(s => (
-                                                        <div key={s.id_usuario} className="admin-search-item" onClick={() => setSelectedStudent(s)}>
-                                                            <p className="nm">{s.nm_usuario}</p>
-                                                        </div>
-                                                    ))}
+                                            <div className="spec-item">
+                                                <Maximize2 size={18} className="spec-icon" />
+                                                <div className="spec-info">
+                                                    <label>Tamanho</label>
+                                                    <span>{selectedLocker.size}</span>
                                                 </div>
-                                            )}
-                                            {selectedStudent && (
-                                                <div className="admin-selected-student">
-                                                    <User size={14} /> {selectedStudent.nm_usuario}
-                                                    <button onClick={() => setSelectedStudent(null)}><X size={14} /></button>
+                                            </div>
+                                            <div className="spec-item">
+                                                <Search size={18} className="spec-icon" />
+                                                <div className="spec-info">
+                                                    <label>Posição</label>
+                                                    <span>{selectedLocker.position}</span>
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
-
-                                        <footer className="admin-rental-footer">
-                                            <button className="cancel-pill" onClick={() => setIsGratuityMode(false)}>Cancelar</button>
-                                            <button className="confirm-pill" disabled={!selectedStudent || isSaving} onClick={handleApplyGratuity}>
-                                                {isSaving ? <Loader2 size={18} className="spinner" /> : 'Confirmar Gratuidade'}
-                                            </button>
-                                        </footer>
                                     </div>
-                                ) : (
-                                    <>
+
+                                    {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado') && (
                                         <div className="drawer-section">
-                                            <h3 className="section-title">Localização e Specs</h3>
-                                            <div className="specs-grid">
-                                                <div className="spec-item">
-                                                    <div className="spec-info">
-                                                        <label>Andar</label>
-                                                        <span>{selectedLocker.floor}</span>
+                                            <h3 className="section-title">{selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 'Responsável'}</h3>
+                                            <div className="admin-info-card">
+                                                <div className="admin-info-row">
+                                                    <User size={16} />
+                                                    <div>
+                                                        <label>Nome</label>
+                                                        <p>{selectedLocker.responsible}</p>
                                                     </div>
                                                 </div>
-                                                <div className="spec-item">
-                                                    <Maximize2 size={18} className="spec-icon" />
-                                                    <div className="spec-info">
-                                                        <label>Tamanho</label>
-                                                        <span>{selectedLocker.size}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="spec-item">
-                                                    <Search size={18} className="spec-icon" />
-                                                    <div className="spec-info">
-                                                        <label>Posição</label>
-                                                        <span>{selectedLocker.position}</span>
+                                                <div className="admin-info-row">
+                                                    <Calendar size={16} />
+                                                    <div>
+                                                        <label>{selectedLocker.status === 'reservado' ? 'Expira em' : 'Vencimento'}</label>
+                                                        <p>{selectedLocker.expiry}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    )}
 
-                                        {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado') && (
-                                            <div className="drawer-section">
-                                                <h3 className="section-title">{selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 'Responsável'}</h3>
-                                                <div className="admin-info-card">
-                                                    <div className="admin-info-row">
-                                                        <User size={16} />
-                                                        <div>
-                                                            <label>Nome</label>
-                                                            <p>{selectedLocker.responsible}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="admin-info-row">
-                                                        <Calendar size={16} />
-                                                        <div>
-                                                            <label>{selectedLocker.status === 'reservado' ? 'Expira em' : 'Vencimento'}</label>
-                                                            <p>{selectedLocker.expiry}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="drawer-section">
-                                            <h3 className="section-title">Ações Administrativas</h3>
-                                            <div className="admin-actions-grid">
-                                                {selectedLocker.status === 'disponivel' && (
-                                                    <button className="admin-btn" onClick={() => setIsGratuityMode(true)}>
-                                                        <Heart size={18} /> Aplicar gratuidade
+                                    <div className="drawer-section">
+                                        <h3 className="section-title">Ações Administrativas</h3>
+                                        <div className="admin-actions-grid">
+                                            {selectedLocker.status === 'disponivel' && (
+                                                <>
+                                                    <button className="admin-btn" onClick={() => handleStatusChange('bloqueado')}>
+                                                        <ShieldOff size={18} /> Bloquear para CAMU
                                                     </button>
-                                                )}
-                                                {selectedLocker.status !== 'manutencao' && (
-                                                    <button className="admin-btn" onClick={() => handleStatusChange('manutencao')}>
-                                                        <Wrench size={18} /> Colocar em manutenção
+                                                    <button className="admin-btn" onClick={() => handleStatusChange('liga')}>
+                                                        <Users size={18} /> Reservar para Liga
                                                     </button>
-                                                )}
-                                                {selectedLocker.status !== 'disponivel' && (
-                                                    <button className="admin-btn" onClick={() => handleStatusChange('disponivel')}>
-                                                        <Unlock size={18} /> Liberar armário
-                                                    </button>
-                                                )}
-                                                {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito') && (
-                                                    <button className="admin-btn danger" onClick={() => handleStatusChange('vistoria')}>
-                                                        <AlertCircle size={18} /> Encerrar locação
-                                                    </button>
-                                                )}
-                                            </div>
+                                                </>
+                                            )}
+                                            
+                                            {selectedLocker.status !== 'manutencao' && (
+                                                <button className="admin-btn" onClick={() => handleStatusChange('manutencao')}>
+                                                    <Wrench size={18} /> Colocar em manutenção
+                                                </button>
+                                            )}
+                                            
+                                            {(selectedLocker.status !== 'disponivel') && (
+                                                <button className="admin-btn" onClick={() => handleStatusChange('disponivel')}>
+                                                    <Unlock size={18} /> Liberar armário
+                                                </button>
+                                            )}
+                                            
+                                            {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito') && (
+                                                <button className="admin-btn danger" onClick={() => handleStatusChange('vistoria')}>
+                                                    <AlertCircle size={18} /> Encerrar locação
+                                                </button>
+                                            )}
                                         </div>
-                                    </>
-                                )}
+                                    </div>
+                                </>
                             </div>
                         </div>
                     </div>
