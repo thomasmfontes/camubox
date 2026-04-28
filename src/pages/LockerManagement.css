@@ -183,6 +183,12 @@
     border-color: #e2e8f0;
 }
 
+.status-liga {
+    background: #f5f3ff;
+    color: #5b21b6;
+    border-color: #ddd6fe;
+}
+
 /* Desktop Enhancements */
 @media (min-width: 768px) {
     .user-selection.premium-theme {
@@ -409,6 +415,10 @@
 
 .status-banner-def.bloqueado {
     background: #64748b;
+}
+
+.status-banner-def.liga {
+    background: #7c3aed;
 }
 
 .drawer-section {

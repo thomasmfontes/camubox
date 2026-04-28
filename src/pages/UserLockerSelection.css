@@ -302,6 +302,17 @@
     border-color: #cbd5e1;
 }
 
+.status-liga {
+    background: #f5f3ff;
+    color: #5b21b6;
+    border-color: #ddd6fe;
+}
+
+.status-liga:hover {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+}
+
 /* Waiting List UI in Modal */
 .waiting-list-container {
     margin-top: 1.5rem;

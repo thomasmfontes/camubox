@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     AlertTriangle,
     XCircle,
-    ShieldOff
+    ShieldOff,
+    Users
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './LockerManagement.css';
@@ -85,6 +86,7 @@ const LockerManagement = () => {
                     if (!str) return 'disponivel';
                     const normalized = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/\s+/g, '-');
                     if (normalized.includes('reservado')) return 'reservado';
+                    if (normalized === 'liga') return 'liga';
                     return normalized === 'ocupado' ? 'em-uso' : normalized;
                 };
 
@@ -103,7 +105,7 @@ const LockerManagement = () => {
                             floor: l.nm_local || l.dc_andar || 'Térreo',
                             size: l.nm_tamanho || l.dc_tamanho || 'Pequeno',
                             position: l.nm_posicao || l.dc_posicao || 'MÉDIO',
-                            status: normalizeStatus((l.id_status === 3 || l.id_status === 6) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel')),
+                            status: normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel')),
                             responsible: (activeData && activeData.name) || userMap[l.id_usuario] || l.id_usuario || 'Disponível',
                             isReservation,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
@@ -296,7 +298,8 @@ const LockerManagement = () => {
             'manutencao': 'Manutenção',
             'gratuito': 'Gratuito',
             'reservado': 'Reservado',
-            'bloqueado': 'Uso CAMU'
+            'bloqueado': 'Uso CAMU',
+            'liga': 'Liga'
         };
         return (labels[status] || status).toUpperCase();
     };
@@ -308,6 +311,7 @@ const LockerManagement = () => {
         if (status === 'manutencao') return 'status-maintenance';
         if (status === 'reservado') return 'status-reserved';
         if (status === 'bloqueado') return 'status-blocked';
+        if (status === 'liga') return 'status-liga';
         return '';
     };
 

@@ -14,7 +14,8 @@ import {
     Lock,
     Calendar,
     TrendingDown,
-    ShieldOff
+    ShieldOff,
+    Users
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './UserLockerSelection.css';
@@ -98,7 +99,7 @@ const UserLockerSelection = ({ user }) => {
                                 floor: l.dc_andar || l.nm_local || 'Térreo',
                                 size: sizeLabel,
                                 position: l.dc_posicao || l.nm_posicao || 'Não definida',
-                                status: normalizeStatus((l.id_status === 3 || l.id_status === 6) ? l.dc_status : (l.situacao || l.dc_status || 'Disponivel')),
+                                status: normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'Disponivel')),
                                 priceSem: isLarge ? config.vl_grande_semestral : config.vl_pequeno_semestral,
                                 priceAnn: isLarge ? config.vl_grande_anual : config.vl_pequeno_anual,
                             });
@@ -229,6 +230,7 @@ const UserLockerSelection = ({ user }) => {
         if (status === 'manutencao') return 'status-maintenance';
         if (status === 'reservado') return 'status-reserved';
         if (status === 'bloqueado') return 'status-blocked';
+        if (status === 'liga') return 'status-liga';
         return '';
     };
 
@@ -310,6 +312,7 @@ const UserLockerSelection = ({ user }) => {
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
                                     {locker.status === 'bloqueado' && <ShieldOff size={12} className="unit-icon" />}
+                                    {locker.status === 'liga' && <Users size={12} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (
@@ -484,6 +487,7 @@ const UserLockerSelection = ({ user }) => {
                                 {statusModal.status === 'vistoria' && <Clock size={40} />}
                                 {statusModal.status === 'manutencao' && <Wrench size={40} />}
                                 {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
+                                {statusModal.status === 'liga' && <Users size={40} />}
                             </div>
                             <h2>Armário {statusModal.id}</h2>
                             <p className="status-modal-message">
@@ -492,6 +496,7 @@ const UserLockerSelection = ({ user }) => {
                                 {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
                                 {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
                                 {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
+                                {statusModal.status === 'liga' && 'Esta unidade está reservada para uma Liga Acadêmica.'}
                             </p>
 
                             {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
