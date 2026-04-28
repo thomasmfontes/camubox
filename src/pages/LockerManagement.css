@@ -184,9 +184,9 @@
 }
 
 .status-liga {
-    background: #f5f3ff;
-    color: #5b21b6;
-    border-color: #ddd6fe;
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fdba74;
 }
 
 /* Desktop Enhancements */
@@ -418,7 +418,7 @@
 }
 
 .status-banner-def.liga {
-    background: #7c3aed;
+    background: #f97316;
 }
 
 .drawer-section {

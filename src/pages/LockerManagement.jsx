@@ -399,11 +399,12 @@ const LockerManagement = () => {
                                     onClick={() => handleLockerClick(locker)}
                                 >
                                     <span className="unit-number">{locker.id}</span>
-                                    {locker.status === 'em-uso' && <Lock size={12} className="unit-icon" />}
-                                    {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
-                                    {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
-                                    {locker.status === 'reservado' && <Calendar size={12} className="unit-icon" />}
-                                    {locker.status === 'bloqueado' && <ShieldOff size={12} className="unit-icon" />}
+                                    {locker.status === 'em-uso' && <Lock size={14} className="unit-icon" />}
+                                    {locker.status === 'vistoria' && <Clock size={14} className="unit-icon" />}
+                                    {locker.status === 'manutencao' && <Wrench size={14} className="unit-icon" />}
+                                    {locker.status === 'reservado' && <Calendar size={14} className="unit-icon" />}
+                                    {locker.status === 'bloqueado' && <ShieldOff size={14} className="unit-icon" />}
+                                    {locker.status === 'liga' && <Users size={14} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (

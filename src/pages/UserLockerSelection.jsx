@@ -311,8 +311,8 @@ const UserLockerSelection = ({ user }) => {
                                     {(locker.status === 'ocupado' || locker.status === 'reservado') && <Lock size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
-                                    {locker.status === 'bloqueado' && <ShieldOff size={12} className="unit-icon" />}
-                                    {locker.status === 'liga' && <Users size={12} className="unit-icon" />}
+                                    {locker.status === 'bloqueado' && <ShieldOff size={14} className="unit-icon" />}
+                                    {locker.status === 'liga' && <Users size={14} className="unit-icon" />}
                                 </button>
                             ))
                         ) : (

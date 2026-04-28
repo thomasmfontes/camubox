@@ -303,14 +303,14 @@
 }
 
 .status-liga {
-    background: #f5f3ff;
-    color: #5b21b6;
-    border-color: #ddd6fe;
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fdba74;
 }
 
 .status-liga:hover {
-    background: #ede9fe;
-    border-color: #c4b5fd;
+    background: #ffedd5;
+    border-color: #fb923c;
 }
 
 /* Waiting List UI in Modal */
