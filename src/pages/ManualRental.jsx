@@ -9,8 +9,10 @@ import {
     CreditCard,
     ChevronLeft,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    Maximize2
 } from 'lucide-react';
+import CustomSelect from '../components/CustomSelect';
 import './ManualRental.css';
 
 const ManualRental = () => {
@@ -82,19 +84,18 @@ const ManualRental = () => {
 
                         <div className="form-group">
                             <label>Selecionar Armário</label>
-                            <div className="input-with-icon">
-                                <div className="locker-icon-standard" style={{ width: '18px', height: '18px' }} />
-                                <select
-                                    value={formData.lockerId}
-                                    onChange={(e) => setFormData({ ...formData, lockerId: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Selecione um armário disponível...</option>
-                                    <option value="S01">S01 (Grande - Subsolo)</option>
-                                    <option value="T12">T12 (Pequeno - Térreo)</option>
-                                    <option value="P02">P02 (Grande - Térreo PCD)</option>
-                                </select>
-                            </div>
+                            <CustomSelect
+                                icon={<Maximize2 size={18} />}
+                                label="Selecione um armário..."
+                                value={formData.lockerId}
+                                options={{
+                                    '': 'Selecione um armário disponível...',
+                                    'S01': 'S01 (Grande - Subsolo)',
+                                    'T12': 'T12 (Pequeno - Térreo)',
+                                    'P02': 'P02 (Grande - Térreo PCD)'
+                                }}
+                                onChange={(val) => setFormData({ ...formData, lockerId: val })}
+                            />
                         </div>
                     </div>
 
@@ -105,13 +106,16 @@ const ManualRental = () => {
                         <div className="form-row">
                             <div className="form-group flex-1">
                                 <label>Tipo de Contrato</label>
-                                <select
+                                <CustomSelect
+                                    icon={<FileText size={18} />}
+                                    label="Plano"
                                     value={formData.contractType}
-                                    onChange={(e) => setFormData({ ...formData, contractType: e.target.value })}
-                                >
-                                    <option value="semestral">Semestral</option>
-                                    <option value="anual">Anual</option>
-                                </select>
+                                    options={{
+                                        'semestral': 'Semestral',
+                                        'anual': 'Anual'
+                                    }}
+                                    onChange={(val) => setFormData({ ...formData, contractType: val })}
+                                />
                             </div>
 
                             <div className="form-group flex-1">
@@ -146,15 +150,18 @@ const ManualRental = () => {
                             <div className="gratuity-fields animate-fade-in">
                                 <div className="form-group">
                                     <label>Motivo da Gratuidade</label>
-                                    <select
+                                    <CustomSelect
+                                        icon={<Gift size={18} />}
+                                        label="Motivo"
                                         value={formData.freeReason}
-                                        onChange={(e) => setFormData({ ...formData, freeReason: e.target.value })}
-                                    >
-                                        <option value="liga acadêmica">Liga Acadêmica</option>
-                                        <option value="projeto de sustentação">Projeto de Sustentação</option>
-                                        <option value="cortesia">Cortesia</option>
-                                        <option value="outro">Outro</option>
-                                    </select>
+                                        options={{
+                                            'liga acadêmica': 'Liga Acadêmica',
+                                            'projeto de sustentação': 'Projeto de Sustentação',
+                                            'cortesia': 'Cortesia',
+                                            'outro': 'Outro'
+                                        }}
+                                        onChange={(val) => setFormData({ ...formData, freeReason: val })}
+                                    />
                                 </div>
                                 {formData.freeReason === 'outro' && (
                                     <div className="form-group">
@@ -172,18 +179,18 @@ const ManualRental = () => {
 
                         <div className="form-group">
                             <label>Status de Pagamento</label>
-                            <div className="input-with-icon">
-                                <CreditCard size={18} className="icon" />
-                                <select
-                                    value={formData.paymentStatus}
-                                    onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
-                                    disabled={formData.isFree}
-                                >
-                                    <option value="pendente">Pendente</option>
-                                    <option value="pago">Pago</option>
-                                    <option value="isento" disabled={!formData.isFree}>Isento</option>
-                                </select>
-                            </div>
+                            <CustomSelect
+                                icon={<CreditCard size={18} />}
+                                label="Status"
+                                value={formData.paymentStatus}
+                                options={{
+                                    'pendente': 'Pendente',
+                                    'pago': 'Pago',
+                                    'isento': 'Isento'
+                                }}
+                                onChange={(val) => setFormData({ ...formData, paymentStatus: val })}
+                                disabled={formData.isFree}
+                            />
                         </div>
                     </div>
                 </div>

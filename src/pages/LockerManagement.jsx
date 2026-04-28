@@ -9,8 +9,6 @@ import {
     Lock,
     User,
     Calendar,
-    PlusCircle,
-    Heart,
     Unlock,
     AlertCircle,
     CheckCircle2,
@@ -20,6 +18,7 @@ import {
     Users
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
+import CustomSelect from '../components/CustomSelect';
 import './LockerManagement.css';
 
 const LockerManagement = () => {
@@ -283,63 +282,46 @@ const LockerManagement = () => {
                 </div>
             </header>
 
-            <section className="filter-bar-premium">
-                <div className="filter-group search">
-                    <span className="filter-icon"><Search size={20} /></span>
+            <section className="admin-filters">
+                <div className="search-group">
+                    <Search className="search-icon" size={20} />
                     <input
-                        type="search"
-                        name="q"
-                        placeholder="Pesquisar por número do armário..."
+                        type="text"
+                        placeholder="Buscar por número ou aluno..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        autoCapitalize="off"
                     />
                 </div>
 
-                <div className="filter-group">
-                    <span className="filter-icon"><Search size={20} /></span>
-                    <select
-                        value={filters.floorId}
-                        onChange={(e) => setFilters({ ...filters, floorId: e.target.value })}
-                    >
-                        <option value="All">Todos os Andares</option>
-                        {Object.entries(lookups.floors || {}).map(([id, name]) => (
-                            <option key={id} value={id}>{name}</option>
-                        ))}
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Maximize2 size={18} />}
+                    label="Andar"
+                    value={filters.floorId}
+                    options={{ 'All': 'Todos os Andares', ...lookups.floors }}
+                    onChange={(val) => setFilters({ ...filters, floorId: val })}
+                />
 
-                <div className="filter-group">
-                    <span className="filter-icon"><Maximize2 size={20} /></span>
-                    <select
-                        value={filters.sizeId}
-                        onChange={(e) => setFilters({ ...filters, sizeId: e.target.value })}
-                    >
-                        <option value="All">Todos os Tamanhos</option>
-                        {Object.entries(lookups.sizes || {}).map(([id, name]) => (
-                            <option key={id} value={id}>{name}</option>
-                        ))}
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Maximize2 size={18} />}
+                    label="Tamanho"
+                    value={filters.sizeId}
+                    options={{ 'All': 'Todos os Tamanhos', ...lookups.sizes }}
+                    onChange={(val) => setFilters({ ...filters, sizeId: val })}
+                />
 
-                {/* Admin-only extra filter, styled exactly like others */}
-                <div className="filter-group">
-                    <span className="filter-icon"><Clock size={20} /></span>
-                    <select
-                        value={filters.statusId}
-                        onChange={(e) => setFilters({ ...filters, statusId: e.target.value })}
-                    >
-                        <option value="All">Todos os Status</option>
-                        <option value="disponivel">Disponível</option>
-                        <option value="em-uso">Em uso</option>
-                        <option value="vistoria">Vistoria</option>
-                        <option value="manutencao">Manutenção</option>
-                        <option value="gratuito">Gratuito</option>
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Clock size={18} />}
+                    label="Status"
+                    value={filters.statusId}
+                    options={{
+                        'All': 'Todos os Status',
+                        'disponivel': 'Disponível',
+                        'em-uso': 'Em uso',
+                        'vistoria': 'Vistoria',
+                        'manutencao': 'Manutenção'
+                    }}
+                    onChange={(val) => setFilters({ ...filters, statusId: val })}
+                />
             </section>
 
             <div className="matrix-container">

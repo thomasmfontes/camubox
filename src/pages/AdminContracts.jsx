@@ -21,6 +21,7 @@ import {
     Tag
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
+import CustomSelect from '../components/CustomSelect';
 import * as XLSX from 'xlsx';
 import './AdminContracts.css';
 
@@ -353,40 +354,41 @@ const AdminContracts = () => {
             </header>
 
             {/* Filter Bar */}
-            <div className="filter-bar-premium">
-                <div className="filter-group search">
-                    <span className="filter-icon"><Search size={20} /></span>
+            <div className="admin-filters">
+                <div className="search-group">
+                    <Search className="search-icon" size={20} />
                     <input
-                        type="search"
-                        name="q"
+                        type="text"
                         placeholder="Buscar por aluno ou número do armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        autoCapitalize="off"
                     />
                 </div>
 
-                <div className="filter-group">
-                    <span className="filter-icon"><Filter size={20} /></span>
-                    <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })}>
-                        <option value="All">Todos os Status</option>
-                        <option value="ATIVA">Ativos</option>
-                        <option value="ENCERRADA">Encerrados</option>
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Filter size={18} />}
+                    label="Status"
+                    value={filters.status}
+                    options={{
+                        'All': 'Todos os Status',
+                        'ATIVA': 'Ativos',
+                        'ENCERRADA': 'Encerrados'
+                    }}
+                    onChange={(val) => setFilters({ ...filters, status: val })}
+                />
 
-                <div className="filter-group">
-                    <span className="filter-icon"><Tag size={20} /></span>
-                    <select value={filters.contractType} onChange={e => setFilters({ ...filters, contractType: e.target.value })}>
-                        <option value="All">Todos os Planos</option>
-                        <option value="SEMESTRAL">Semestral</option>
-                        <option value="ANUAL">Anual</option>
-                        <option value="GRATUIDADE">Gratuidade</option>
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Tag size={18} />}
+                    label="Planos"
+                    value={filters.contractType}
+                    options={{
+                        'All': 'Todos os Planos',
+                        'SEMESTRAL': 'Semestral',
+                        'ANUAL': 'Anual',
+                        'GRATUIDADE': 'Gratuidade'
+                    }}
+                    onChange={(val) => setFilters({ ...filters, contractType: val })}
+                />
             </div>
 
             {/* Error State */}

@@ -13,6 +13,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
+import CustomSelect from '../components/CustomSelect';
 import './LockerInspection.css';
 
 const LockerInspection = () => {
@@ -162,33 +163,27 @@ const LockerInspection = () => {
                 </button>
             </div>
 
-            <div className="filter-bar">
-                <div className="search-box">
+            <div className="admin-filters">
+                <div className="search-group">
                     <Search size={18} className="search-icon" />
                     <input
                         type="text"
                         placeholder="Pesquisar armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        autoCapitalize="off"
                     />
                 </div>
-                <div className="filter-group">
-                    <Filter size={18} className="filter-icon" />
-                    <select
-                        value={selectedFloor}
-                        onChange={(e) => setSelectedFloor(e.target.value)}
-                    >
-                        {uniqueFloors.map(floor => (
-                            <option key={floor} value={floor}>
-                                {floor === 'all' ? 'Todos os andares' : floor}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                
+                <CustomSelect
+                    icon={<Filter size={18} />}
+                    label="Andar"
+                    value={selectedFloor}
+                    options={uniqueFloors.reduce((acc, floor) => ({
+                        ...acc,
+                        [floor]: floor === 'all' ? 'Todos os andares' : floor
+                    }), {})}
+                    onChange={(val) => setSelectedFloor(val)}
+                />
             </div>
 
             <div className="inspection-container card">

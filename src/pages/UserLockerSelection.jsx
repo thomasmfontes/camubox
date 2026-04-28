@@ -18,6 +18,7 @@ import {
     Users
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
+import CustomSelect from '../components/CustomSelect';
 import './UserLockerSelection.css';
 
 const UserLockerSelection = ({ user }) => {
@@ -245,51 +246,31 @@ const UserLockerSelection = ({ user }) => {
 
             <section className="filter-bar-premium">
                 <div className="filter-group search">
-                    <span className="filter-icon"><Search size={20} /></span>
+                    <Search className="search-icon" size={20} />
                     <input
                         type="text"
                         placeholder="Pesquisar por número do armário..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        autoCapitalize="off"
                     />
                 </div>
 
-                <div className="filter-group">
-                    <span className="filter-icon"><Search size={20} /></span>
-                    <select
-                        value={filters.floorId}
-                        onChange={(e) => setFilters({ ...filters, floorId: e.target.value })}
-                    >
-                        <option value="All">Todos os Andares</option>
-                        {Object.entries(lookups.floors || {}).map(([id, name]) => (
-                            <option key={id} value={id}>{name}</option>
-                        ))}
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Search size={18} />}
+                    label="Andar"
+                    value={filters.floorId}
+                    options={{ 'All': 'Todos os Andares', ...lookups.floors }}
+                    onChange={(val) => setFilters({ ...filters, floorId: val })}
+                />
 
-                <div className="filter-group" style={{ opacity: exchangeSize ? 0.5 : 1, pointerEvents: exchangeSize ? 'none' : 'auto' }}>
-                    <span className="filter-icon"><Maximize2 size={20} /></span>
-                    <select
-                        value={exchangeSize ? 'same' : filters.sizeId}
-                        onChange={(e) => setFilters({ ...filters, sizeId: e.target.value })}
-                        disabled={!!exchangeSize}
-                    >
-                        {exchangeSize ? (
-                            <option value="same">Apenas {exchangeSize}</option>
-                        ) : (
-                            <>
-                                <option value="All">Todos os Tamanhos</option>
-                                {Object.entries(lookups.sizes || {}).map(([id, name]) => (
-                                    <option key={id} value={id}>{name}</option>
-                                ))}
-                            </>
-                        )}
-                    </select>
-                </div>
+                <CustomSelect
+                    icon={<Maximize2 size={18} />}
+                    label="Tamanho"
+                    value={filters.sizeId}
+                    options={exchangeSize ? { 'same': `Apenas ${exchangeSize}` } : { 'All': 'Todos os Tamanhos', ...lookups.sizes }}
+                    onChange={(val) => setFilters({ ...filters, sizeId: val })}
+                    disabled={!!exchangeSize}
+                />
             </section>
 
             <div className="matrix-container">
