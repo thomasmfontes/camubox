@@ -142,8 +142,18 @@ const LockerManagement = () => {
                 const lockerIdStr = locker.id ? String(locker.id).toLowerCase() : '';
                 const responsibleStr = locker.responsible ? String(locker.responsible).toLowerCase() : '';
                 const matchesSearch = !fSearch || lockerIdStr.includes(fSearch) || responsibleStr.includes(fSearch);
-                const matchesFloor = fFloorId === 'All' || locker.localId?.toString() === fFloorId.toString();
-                const matchesSize = fSizeId === 'All' || locker.sizeId?.toString() === fSizeId.toString();
+
+                const selectedFloorName = lookups.floors?.[fFloorId];
+                const selectedSizeName = lookups.sizes?.[fSizeId];
+
+                const matchesFloor = fFloorId === 'All' || 
+                    locker.localId?.toString() === fFloorId.toString() ||
+                    (selectedFloorName && locker.floor === selectedFloorName);
+
+                const matchesSize = fSizeId === 'All' || 
+                    locker.sizeId?.toString() === fSizeId.toString() ||
+                    (selectedSizeName && locker.size === selectedSizeName);
+
                 const matchesStatus = fStatusId === 'All' || locker.status === fStatusId;
 
                 return matchesSearch && matchesFloor && matchesSize && matchesStatus;
@@ -318,7 +328,9 @@ const LockerManagement = () => {
                         'disponivel': 'Disponível',
                         'em-uso': 'Em uso',
                         'vistoria': 'Vistoria',
-                        'manutencao': 'Manutenção'
+                        'manutencao': 'Manutenção',
+                        'bloqueado': 'Bloqueado',
+                        'liga': 'Liga'
                     }}
                     onChange={(val) => setFilters({ ...filters, statusId: val })}
                 />
