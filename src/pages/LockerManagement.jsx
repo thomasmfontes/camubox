@@ -15,10 +15,12 @@ import {
     AlertTriangle,
     XCircle,
     ShieldOff,
-    Users
+    Users,
+    HelpCircle
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
+import LockerGuideModal from '../components/LockerGuideModal';
 import './LockerManagement.css';
 
 const LockerManagement = () => {
@@ -36,6 +38,7 @@ const LockerManagement = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null, isLoading: false });
     const [toast, setToast] = useState(null);
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
 
 
     const fetchData = async () => {
@@ -275,9 +278,13 @@ const LockerManagement = () => {
         <div className="user-selection premium-theme">
             <header className="page-header">
                 <div className="header-text">
-                    <h1>Armários Disponíveis</h1>
-                    <p>Encontre a melhor unidade para seu semestre.</p>
+                    <h1>Gestão de Armários</h1>
+                    <p>Administre a ocupação e o status das unidades.</p>
                 </div>
+                <button className="help-guide-btn" onClick={() => setIsGuideOpen(true)}>
+                    <HelpCircle size={20} />
+                    <span>Guia de Armários</span>
+                </button>
             </header>
 
             <section className="admin-filters">
@@ -536,6 +543,11 @@ const LockerManagement = () => {
                     </div>
                 </div>
             )}
+
+            <LockerGuideModal 
+                isOpen={isGuideOpen} 
+                onClose={() => setIsGuideOpen(false)} 
+            />
         </div>
     );
 };

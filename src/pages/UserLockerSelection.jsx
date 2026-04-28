@@ -14,11 +14,13 @@ import {
     Lock,
     Calendar,
     TrendingDown,
-    ShieldOff,
-    Users
+    Users,
+    HelpCircle,
+    ShieldOff
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
+import LockerGuideModal from '../components/LockerGuideModal';
 import './UserLockerSelection.css';
 
 const UserLockerSelection = ({ user }) => {
@@ -40,6 +42,7 @@ const UserLockerSelection = ({ user }) => {
         contract: 'Semestral'
     });
     const [lookups, setLookups] = useState({ floors: {}, sizes: {}, statuses: {}, positions: {} });
+    const [isGuideOpen, setIsGuideOpen] = useState(false);
     const [statusModal, setStatusModal] = useState(null);
     const [waitingListStatus, setWaitingListStatus] = useState(null);
     const [isProcessingWaitingList, setIsProcessingWaitingList] = useState(false);
@@ -242,6 +245,10 @@ const UserLockerSelection = ({ user }) => {
                     <h1>{exchangeFor ? `Trocar para #${exchangeSize}` : 'Armários Disponíveis'}</h1>
                     <p>{exchangeFor ? `Selecione um novo armário ${exchangeSize.toLowerCase()} para realizar a troca.` : 'Encontre a melhor unidade para seu semestre.'}</p>
                 </div>
+                <button className="help-guide-btn" onClick={() => setIsGuideOpen(true)}>
+                    <HelpCircle size={20} />
+                    <span>Guia de Armários</span>
+                </button>
             </header>
 
             <section className="filter-bar-premium">
@@ -458,56 +465,61 @@ const UserLockerSelection = ({ user }) => {
                     )}
                 </div>
             </div>
+
             {/* Status Modal for non-available lockers */}
-            {
-                statusModal && (
-                    <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
-                        <div className="status-modal" onClick={e => e.stopPropagation()}>
-                            <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
-                                {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
-                                {statusModal.status === 'vistoria' && <Clock size={40} />}
-                                {statusModal.status === 'manutencao' && <Wrench size={40} />}
-                                {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
-                                {statusModal.status === 'liga' && <Users size={40} />}
-                            </div>
-                            <h2>Armário {statusModal.id}</h2>
-                            <p className="status-modal-message">
-                                {statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para o período selecionado.'}
-                                {statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
-                                {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
-                                {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
-                                {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
-                                {statusModal.status === 'liga' && 'Esta unidade está reservada para uma Liga Acadêmica.'}
-                            </p>
-
-                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
-                                <div className="waiting-list-container">
-                                    {waitingListStatus ? (
-                                        <div className="waiting-list-status">
-                                            <CheckCircle2 size={18} />
-                                            {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
-                                        </div>
-                                    ) : (
-                                        <button 
-                                            className="btn-waiting-list" 
-                                            onClick={handleJoinWaitingList}
-                                            disabled={isProcessingWaitingList}
-                                        >
-                                            {isProcessingWaitingList ? <Loader2 size={18} className="spinner" /> : <Clock size={16} />}
-                                            Entrar na Fila de Espera
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            <button className="status-modal-close" onClick={() => setStatusModal(null)} style={{ marginTop: '1rem' }}>
-                                Entendido
-                            </button>
+            {statusModal && (
+                <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
+                    <div className="status-modal" onClick={e => e.stopPropagation()}>
+                        <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
+                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
+                            {statusModal.status === 'vistoria' && <Clock size={40} />}
+                            {statusModal.status === 'manutencao' && <Wrench size={40} />}
+                            {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
+                            {statusModal.status === 'liga' && <Users size={40} />}
                         </div>
+                        <h2>Armário {statusModal.id}</h2>
+                        <p className="status-modal-message">
+                            {statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para o período selecionado.'}
+                            {statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
+                            {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
+                            {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
+                            {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
+                            {statusModal.status === 'liga' && 'Esta unidade está reservada para uma Liga Acadêmica.'}
+                        </p>
+
+                        {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
+                            <div className="waiting-list-container">
+                                {waitingListStatus ? (
+                                    <div className="waiting-list-status">
+                                        <CheckCircle2 size={18} />
+                                        {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
+                                    </div>
+                                ) : (
+                                    <button 
+                                        className="btn-waiting-list" 
+                                        onClick={handleJoinWaitingList}
+                                        disabled={isProcessingWaitingList}
+                                    >
+                                        {isProcessingWaitingList ? <Loader2 size={18} className="spinner" /> : <Clock size={16} />}
+                                        Entrar na Fila de Espera
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <button className="status-modal-close" onClick={() => setStatusModal(null)} style={{ marginTop: '1rem' }}>
+                            Entendido
+                        </button>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+
+            <LockerGuideModal 
+                isOpen={isGuideOpen} 
+                onClose={() => setIsGuideOpen(false)} 
+                isAdmin={false}
+            />
+        </div>
     );
 };
 

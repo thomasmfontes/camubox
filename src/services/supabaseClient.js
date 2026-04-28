@@ -51,6 +51,22 @@ export const dbService = {
     },
 
     // LOBBY / LOCKERS
+    // STORAGE
+    storage: {
+        upload: async (bucket, path, file) => {
+            if (isMockMode) return { data: { path }, error: null };
+            return await supabase.storage.from(bucket).upload(path, file, { 
+                upsert: true,
+                contentType: file.type 
+            });
+        },
+        getPublicUrl: (bucket, path) => {
+            if (isMockMode) return path;
+            const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+            return data?.publicUrl;
+        }
+    },
+
     lockers: {
         getAll: async () => {
             if (isMockMode) {
@@ -134,6 +150,12 @@ export const dbService = {
                 };
             }
             return await supabase.from('t_configuracao').select('*').single();
+        },
+        updateConfig: async (updates) => {
+            if (isMockMode) return { data: null, error: null };
+            // Since it's a single row config, we update the first one found or use a specific ID if known
+            // Usually there is only 1 row.
+            return await supabase.from('t_configuracao').update(updates).neq('id_configuracao', 0); // Hack to update the only row
         },
         updateStatus: async (id, statusIdOrName) => {
             if (isMockMode) {

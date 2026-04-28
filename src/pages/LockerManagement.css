@@ -16,6 +16,35 @@
     color: var(--text-main);
 }
 
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 0 16px;
+}
+
+.help-guide-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    color: #10b981;
+    border: 1.5px solid #10b981;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.help-guide-btn:hover {
+    background: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    transform: translateY(-2px);
+}
+
 /* Base Header */
 
 /* Mobile-First Filters (Stack by default) */
