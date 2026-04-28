@@ -59,12 +59,17 @@ const LockerManagement = () => {
 
             // Map standard active rentals
             const activeDataMap = (rentalsRes.data || []).reduce((acc, r) => {
-                if (r.dc_status_locacao === 'ATIVA' && r.id_armario) {
-                    acc[r.id_armario] = {
-                        name: r.nm_aluno,
-                        expiry: r.dt_termino,
-                        type: 'rental'
-                    };
+                if (r.id_armario) {
+                    const isCurrentlyActive = r.dc_status_locacao === 'ATIVA' || r.id_status === 1;
+                    // Only set or overwrite if the current one is active, or if we don't have one yet
+                    if (isCurrentlyActive || !acc[r.id_armario]) {
+                        acc[r.id_armario] = {
+                            name: r.nm_aluno,
+                            expiry: r.dt_termino || r.dt_vencimento,
+                            type: 'rental',
+                            status: r.dc_status_locacao
+                        };
+                    }
                 }
                 return acc;
             }, {});
