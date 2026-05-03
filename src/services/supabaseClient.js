@@ -218,11 +218,11 @@ export const dbService = {
             console.log('[DEBUG] Leagues getAll:', res);
             return res;
         },
-        create: async (nm_liga, id_presidente) => {
+        create: async (nm_liga, id_presidente = null, nr_telefone = null) => {
             if (isMockMode) return { data: { id_liga: Math.random() }, error: null };
             return await supabase
                 .from('t_liga')
-                .insert([{ nm_liga, id_presidente }])
+                .insert([{ nm_liga, id_presidente, nr_telefone }])
                 .select();
         },
         update: async (id_liga, updates) => {

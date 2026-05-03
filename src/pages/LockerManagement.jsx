@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
+import SearchableSelect from '../components/SearchableSelect';
 import LockerGuideModal from '../components/LockerGuideModal';
 import './LockerManagement.css';
 
@@ -102,6 +103,9 @@ const LockerManagement = () => {
                     if (l.id_armario && !uniqueMap.has(l.id_armario)) {
                         const activeData = activeDataMap[l.id_armario];
                         const isReservation = activeData?.type === 'reservation';
+                        
+                        // Encontrar dados extras da liga se houver
+                        const leagueData = l.id_liga ? (leaguesRes.data || []).find(lg => lg.id_liga === l.id_liga) : null;
 
                         uniqueMap.set(l.id_armario, {
                             id: (l.nr_armario || l.cd_armario || '').toString().padStart(3, '0'),
@@ -116,8 +120,8 @@ const LockerManagement = () => {
                             responsible: (activeData && activeData.name) || (l.nm_liga ? `Liga: ${l.nm_liga}` : (userMap[l.id_usuario] || l.id_usuario || 'Disponível')),
                             id_liga: l.id_liga,
                             nm_liga: l.nm_liga,
-                            nm_presidente: l.nm_presidente,
-                            tel_presidente: l.nr_celular_presidente,
+                            nm_presidente: l.nm_presidente || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nm_usuario : leagueData.t_usuario?.nm_usuario) : null),
+                            tel_presidente: leagueData?.nr_telefone || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nr_celular : leagueData.t_usuario?.nr_celular) : l.nr_celular_presidente),
                             isReservation,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
                                 if (isReservation) {
@@ -202,6 +206,8 @@ const LockerManagement = () => {
             title: config.title || 'Confirmação',
             message: config.message || '',
             type: config.type || 'confirm',
+            content: config.content || null,
+            contentType: config.contentType || null,
             onConfirm: config.onConfirm || null,
             isLoading: false
         });
@@ -244,21 +250,7 @@ const LockerManagement = () => {
             title,
             message,
             type: 'confirm',
-            content: newStatus === 'liga' ? (
-                <div className="league-selection-modal">
-                    <label>Selecione a Liga Acadêmica:</label>
-                    <select 
-                        value={selectedLeagueId} 
-                        onChange={(e) => setSelectedLeagueId(e.target.value)}
-                        className="premium-select-field"
-                    >
-                        <option value="">Selecione uma liga...</option>
-                        {leagues.map(liga => (
-                            <option key={liga.id_liga} value={liga.id_liga}>{liga.nm_liga}</option>
-                        ))}
-                    </select>
-                </div>
-            ) : null,
+            contentType: newStatus === 'liga' ? 'league_selection' : null,
             onConfirm: async () => {
                 if (newStatus === 'liga' && !selectedLeagueId) {
                     showToast('Selecione uma liga para continuar', 'error');
@@ -482,15 +474,7 @@ const LockerManagement = () => {
                                                     </div>
                                                 </div>
                                                 
-                                                {selectedLocker.status === 'liga' && selectedLocker.nm_presidente && (
-                                                    <div className="admin-info-row">
-                                                        <User size={16} />
-                                                        <div>
-                                                            <label>Presidente</label>
-                                                            <p>{selectedLocker.nm_presidente}</p>
-                                                        </div>
-                                                    </div>
-                                                )}
+
 
                                                 <div className="admin-info-row">
                                                     {selectedLocker.status === 'liga' ? <Phone size={16} /> : <Calendar size={16} />}
@@ -555,6 +539,20 @@ const LockerManagement = () => {
                         <h3>{modalConfig.title}</h3>
                         <p>{modalConfig.message}</p>
                         
+                        {modalConfig.contentType === 'league_selection' && (
+                            <div className="modal-custom-content">
+                                <div className="league-selection-modal">
+                                    <label>Selecione a Liga Acadêmica:</label>
+                                    <SearchableSelect 
+                                        value={selectedLeagueId} 
+                                        onChange={(val) => setSelectedLeagueId(val)}
+                                        options={leagues.map(liga => ({ value: liga.id_liga, label: liga.nm_liga }))}
+                                        placeholder="Escolha uma liga na lista..."
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {modalConfig.content && (
                             <div className="modal-custom-content">
                                 {modalConfig.content}

@@ -36,7 +36,7 @@ const AdminSettings = () => {
 
     const [leagues, setLeagues] = useState([]);
     const [newLeagueName, setNewLeagueName] = useState('');
-    const [newLeaguePresidentSearch, setNewLeaguePresidentSearch] = useState('');
+    const [newLeaguePhone, setNewLeaguePhone] = useState('');
     const [isLoadingLeagues, setIsLoadingLeagues] = useState(false);
     const [isLeaguesModalOpen, setIsLeaguesModalOpen] = useState(false);
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -97,9 +97,7 @@ const AdminSettings = () => {
                 return {
                     id: l.id_liga,
                     name: l.nm_liga,
-                    president: user?.nm_usuario || 'N/A',
-                    phone: user?.nr_celular || 'Sem Telefone',
-                    presidentId: l.id_presidente
+                    phone: l.nr_telefone || user?.nr_celular || 'Sem Telefone'
                 };
             }));
         }
@@ -189,33 +187,18 @@ const AdminSettings = () => {
 
     const handleAddLeague = async () => {
         const name = newLeagueName.trim();
-        const search = newLeaguePresidentSearch.trim();
+        const phone = newLeaguePhone.trim();
         
-        if (!name || !search) return;
+        if (!name) return;
 
         setIsLoadingLeagues(true);
         try {
-            // 1. Verificar se o usuário (Presidente) existe (E-mail ou Celular)
-            let userResult;
-            if (search.includes('@')) {
-                userResult = await dbService.users.getByEmail(search);
-            } else {
-                userResult = await dbService.users.getByPhone(search);
-            }
-            
-            const { data: user, error: fetchError } = userResult;
-            
-            if (fetchError || !user) {
-                showToast(`Usuário "${search}" não encontrado. O presidente deve estar cadastrado como aluno.`, 'error');
-                return;
-            }
-
-            // 2. Criar a liga
-            const { error: createError } = await dbService.leagues.create(name, user.id_usuario);
+            // Criar a liga com telefone próprio e sem presidente
+            const { error: createError } = await dbService.leagues.create(name, null, phone);
             
             if (!createError) {
                 setNewLeagueName('');
-                setNewLeaguePresidentSearch('');
+                setNewLeaguePhone('');
                 await fetchLeagues();
                 showToast(`Liga "${name}" criada com sucesso!`);
             } else {
@@ -379,29 +362,28 @@ const AdminSettings = () => {
                                         </div>
                                     </div>
 
+
+
                                     <div className="settings-field">
-                                        <label>Representante (Presidente)</label>
+                                        <label>Contato (Telefone / WhatsApp)</label>
                                         <div className="integrated-input-group" style={{ width: '100%', height: '52px' }}>
                                             <input
                                                 type="text"
-                                                placeholder="E-mail ou Celular do Representante..."
-                                                value={newLeaguePresidentSearch}
-                                                onChange={e => setNewLeaguePresidentSearch(e.target.value)}
+                                                placeholder="Ex: (11) 99999-9999"
+                                                value={newLeaguePhone}
+                                                onChange={e => setNewLeaguePhone(e.target.value)}
                                                 onKeyPress={e => e.key === 'Enter' && handleAddLeague()}
                                                 style={{ fontSize: '0.95rem' }}
                                             />
                                             <button 
                                                 className="integrated-add-btn" 
                                                 onClick={handleAddLeague} 
-                                                disabled={isLoadingLeagues || !newLeagueName.trim() || !newLeaguePresidentSearch.trim()}
+                                                disabled={isLoadingLeagues || !newLeagueName.trim()}
                                                 style={{ height: '40px', padding: '0 1.5rem' }}
                                             >
                                                 {isLoadingLeagues ? <div className="spinner-mini-white"></div> : <><Plus size={18} /> <span className="btn-label-desktop" style={{ marginLeft: '6px' }}>Cadastrar</span></>}
                                             </button>
                                         </div>
-                                        <p className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px', paddingLeft: '4px' }}>
-                                            O presidente deve estar previamente cadastrado como aluno no CAMUBOX.
-                                        </p>
                                     </div>
                                 </div>
                             </div>

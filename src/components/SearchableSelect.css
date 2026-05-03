@@ -1,0 +1,139 @@
+
+.searchable-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.select-trigger:hover {
+    border-color: #10b981;
+}
+
+.select-trigger.open {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.trigger-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.trigger-text.placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.chevron {
+    color: #94a3b8;
+    transition: transform 0.2s;
+}
+
+.chevron.rotate {
+    transform: rotate(180deg);
+}
+
+.select-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    z-index: 100;
+    padding: 10px;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    height: 100%;
+    margin-left: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    color: #1e293b;
+}
+
+.search-icon {
+    color: #94a3b8;
+}
+
+.clear-search {
+    background: #e2e8f0;
+    border: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.options-list {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.option-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option-item:hover {
+    background: #f1f5f9;
+    color: #10b981;
+}
+
+.option-item.selected {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.no-results {
+    padding: 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
