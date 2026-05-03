@@ -104,6 +104,7 @@ const UserLockerSelection = ({ user }) => {
                                 size: sizeLabel,
                                 position: l.dc_posicao || l.nm_posicao || 'Não definida',
                                 status: normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'Disponivel')),
+                                nm_liga: l.nm_liga,
                                 priceSem: isLarge ? config.vl_grande_semestral : config.vl_pequeno_semestral,
                                 priceAnn: isLarge ? config.vl_grande_anual : config.vl_pequeno_anual,
                             });
@@ -484,7 +485,7 @@ const UserLockerSelection = ({ user }) => {
                             {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
                             {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
                             {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
-                            {statusModal.status === 'liga' && 'Esta unidade está reservada para uma Liga Acadêmica.'}
+                            {statusModal.status === 'liga' && (statusModal.nm_liga ? `Esta unidade está reservada para a liga: ${statusModal.nm_liga}.` : 'Esta unidade está reservada para uma Liga Acadêmica.')}
                         </p>
 
                         {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (

@@ -157,9 +157,9 @@ export const dbService = {
             // Usually there is only 1 row.
             return await supabase.from('t_configuracao').update(updates).neq('id_configuracao', 0); // Hack to update the only row
         },
-        updateStatus: async (id, statusIdOrName) => {
+        updateStatus: async (id, statusIdOrName, id_liga = null) => {
             if (isMockMode) {
-                console.log(`Mock: Updating locker ${id} to status ${statusIdOrName} `);
+                console.log(`Mock: Updating locker ${id} to status ${statusIdOrName} with league ${id_liga}`);
                 return { data: null, error: null };
             }
 
@@ -181,7 +181,71 @@ export const dbService = {
                 }
             }
 
-            return await supabase.from('t_armario').update({ id_status: finalStatusId }).eq('id_armario', id);
+            const updates = { id_status: finalStatusId };
+            
+            // If setting to LIGA, we must (or can) provide the league ID
+            // If freeing (DISPONIVEL), we clear the league ID
+            if (finalStatusId === 7) {
+                updates.id_liga = id_liga;
+            } else if (finalStatusId === 1) {
+                updates.id_liga = null;
+            }
+
+            return await supabase.from('t_armario').update(updates).eq('id_armario', id);
+        },
+        getByLeague: async (leagueId) => {
+            if (isMockMode) return { data: [], error: null };
+            return await supabase.from('v_armario').select('*').eq('id_liga', leagueId);
+        }
+    },
+
+    // LEAGUES
+    leagues: {
+        getAll: async () => {
+            if (isMockMode) {
+                return {
+                    data: [
+                        { id_liga: 1, nm_liga: 'Liga de Anatomia', id_presidente: 1, t_usuario: { nm_usuario: 'Thomas Ed', nr_celular: '11999999999' } },
+                        { id_liga: 2, nm_liga: 'Liga de Cardiologia', id_presidente: 2, t_usuario: { nm_usuario: 'Admin CAMU', nr_celular: '11888888888' } }
+                    ],
+                    error: null
+                };
+            }
+            const res = await supabase
+                .from('t_liga')
+                .select('*, t_usuario(nm_usuario, nr_celular)')
+                .order('nm_liga');
+            console.log('[DEBUG] Leagues getAll:', res);
+            return res;
+        },
+        create: async (nm_liga, id_presidente) => {
+            if (isMockMode) return { data: { id_liga: Math.random() }, error: null };
+            return await supabase
+                .from('t_liga')
+                .insert([{ nm_liga, id_presidente }])
+                .select();
+        },
+        update: async (id_liga, updates) => {
+            if (isMockMode) return { data: null, error: null };
+            return await supabase
+                .from('t_liga')
+                .update(updates)
+                .eq('id_liga', id_liga);
+        },
+        delete: async (id_liga) => {
+            if (isMockMode) return { data: null, error: null };
+            // Note: DB should probably restrict deletion if lockers are assigned
+            return await supabase
+                .from('t_liga')
+                .delete()
+                .eq('id_liga', id_liga);
+        },
+        getByPresident: async (userId) => {
+            if (isMockMode) return { data: [], error: null };
+            return await supabase
+                .from('t_liga')
+                .select('*')
+                .eq('id_presidente', userId);
         }
     },
 
@@ -212,6 +276,15 @@ export const dbService = {
         }
     },
     users: {
+        getByEmail: async (email) => {
+            if (isMockMode) return { data: { id_usuario: 1, nm_usuario: 'Thomas Mock', dc_email: email }, error: null };
+            return await supabase.from('t_usuario').select('*').eq('dc_email', email).maybeSingle();
+        },
+        getByPhone: async (phone) => {
+            if (isMockMode) return { data: { id_usuario: 1, nm_usuario: 'Thomas Mock', nr_celular: phone }, error: null };
+            const cleanPhone = phone.replace(/\D/g, '');
+            return await supabase.from('t_usuario').select('*').eq('nr_celular', cleanPhone).maybeSingle();
+        },
         getAll: async () => {
             if (isMockMode) return { data: [], error: null };
             return await supabase.from('t_usuario').select('id_usuario, nm_usuario, dc_email, is_adm');

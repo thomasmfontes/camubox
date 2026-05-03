@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Info, Maximize2, MoveVertical, HelpCircle, Upload, Loader2, Camera } from 'lucide-react';
+import { X, Info, Maximize2, MoveVertical, HelpCircle, Upload, Loader2, Camera, Users } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './LockerGuideModal.css';
 
-const LockerGuideModal = ({ isOpen, onClose, isAdmin = true }) => {
+const LockerGuideModal = ({ isOpen, onClose, isAdmin = true, title, children }) => {
     const [activeTab, setActiveTab] = useState('positions');
     const [isUploading, setIsUploading] = useState(false);
     const [guideUrls, setGuideUrls] = useState({
@@ -78,16 +78,19 @@ const LockerGuideModal = ({ isOpen, onClose, isAdmin = true }) => {
         { id: 'grande', name: 'Grande', desc: 'Espaço extra para capacetes, mochilas grandes ou equipamentos esportivos.' }
     ];
 
+    const isCustom = !!children;
+    const modalTitle = title || "Guia Informativo de Armários";
+
     return (
         <div className="guide-modal-overlay" onClick={onClose}>
-            <div className="guide-modal-content" onClick={e => e.stopPropagation()}>
+            <div className={`guide-modal-content ${isCustom ? 'custom-modal' : ''}`} onClick={e => e.stopPropagation()}>
                 <header className="guide-header">
                     <div className="guide-header-title">
                         <div className="guide-icon-wrapper">
-                            <HelpCircle size={24} />
+                            {isCustom ? <Users size={24} /> : <HelpCircle size={24} />}
                         </div>
                         <div>
-                            <h2>Guia Informativo de Armários</h2>
+                            <h2>{modalTitle}</h2>
                         </div>
                     </div>
                     <button className="guide-close-btn" onClick={onClose}>
@@ -95,73 +98,83 @@ const LockerGuideModal = ({ isOpen, onClose, isAdmin = true }) => {
                     </button>
                 </header>
 
-                <div className="guide-tabs">
-                    <button 
-                        className={`guide-tab ${activeTab === 'positions' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('positions')}
-                    >
-                        <MoveVertical size={18} />
-                        Posições
-                    </button>
-                    <button 
-                        className={`guide-tab ${activeTab === 'sizes' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('sizes')}
-                    >
-                        <Maximize2 size={18} />
-                        Tamanhos
-                    </button>
-                </div>
-
-                <div className="guide-body">
-                    <div className="guide-section animate-fade-in">
-                        <div className={`guide-visual ${isAdmin ? 'admin-editable' : ''}`} onClick={handleUploadClick}>
-                            <img src={activeTab === 'positions' ? guideUrls.positions : guideUrls.sizes} alt="Visual Guide" />
-                            <div className="image-overlay">{activeTab === 'positions' ? 'Referência de Alturas' : 'Grande vs Pequeno'}</div>
-                            
-                            {isAdmin && (
-                                <div className="edit-overlay">
-                                    {isUploading ? <Loader2 className="spinner" /> : <Camera size={24} />}
-                                    <span>Clique para trocar a foto</span>
-                                </div>
-                            )}
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                style={{ display: 'none' }} 
-                                onChange={handleFileChange}
-                                accept="image/*"
-                            />
+                {isCustom ? (
+                    <div className="guide-body custom-body">
+                        {children}
+                    </div>
+                ) : (
+                    <>
+                        <div className="guide-tabs">
+                            <button 
+                                className={`guide-tab ${activeTab === 'positions' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('positions')}
+                            >
+                                <MoveVertical size={18} />
+                                Posições
+                            </button>
+                            <button 
+                                className={`guide-tab ${activeTab === 'sizes' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('sizes')}
+                            >
+                                <Maximize2 size={18} />
+                                Tamanhos
+                            </button>
                         </div>
 
-                        <div className="guide-info">
-                            <h3>{activeTab === 'positions' ? 'Fileiras e Alturas' : 'Tipos de Compartimento'}</h3>
-                            <div className="info-list">
-                                {(activeTab === 'positions' ? positions : sizes).map((item, index) => (
-                                    <div 
-                                        key={item.id} 
-                                        className="info-card-simple staggered-item"
-                                        style={{ '--item-index': index }}
-                                    >
-                                        {activeTab === 'positions' ? (
-                                            <div className={`pos-indicator ${item.id}`} />
-                                        ) : (
-                                            <div className="size-icon-wrapper">
-                                                <Maximize2 size={20} />
-                                            </div>
-                                        )}
-                                        <div>
-                                            <h4>{item.name}</h4>
-                                            <p>{item.desc}</p>
+                        <div className="guide-body">
+                            <div className="guide-section animate-fade-in">
+                                <div className={`guide-visual ${isAdmin ? 'admin-editable' : ''}`} onClick={handleUploadClick}>
+                                    <img src={activeTab === 'positions' ? guideUrls.positions : guideUrls.sizes} alt="Visual Guide" />
+                                    <div className="image-overlay">{activeTab === 'positions' ? 'Referência de Alturas' : 'Grande vs Pequeno'}</div>
+                                    
+                                    {isAdmin && (
+                                        <div className="edit-overlay">
+                                            {isUploading ? <Loader2 className="spinner" /> : <Camera size={24} />}
+                                            <span>Clique para trocar a foto</span>
                                         </div>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        style={{ display: 'none' }} 
+                                        onChange={handleFileChange}
+                                        accept="image/*"
+                                    />
+                                </div>
+
+                                <div className="guide-info">
+                                    <h3>{activeTab === 'positions' ? 'Fileiras e Alturas' : 'Tipos de Compartimento'}</h3>
+                                    <div className="info-list">
+                                        {(activeTab === 'positions' ? positions : sizes).map((item, index) => (
+                                            <div 
+                                                key={item.id} 
+                                                className="info-card-simple staggered-item"
+                                                style={{ '--item-index': index }}
+                                            >
+                                                {activeTab === 'positions' ? (
+                                                    <div className={`pos-indicator ${item.id}`} />
+                                                ) : (
+                                                    <div className="size-icon-wrapper">
+                                                        <Maximize2 size={20} />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <h4>{item.name}</h4>
+                                                    <p>{item.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </>
+                )}
 
                 <footer className="guide-footer">
-                    <button className="guide-primary-btn" onClick={onClose}>Entendi</button>
+                    <button className="guide-primary-btn" onClick={onClose}>
+                        {isCustom ? 'Fechar' : 'Entendi'}
+                    </button>
                 </footer>
             </div>
         </div>

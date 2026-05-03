@@ -521,6 +521,55 @@
     100% { transform: scale(0.95); opacity: 0.5; }
 }
 
+/* League Section Styles */
+.section-divider-premium {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+    color: var(--primary);
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+}
+
+.section-divider-premium h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.locker-card-premium.league {
+    border-left: 4px solid #f97316;
+}
+
+.locker-avatar.league {
+    background: #f97316;
+}
+
+.status-tag.league {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fdba74;
+}
+
+.league-pass-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #475569;
+    flex: 1;
+}
+
+.league-pass-badge strong {
+    color: #1e293b;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
 /* Empty State Premium */
 .empty-lockers-premium {
     display: flex;

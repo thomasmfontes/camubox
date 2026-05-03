@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3 } from 'lucide-react';
+import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3, Users } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
 
 const UserMyLockers = ({ user }) => {
     const navigate = useNavigate();
     const [myLockers, setMyLockers] = useState([]);
+    const [leagueLockers, setLeagueLockers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [viewPassword, setViewPassword] = useState(null);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
@@ -57,6 +58,29 @@ const UserMyLockers = ({ user }) => {
                     };
                 });
                 setMyLockers(formatted);
+            }
+
+            // 2. Fetch League Lockers if user is a president
+            const { data: userLeagues } = await dbService.leagues.getByPresident(user.id_usuario);
+            if (userLeagues && userLeagues.length > 0) {
+                const allLeagueLockers = [];
+                for (const league of userLeagues) {
+                    const { data: lockers } = await dbService.lockers.getByLeague(league.id_liga);
+                    if (lockers) {
+                        allLeagueLockers.push(...lockers.map(l => ({
+                            id: `league-${l.id_armario}`,
+                            id_armario: l.id_armario,
+                            lockerNumber: (l.nr_armario || l.cd_armario || '---').toString().padStart(3, '0'),
+                            floor: l.dc_andar || l.nm_local || 'Térreo',
+                            size: l.dc_tamanho || l.nm_tamanho || 'Pequeno',
+                            position: l.nm_posicao || 'MÉDIO',
+                            password: l.cd_senha || 'N/A',
+                            leagueName: league.nm_liga,
+                            isLeague: true
+                        })));
+                    }
+                }
+                setLeagueLockers(allLeagueLockers);
             }
         } catch (err) {
             console.error('[FETCH MY LOCKERS ERROR]', err);
@@ -228,6 +252,46 @@ const UserMyLockers = ({ user }) => {
                                 Ver Armários Disponíveis
                                 <ChevronRight size={18} />
                             </button>
+                        </div>
+                    )}
+
+                    {leagueLockers.length > 0 && (
+                        <div className="league-lockers-section" style={{ marginTop: '2rem' }}>
+                            <div className="section-divider-premium">
+                                <Users size={20} />
+                                <h3>Armários sob Gestão (Ligas)</h3>
+                            </div>
+                            <div className="lockers-matrix">
+                                {leagueLockers.map((locker) => (
+                                    <div key={locker.id} className="locker-card-premium league">
+                                        <div className="card-glass-effect" />
+                                        <div className="locker-header">
+                                            <div className="locker-main-info">
+                                                <div className="locker-avatar league">
+                                                    <Users size={24} color="white" />
+                                                </div>
+                                                <div className="locker-titles">
+                                                    <span className="locker-id">Armário #{locker.lockerNumber}</span>
+                                                    <span className="status-tag league">{locker.leagueName}</span>
+                                                </div>
+                                            </div>
+                                            <div className="locker-specs">
+                                                <div className="spec-item"><span>{locker.floor}</span></div>
+                                                <div className="spec-item">
+                                                    <Maximize2 size={14} />
+                                                    <span>{locker.size}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="locker-actions-grid">
+                                            <div className="league-pass-badge">
+                                                <Lock size={14} />
+                                                <span>Senha: <strong>{locker.password}</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
             </div>

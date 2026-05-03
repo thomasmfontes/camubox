@@ -10,7 +10,9 @@ import {
     Wrench,
     Search,
     Filter,
-    Loader2
+    Loader2,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
@@ -22,6 +24,8 @@ const LockerInspection = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFloor, setSelectedFloor] = useState('all');
     const [activeTab, setActiveTab] = useState('vistoria'); // 'vistoria' or 'manutencao'
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -88,6 +92,16 @@ const LockerInspection = () => {
         const matchesFloor = selectedFloor === 'all' || item.floor === selectedFloor;
         return matchesTab && matchesSearch && matchesFloor;
     });
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedFloor, activeTab]);
+
+    const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
+    const paginatedInspections = filteredInspections.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const handleAction = async (dbId, action) => {
         try {
@@ -203,7 +217,7 @@ const LockerInspection = () => {
                             </tr>
                         </thead>
                             <tbody>
-                                {filteredInspections.map((item) => (
+                                {paginatedInspections.map((item) => (
                                     <tr 
                                         key={item.dbId}
                                     >
@@ -268,6 +282,39 @@ const LockerInspection = () => {
                     </table>
                 )}
             </div>
+
+            {!isLoading && filteredInspections.length > 0 && (
+                <div className="pagination-wrapper">
+                    <div className="pagination-info">
+                        Mostrando <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> - <strong>{Math.min(currentPage * itemsPerPage, filteredInspections.length)}</strong> de <strong>{filteredInspections.length}</strong> registros
+                    </div>
+                    <div className="pagination-controls simple">
+                        <button 
+                            className="pagination-btn" 
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+                            disabled={currentPage === 1}
+                        >
+                            <ChevronLeft size={18} />
+                            <span className="btn-text">Anterior</span>
+                        </button>
+                        
+                        <div className="pagination-status">
+                            <span className="mobile-only">Pág. </span>
+                            <span className="desktop-only">Página </span>
+                            <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+                        </div>
+
+                        <button 
+                            className="pagination-btn" 
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+                            disabled={currentPage === totalPages}
+                        >
+                            <span className="btn-text">Próximo</span>
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

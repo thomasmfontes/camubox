@@ -578,7 +578,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 4000;
+    z-index: 999999 !important;
     padding: 2rem;
 }
 
@@ -684,3 +684,260 @@
 
 .modal-btn-primary:hover { background: #002d1f; }
 
+/* Ligas Acadêmicas - Summary Card */
+.leagues-summary-card {
+    background: linear-gradient(135deg, rgba(0, 61, 43, 0.05) 0%, rgba(0, 61, 43, 0.02) 100%);
+    border: 1px solid rgba(0, 61, 43, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.leagues-summary-card:hover {
+    background: linear-gradient(135deg, rgba(0, 61, 43, 0.08) 0%, rgba(0, 61, 43, 0.04) 100%);
+    border-color: rgba(0, 61, 43, 0.15);
+    transform: translateY(-2px);
+}
+
+.summary-info label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.summary-info p {
+    font-size: 1.4rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.summary-info p strong {
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.btn-view-leagues {
+    background: white;
+    border: 1px solid rgba(0, 61, 43, 0.1);
+    color: var(--primary);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-view-leagues:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 61, 43, 0.2);
+}
+
+/* Leagues Modal List */
+.leagues-modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0.5rem;
+}
+
+.leagues-modal-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.leagues-modal-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 61, 43, 0.1);
+    border-radius: 10px;
+}
+
+.league-item-premium {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.league-item-premium:hover {
+    background: #f8faf9;
+    border-color: var(--primary);
+    transform: scale(1.01);
+}
+
+.league-avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.league-info {
+    flex: 1;
+    text-align: left;
+}
+
+.league-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.league-name-row strong {
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.league-tag {
+    font-size: 0.65rem;
+    background: #f0fdf4;
+    color: #166534;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.league-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.btn-delete-league {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-league:hover {
+    background: #ef4444;
+    color: white;
+    transform: rotate(8deg);
+}
+
+.modal-empty {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    gap: 1rem;
+}
+
+/* Premium Dark Input */
+.premium-input-dark {
+    background: #f8faf9;
+    border: 2px solid rgba(0, 61, 43, 0.08);
+    border-radius: 12px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.premium-input-dark:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(0, 61, 43, 0.05);
+}
+
+.box-subtitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+.section-subtitle-premium {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-subtitle-premium::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(0, 61, 43, 0.06);
+}
+
+.premium-info-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: #b45309;
+}
+
+.premium-info-alert p {
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.premium-textarea {
+    width: 100%;
+    min-height: 180px;
+    background: #f8fafc;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    resize: vertical;
+    transition: all 0.2s ease;
+    margin-bottom: 1.5rem;
+    outline: none;
+    font-family: inherit;
+}
+
+.premium-textarea:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(0, 61, 43, 0.05);
+}

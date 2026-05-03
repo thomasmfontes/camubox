@@ -16,6 +16,7 @@ import {
     XCircle,
     ShieldOff,
     Users,
+    Phone,
     HelpCircle
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
@@ -39,21 +40,25 @@ const LockerManagement = () => {
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null, isLoading: false });
     const [toast, setToast] = useState(null);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
+    const [leagues, setLeagues] = useState([]);
+    const [selectedLeagueId, setSelectedLeagueId] = useState('');
 
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [lockersRes, lookupRes, usersRes, rentalsRes, waitingRes] = await Promise.all([
+            const [lockersRes, lookupRes, usersRes, rentalsRes, waitingRes, leaguesRes] = await Promise.all([
                 dbService.lockers.getAll(),
                 dbService.lockers.getLookups(),
                 dbService.users.getAll(),
                 dbService.rentals.getAll(),
-                dbService.waitingList.getAllActiveReservations ? dbService.waitingList.getAllActiveReservations() : Promise.resolve({ data: [] })
+                dbService.waitingList.getAllActiveReservations ? dbService.waitingList.getAllActiveReservations() : Promise.resolve({ data: [] }),
+                dbService.leagues.getAll()
             ]);
 
             if (lookupRes.error) throw lookupRes.error;
             setLookups(lookupRes.data || {});
+            setLeagues(leaguesRes.data || []);
 
             const userMap = (usersRes.data || []).reduce((acc, u) => ({ ...acc, [u.id_usuario]: u.nm_usuario }), {});
 
@@ -108,7 +113,11 @@ const LockerManagement = () => {
                             size: l.nm_tamanho || l.dc_tamanho || 'Pequeno',
                             position: l.nm_posicao || l.dc_posicao || 'MÉDIO',
                             status: normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel')),
-                            responsible: (activeData && activeData.name) || userMap[l.id_usuario] || l.id_usuario || 'Disponível',
+                            responsible: (activeData && activeData.name) || (l.nm_liga ? `Liga: ${l.nm_liga}` : (userMap[l.id_usuario] || l.id_usuario || 'Disponível')),
+                            id_liga: l.id_liga,
+                            nm_liga: l.nm_liga,
+                            nm_presidente: l.nm_presidente,
+                            tel_presidente: l.nr_celular_presidente,
                             isReservation,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
                                 if (isReservation) {
@@ -235,13 +244,35 @@ const LockerManagement = () => {
             title,
             message,
             type: 'confirm',
+            content: newStatus === 'liga' ? (
+                <div className="league-selection-modal">
+                    <label>Selecione a Liga Acadêmica:</label>
+                    <select 
+                        value={selectedLeagueId} 
+                        onChange={(e) => setSelectedLeagueId(e.target.value)}
+                        className="premium-select-field"
+                    >
+                        <option value="">Selecione uma liga...</option>
+                        {leagues.map(liga => (
+                            <option key={liga.id_liga} value={liga.id_liga}>{liga.nm_liga}</option>
+                        ))}
+                    </select>
+                </div>
+            ) : null,
             onConfirm: async () => {
+                if (newStatus === 'liga' && !selectedLeagueId) {
+                    showToast('Selecione uma liga para continuar', 'error');
+                    setModalConfig(prev => ({ ...prev, isLoading: false }));
+                    return;
+                }
+
                 try {
                     const dbStatus = newStatus.toUpperCase().replace('-', '_');
-                    await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus);
+                    await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus, selectedLeagueId);
 
                     await fetchData();
                     setSelectedLocker(null);
+                    setSelectedLeagueId('');
                     closeModal();
                     showToast('Status atualizado com sucesso!');
                 } catch (error) {
@@ -436,22 +467,36 @@ const LockerManagement = () => {
                                         </div>
                                     </div>
 
-                                    {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado') && (
+                                    {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado' || selectedLocker.status === 'liga') && (
                                         <div className="drawer-section">
-                                            <h3 className="section-title">{selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 'Responsável'}</h3>
+                                            <h3 className="section-title">
+                                                {selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 
+                                                 selectedLocker.status === 'liga' ? 'Entidade Responsável' : 'Responsável'}
+                                            </h3>
                                             <div className="admin-info-card">
                                                 <div className="admin-info-row">
-                                                    <User size={16} />
+                                                    {selectedLocker.status === 'liga' ? <Users size={16} /> : <User size={16} />}
                                                     <div>
-                                                        <label>Nome</label>
-                                                        <p>{selectedLocker.responsible}</p>
+                                                        <label>{selectedLocker.status === 'liga' ? 'Nome da Liga' : 'Nome'}</label>
+                                                        <p>{selectedLocker.status === 'liga' ? selectedLocker.nm_liga : selectedLocker.responsible}</p>
                                                     </div>
                                                 </div>
+                                                
+                                                {selectedLocker.status === 'liga' && selectedLocker.nm_presidente && (
+                                                    <div className="admin-info-row">
+                                                        <User size={16} />
+                                                        <div>
+                                                            <label>Presidente</label>
+                                                            <p>{selectedLocker.nm_presidente}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <div className="admin-info-row">
-                                                    <Calendar size={16} />
+                                                    {selectedLocker.status === 'liga' ? <Phone size={16} /> : <Calendar size={16} />}
                                                     <div>
-                                                        <label>{selectedLocker.status === 'reservado' ? 'Expira em' : 'Vencimento'}</label>
-                                                        <p>{selectedLocker.expiry}</p>
+                                                        <label>{selectedLocker.status === 'liga' ? 'Contato' : (selectedLocker.status === 'reservado' ? 'Expira em' : 'Vencimento')}</label>
+                                                        <p>{selectedLocker.status === 'liga' ? (selectedLocker.tel_presidente || 'N/A') : selectedLocker.expiry}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -510,6 +555,12 @@ const LockerManagement = () => {
                         <h3>{modalConfig.title}</h3>
                         <p>{modalConfig.message}</p>
                         
+                        {modalConfig.content && (
+                            <div className="modal-custom-content">
+                                {modalConfig.content}
+                            </div>
+                        )}
+
                         <div className="modal-footer-actions">
                             {modalConfig.type === 'confirm' ? (
                                 <>

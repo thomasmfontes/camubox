@@ -94,8 +94,10 @@ const AdminHome = () => {
                             counts.total++;
                             if (l.id_status === 6) {
                                 counts.bloqueado++;
+                                counts['em-uso']++; // CAMU accounts as in-use
                             } else if (l.id_status === 7) {
                                 counts.liga++;
+                                counts['em-uso']++; // Ligas account as in-use
                             } else if (Object.prototype.hasOwnProperty.call(counts, status)) {
                                 counts[status]++;
                             }

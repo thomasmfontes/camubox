@@ -11,9 +11,12 @@ import {
     AlertCircle,
     AlertTriangle,
     CheckCircle2,
-    XCircle
+    XCircle,
+    Users,
+    ChevronRight
 } from 'lucide-react';
 import Toast from '../components/Toast';
+import LockerGuideModal from '../components/LockerGuideModal';
 
 import './AdminSettings.css';
 
@@ -30,6 +33,13 @@ const AdminSettings = () => {
     const [admins, setAdmins] = useState([]);
     const [newAdminEmail, setNewAdminEmail] = useState('');
     const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+
+    const [leagues, setLeagues] = useState([]);
+    const [newLeagueName, setNewLeagueName] = useState('');
+    const [newLeaguePresidentSearch, setNewLeaguePresidentSearch] = useState('');
+    const [isLoadingLeagues, setIsLoadingLeagues] = useState(false);
+    const [isLeaguesModalOpen, setIsLeaguesModalOpen] = useState(false);
+    const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -76,6 +86,26 @@ const AdminSettings = () => {
         setIsLoadingAdmins(false);
     };
 
+    const fetchLeagues = async () => {
+        setIsLoadingLeagues(true);
+        const { data, error } = await dbService.leagues.getAll();
+        console.log('[DEBUG] Leagues raw data:', data);
+        if (!error && data) {
+            setLeagues(data.map(l => {
+                // Handle both object and array response from Supabase Join
+                const user = Array.isArray(l.t_usuario) ? l.t_usuario[0] : l.t_usuario;
+                return {
+                    id: l.id_liga,
+                    name: l.nm_liga,
+                    president: user?.nm_usuario || 'N/A',
+                    phone: user?.nr_celular || 'Sem Telefone',
+                    presidentId: l.id_presidente
+                };
+            }));
+        }
+        setIsLoadingLeagues(false);
+    };
+
     useEffect(() => {
         const fetchConfig = async () => {
             setIsLoading(true);
@@ -88,6 +118,7 @@ const AdminSettings = () => {
 
         fetchConfig();
         fetchAdmins();
+        fetchLeagues();
     }, []);
 
     const handleAddAdmin = async () => {
@@ -151,6 +182,71 @@ const AdminSettings = () => {
                     showToast('Erro ao remover acesso: ' + err.message, 'error');
                 } finally {
                     setIsLoadingAdmins(false);
+                }
+            }
+        });
+    };
+
+    const handleAddLeague = async () => {
+        const name = newLeagueName.trim();
+        const search = newLeaguePresidentSearch.trim();
+        
+        if (!name || !search) return;
+
+        setIsLoadingLeagues(true);
+        try {
+            // 1. Verificar se o usuário (Presidente) existe (E-mail ou Celular)
+            let userResult;
+            if (search.includes('@')) {
+                userResult = await dbService.users.getByEmail(search);
+            } else {
+                userResult = await dbService.users.getByPhone(search);
+            }
+            
+            const { data: user, error: fetchError } = userResult;
+            
+            if (fetchError || !user) {
+                showToast(`Usuário "${search}" não encontrado. O presidente deve estar cadastrado como aluno.`, 'error');
+                return;
+            }
+
+            // 2. Criar a liga
+            const { error: createError } = await dbService.leagues.create(name, user.id_usuario);
+            
+            if (!createError) {
+                setNewLeagueName('');
+                setNewLeaguePresidentSearch('');
+                await fetchLeagues();
+                showToast(`Liga "${name}" criada com sucesso!`);
+            } else {
+                throw createError;
+            }
+        } catch (err) {
+            showToast('Erro ao criar liga: ' + err.message, 'error');
+        } finally {
+            setIsLoadingLeagues(false);
+        }
+    };
+
+    const handleDeleteLeague = async (id, name) => {
+        showModal({
+            title: 'Confirmar Exclusão',
+            message: `Tem certeza que deseja excluir a liga "${name}"?`,
+            type: 'confirm',
+            onConfirm: async () => {
+                setIsLoadingLeagues(true);
+                try {
+                    const { error } = await dbService.leagues.delete(id);
+                    if (!error) {
+                        await fetchLeagues();
+                        showToast('Liga removida com sucesso!');
+                    } else {
+                        throw error;
+                    }
+                } catch (err) {
+                    showToast('Erro ao remover liga: ' + err.message, 'error');
+                } finally {
+                    setIsLoadingLeagues(false);
                 }
             }
         });
@@ -237,94 +333,127 @@ const AdminSettings = () => {
                                     <input type="number" value={config.vl_taxa_troca} onChange={e => updateConfig('vl_taxa_troca', e.target.value)} />
                                 </div>
                             </div>
-                            <button className="premium-save-btn" onClick={() => handleSave('Valores')}>
+                            <button className="integrated-add-btn" style={{ width: '100%', height: '48px', marginTop: '1rem', borderRadius: '12px' }} onClick={() => handleSave('Valores')}>
                                 <Save size={18} />
                                 <span>Salvar Valores</span>
                             </button>
                         </div>
-                               </section>
+                    </section>
+
+                    <section className="settings-modern-card glass">
+                        <div className="card-header-premium">
+                            <div className="header-title-bundle">
+                                <span className="icon-wrapper primary">
+                                    <Users size={20} />
+                                </span>
+                                <h3>Ligas Acadêmicas</h3>
+                            </div>
+                        </div>
+
+                        <div className="card-content-premium">
+                            <div className="leagues-summary-card">
+                                <div className="summary-info">
+                                    <label>Total de Ligas</label>
+                                    <p><strong>{leagues.length}</strong> cadastradas</p>
+                                </div>
+                                <button className="btn-view-leagues" onClick={() => setIsLeaguesModalOpen(true)}>
+                                    Ver Todas <ChevronRight size={16} />
+                                </button>
+                            </div>
+
+                            <div className="premium-form-section" style={{ borderTop: '1px solid rgba(0, 61, 43, 0.05)', paddingTop: '2rem' }}>
+                                <h4 className="section-subtitle-premium">Cadastrar Nova Liga</h4>
+                                
+                                <div className="premium-form-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    <div className="settings-field">
+                                        <label>Nome da Liga Acadêmica</label>
+                                        <div className="premium-input-box" style={{ paddingLeft: '1rem' }}>
+                                            <input
+                                                type="text"
+                                                placeholder="Ex: Liga de Anatomia Aplicada..."
+                                                value={newLeagueName}
+                                                onChange={e => setNewLeagueName(e.target.value)}
+                                                className="premium-form-input"
+                                                style={{ background: 'transparent', border: 'none', width: '100%', height: '48px', outline: 'none', color: 'var(--text-main)', fontSize: '0.95rem' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="settings-field">
+                                        <label>Representante (Presidente)</label>
+                                        <div className="integrated-input-group" style={{ width: '100%', height: '52px' }}>
+                                            <input
+                                                type="text"
+                                                placeholder="E-mail ou Celular do Representante..."
+                                                value={newLeaguePresidentSearch}
+                                                onChange={e => setNewLeaguePresidentSearch(e.target.value)}
+                                                onKeyPress={e => e.key === 'Enter' && handleAddLeague()}
+                                                style={{ fontSize: '0.95rem' }}
+                                            />
+                                            <button 
+                                                className="integrated-add-btn" 
+                                                onClick={handleAddLeague} 
+                                                disabled={isLoadingLeagues || !newLeagueName.trim() || !newLeaguePresidentSearch.trim()}
+                                                style={{ height: '40px', padding: '0 1.5rem' }}
+                                            >
+                                                {isLoadingLeagues ? <div className="spinner-mini-white"></div> : <><Plus size={18} /> <span className="btn-label-desktop" style={{ marginLeft: '6px' }}>Cadastrar</span></>}
+                                            </button>
+                                        </div>
+                                        <p className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px', paddingLeft: '4px' }}>
+                                            O presidente deve estar previamente cadastrado como aluno no CAMUBOX.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     {/* CARD 4: Administradores */}
                     <section className="settings-modern-card glass">
                         <div className="card-header-premium">
                             <div className="header-title-bundle">
-                                <span className="icon-wrapper primary">
+                                <span className="icon-wrapper grey">
                                     <Shield size={20} />
                                 </span>
                                 <h3>Equipe Administrativa</h3>
                             </div>
                         </div>
                         <div className="card-content-premium">
-                            <div className="modern-admin-list">
-
-                                    {isLoadingAdmins ? (
-                                        <div 
-                                            className="loading-admins-state"
-                                        >
-                                            <div className="spinner-mini-admin"></div>
-                                            <span>Sincronizando equipe...</span>
-                                        </div>
-                                    ) : admins.length === 0 ? (
-                                        <div 
-                                            className="empty-admin-list-premium"
-                                        >
-                                            <div className="empty-icon-shield">
-                                                <Shield size={32} />
-                                            </div>
-                                            <p>Nenhum administrador cadastrado.</p>
-                                        </div>
-                                    ) : (
-                                        admins.map((admin) => (
-                                            <div 
-                                                key={admin.email}
-                                                className="modern-admin-item-premium"
-                                            >
-                                                <div className="admin-avatar-premium">
-                                                    {admin.name.charAt(0)}
-                                                </div>
-                                                <div className="admin-info-bundle">
-                                                    <div className="admin-name-meta">
-                                                        <strong>{admin.name}</strong>
-                                                        <span className="admin-badge">Admin</span>
-                                                    </div>
-                                                    <span className="admin-email-secondary">{admin.email}</span>
-                                                </div>
-                                                <button 
-                                                    className="remove-admin-control" 
-                                                    onClick={() => handleDeleteAdmin(admin.email)}
-                                                    title="Remover Acesso"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-
+                            <div className="leagues-summary-card">
+                                <div className="summary-info">
+                                    <label>Total de Administradores</label>
+                                    <p><strong>{admins.length}</strong> cadastrados</p>
+                                </div>
+                                <button className="btn-view-leagues" onClick={() => setIsAdminModalOpen(true)}>
+                                    Ver Todos <ChevronRight size={16} />
+                                </button>
                             </div>
 
-                            <div className="add-admin-premium-box">
-                                <div className="integrated-input-group">
-                                    <input
-                                        type="email"
-                                        placeholder="E-mail do novo administrador..."
-                                        value={newAdminEmail}
-                                        onChange={e => setNewAdminEmail(e.target.value)}
-                                        onKeyPress={e => e.key === 'Enter' && handleAddAdmin()}
-                                    />
-                                    <button 
-                                        className="integrated-add-btn" 
-                                        onClick={handleAddAdmin} 
-                                        disabled={isLoadingAdmins || !newAdminEmail.trim()}
-                                    >
-                                        {isLoadingAdmins ? (
-                                            <div className="spinner-mini-white"></div>
-                                        ) : (
-                                            <>
-                                                <Plus size={20} />
-                                                <span className="btn-label-desktop">Adicionar</span>
-                                            </>
-                                        )}
-                                    </button>
+                            <div className="premium-form-section" style={{ marginTop: '2rem', borderTop: '1px solid rgba(0, 61, 43, 0.05)', paddingTop: '1.5rem' }}>
+                                <h4 className="section-subtitle-premium">Convidar Administrador</h4>
+                                <div className="settings-field">
+                                    <label>Novo Administrador (E-mail)</label>
+                                    <div className="integrated-input-group" style={{ width: '100%', height: '52px' }}>
+                                        <input
+                                            type="email"
+                                            placeholder="E-mail do novo administrador..."
+                                            value={newAdminEmail}
+                                            onChange={e => setNewAdminEmail(e.target.value)}
+                                            onKeyPress={e => e.key === 'Enter' && handleAddAdmin()}
+                                            style={{ fontSize: '0.95rem' }}
+                                        />
+                                        <button 
+                                            className="integrated-add-btn" 
+                                            onClick={handleAddAdmin} 
+                                            disabled={isLoadingAdmins || !newAdminEmail.trim()}
+                                            style={{ height: '40px', padding: '0 1.5rem' }}
+                                        >
+                                            {isLoadingAdmins ? <div className="spinner-mini-white"></div> : <><Plus size={18} /> <span className="btn-label-desktop" style={{ marginLeft: '6px' }}>Adicionar</span></>}
+                                        </button>
+                                    </div>
+                                    <p className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px', paddingLeft: '4px' }}>
+                                        O usuário receberá permissões totais de acesso ao painel admin.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -332,7 +461,7 @@ const AdminSettings = () => {
 
 
                     {/* CARD 5: Contrato */}
-                    <section className="settings-modern-card glass full-width">
+                    <section className="settings-modern-card glass">
                         <div className="card-header-premium">
                             <div className="header-title-bundle">
                                 <span className="icon-wrapper gold">
@@ -361,37 +490,106 @@ const AdminSettings = () => {
                 </div>
             )}
 
+            <LockerGuideModal 
+                isOpen={isLeaguesModalOpen} 
+                onClose={() => setIsLeaguesModalOpen(false)} 
+                title="Ligas Acadêmicas"
+            >
+                <div className="leagues-modal-list">
+                    {leagues.length > 0 ? (
+                        leagues.map((league) => (
+                            <div key={league.id} className="league-item-premium modal-item">
+                                <div className="league-avatar">
+                                    {league.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="league-info">
+                                    <div className="league-name-row">
+                                        <strong>{league.name}</strong>
+                                    </div>
+                                    <p>Contato: {league.phone}</p>
+                                </div>
+                                <button 
+                                    className="btn-delete-league"
+                                    onClick={() => handleDeleteLeague(league.id, league.name)}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="empty-leagues modal-empty">
+                            <Users size={48} />
+                            <p>Nenhuma liga cadastrada.</p>
+                        </div>
+                    )}
+                </div>
+            </LockerGuideModal>
+
+            <LockerGuideModal 
+                isOpen={isAdminModalOpen} 
+                onClose={() => setIsAdminModalOpen(false)} 
+                title="Equipe Administrativa"
+            >
+                <div className="leagues-modal-list">
+                    {admins.length > 0 ? (
+                        admins.map((admin) => (
+                            <div key={admin.email} className="league-item-premium modal-item">
+                                <div className="league-avatar">
+                                    {admin.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="league-info">
+                                    <div className="league-name-row">
+                                        <strong>{admin.name}</strong>
+                                    </div>
+                                    <p>{admin.email}</p>
+                                </div>
+                                <button 
+                                    className="btn-delete-league" 
+                                    onClick={() => handleDeleteAdmin(admin.email)}
+                                    title="Remover Acesso"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="empty-admin-list-premium modal-empty">
+                            <Shield size={48} />
+                            <p>Nenhum administrador cadastrado.</p>
+                        </div>
+                    )}
+                </div>
+            </LockerGuideModal>
+
             {/* Modal de Ação Customizado */}
-                {modalConfig.isOpen && (
-                    <div className="action-modal-overlay">
-                        <div 
-                            className="action-modal-card"
-                        >
-                            <div className={`modal-icon-container ${modalConfig.type}`}>
-                                {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
-                                {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
-                                {modalConfig.type === 'error' && <XCircle size={32} />}
-                            </div>
-                            
-                            <h3>{modalConfig.title}</h3>
-                            <p>{modalConfig.message}</p>
-                            
-                            <div className="modal-footer-actions">
-                                {modalConfig.type === 'confirm' ? (
-                                    <>
-                                        <button className="modal-btn-cancel" onClick={closeModal}>Cancelar</button>
-                                        <button className="modal-btn-confirm" onClick={() => {
-                                            if (modalConfig.onConfirm) modalConfig.onConfirm();
-                                            closeModal();
-                                        }}>Confirmar</button>
-                                    </>
-                                ) : (
-                                    <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
-                                )}
-                            </div>
+            {modalConfig.isOpen && (
+                <div className="action-modal-overlay">
+                    <div className="action-modal-card">
+                        <div className={`modal-icon-container ${modalConfig.type}`}>
+                            {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
+                            {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
+                            {modalConfig.type === 'error' && <XCircle size={32} />}
+                        </div>
+                        
+                        <h3>{modalConfig.title}</h3>
+                        <p>{modalConfig.message}</p>
+                        
+                        <div className="modal-footer-actions">
+                            {modalConfig.type === 'confirm' ? (
+                                <>
+                                    <button className="modal-btn-cancel" onClick={closeModal}>Cancelar</button>
+                                    <button className="modal-btn-confirm" onClick={() => {
+                                        if (modalConfig.onConfirm) modalConfig.onConfirm();
+                                        closeModal();
+                                    }}>Confirmar</button>
+                                </>
+                            ) : (
+                                <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
+                            )}
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
             {toast && (
                 <Toast 
