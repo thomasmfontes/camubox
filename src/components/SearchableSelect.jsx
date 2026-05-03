@@ -37,8 +37,8 @@ const SearchableSelect = ({ value, options, onChange, placeholder = 'Selecione..
             </div>
 
             {isOpen && (
-                <div className="select-dropdown-panel">
-                    <div className="search-box">
+                <div className="select-dropdown-panel" style={{ width: '100%', left: 0, right: 0 }}>
+                    <div className="search-box" style={{ width: '100%', display: 'flex' }}>
                         <Search size={16} className="search-icon" />
                         <input 
                             type="text" 
@@ -47,6 +47,7 @@ const SearchableSelect = ({ value, options, onChange, placeholder = 'Selecione..
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
+                            style={{ flex: 1, width: '100%' }}
                         />
                         {searchTerm && (
                             <button className="clear-search" onClick={(e) => { e.stopPropagation(); setSearchTerm(''); }}>

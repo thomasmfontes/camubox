@@ -526,23 +526,21 @@ const LockerManagement = () => {
                     </div>
                 )}
 
-            {/* Custom Action Modal */}
             {modalConfig.isOpen && (
-                <div className="action-modal-overlay">
-                    <div className="action-modal-card">
-                        <div className={`modal-icon-container ${modalConfig.type}`}>
+                <div className="locker-modal-overlay">
+                    <div className="locker-modal-card">
+                        <div className={`locker-modal-icon-container ${modalConfig.type}`}>
                             {modalConfig.type === 'confirm' && <AlertTriangle size={32} />}
                             {modalConfig.type === 'success' && <CheckCircle2 size={32} />}
                             {modalConfig.type === 'error' && <XCircle size={32} />}
                         </div>
-                        
                         <h3>{modalConfig.title}</h3>
                         <p>{modalConfig.message}</p>
                         
                         {modalConfig.contentType === 'league_selection' && (
-                            <div className="modal-custom-content">
-                                <div className="league-selection-modal">
-                                    <label>Selecione a Liga Acadêmica:</label>
+                            <div className="modal-custom-content" style={{ width: '100%', alignSelf: 'stretch', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                                <div className="league-selection-modal" style={{ width: '100%', alignSelf: 'stretch' }}>
+                                    <label style={{ display: 'block', textAlign: 'left', width: '100%' }}>Selecione a Liga Acadêmica:</label>
                                     <SearchableSelect 
                                         value={selectedLeagueId} 
                                         onChange={(val) => setSelectedLeagueId(val)}
@@ -554,32 +552,33 @@ const LockerManagement = () => {
                         )}
 
                         {modalConfig.content && (
-                            <div className="modal-custom-content">
+                            <div className="modal-custom-content" style={{ width: '100%', alignSelf: 'stretch' }}>
                                 {modalConfig.content}
                             </div>
                         )}
 
-                        <div className="modal-footer-actions">
+                        <div className="locker-modal-footer">
                             {modalConfig.type === 'confirm' ? (
                                 <>
-                                    <button className="modal-btn-cancel" onClick={closeModal} disabled={modalConfig.isLoading}>Cancelar</button>
+                                    <button className="locker-modal-btn cancel" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>
+                                        Cancelar
+                                    </button>
                                     <button 
-                                        className="modal-btn-confirm" 
-                                        disabled={modalConfig.isLoading}
+                                        className="locker-modal-btn confirm" 
                                         onClick={async () => {
-                                            if (modalConfig.onConfirm) {
-                                                setModalConfig(prev => ({ ...prev, isLoading: true }));
-                                                await modalConfig.onConfirm();
-                                            } else {
-                                                closeModal();
-                                            }
+                                            setModalConfig({ ...modalConfig, isLoading: true });
+                                            await modalConfig.onConfirm();
+                                            setModalConfig({ ...modalConfig, isOpen: false, isLoading: false });
                                         }}
+                                        disabled={modalConfig.isLoading}
                                     >
-                                        {modalConfig.isLoading ? <Loader2 className="spinner" size={18} color="white" /> : 'Confirmar'}
+                                        {modalConfig.isLoading ? <Loader2 className="spinner-mini" /> : 'Confirmar'}
                                     </button>
                                 </>
                             ) : (
-                                <button className="modal-btn-primary" onClick={closeModal}>Entendido</button>
+                                <button className="locker-modal-btn primary" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>
+                                    Entendi
+                                </button>
                             )}
                         </div>
                     </div>

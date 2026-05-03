@@ -2,6 +2,12 @@
 .searchable-select-wrapper {
     position: relative;
     width: 100%;
+    text-align: left; /* Garante que o texto interno não herde centralização do modal */
+    box-sizing: border-box;
+}
+
+.searchable-select-wrapper * {
+    box-sizing: border-box;
 }
 
 .select-trigger {
@@ -47,22 +53,19 @@
 
 .select-dropdown-panel {
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     left: 0;
     right: 0;
     background: white;
     border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
-    z-index: 100;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1.5px solid #e2e8f0;
+    z-index: 9999;
     padding: 10px;
-    animation: slideDown 0.2s ease-out;
+    margin-top: 4px;
 }
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+
 
 .search-box {
     display: flex;
@@ -73,6 +76,7 @@
     padding: 0 12px;
     height: 40px;
     margin-bottom: 10px;
+    width: 100%; /* Agora ocupa tudo */
 }
 
 .search-box input {
@@ -109,6 +113,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    width: 100%; /* Garante que a lista não encolha */
 }
 
 .option-item {
