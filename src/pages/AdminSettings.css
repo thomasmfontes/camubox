@@ -401,8 +401,9 @@
     border: 2px solid var(--border);
     border-radius: 12px;
     height: 52px;
-    padding: 3px;
+    padding: 4px; /* Aumentei um pouco o padding interno */
     transition: all 0.2s ease;
+    align-items: center;
 }
 
 .integrated-input-group:focus-within {
@@ -422,16 +423,19 @@
 
 .integrated-add-btn {
     height: 100%;
-    padding: 0 1.25rem;
+    min-width: 44px; /* Garante que no mobile seja um quadrado clicável */
+    padding: 0 12px;
     background-color: var(--primary);
     color: white;
     border-radius: 8px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     font-weight: 700;
     font-size: 0.9rem;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .integrated-add-btn:hover:not(:disabled) {
@@ -689,17 +693,24 @@
     background: linear-gradient(135deg, rgba(0, 61, 43, 0.05) 0%, rgba(0, 61, 43, 0.02) 100%);
     border: 1px solid rgba(0, 61, 43, 0.08);
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.leagues-summary-card:hover {
-    background: linear-gradient(135deg, rgba(0, 61, 43, 0.08) 0%, rgba(0, 61, 43, 0.04) 100%);
-    border-color: rgba(0, 61, 43, 0.15);
-    transform: translateY(-2px);
+@media (max-width: 400px) {
+    .leagues-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-view-leagues {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .summary-info label {

@@ -337,7 +337,7 @@ const AdminSettings = () => {
                             <div className="leagues-summary-card">
                                 <div className="summary-info">
                                     <label>Total de Ligas</label>
-                                    <p><strong>{leagues.length}</strong> cadastradas</p>
+                                    <p><strong>{leagues.length}</strong></p>
                                 </div>
                                 <button className="btn-view-leagues" onClick={() => setIsLeaguesModalOpen(true)}>
                                     Ver Todas <ChevronRight size={16} />
@@ -379,7 +379,6 @@ const AdminSettings = () => {
                                                 className="integrated-add-btn" 
                                                 onClick={handleAddLeague} 
                                                 disabled={isLoadingLeagues || !newLeagueName.trim()}
-                                                style={{ height: '40px', padding: '0 1.5rem' }}
                                             >
                                                 {isLoadingLeagues ? <div className="spinner-mini-white"></div> : <><Plus size={18} /> <span className="btn-label-desktop" style={{ marginLeft: '6px' }}>Cadastrar</span></>}
                                             </button>
@@ -404,7 +403,7 @@ const AdminSettings = () => {
                             <div className="leagues-summary-card">
                                 <div className="summary-info">
                                     <label>Total de Administradores</label>
-                                    <p><strong>{admins.length}</strong> cadastrados</p>
+                                    <p><strong>{admins.length}</strong></p>
                                 </div>
                                 <button className="btn-view-leagues" onClick={() => setIsAdminModalOpen(true)}>
                                     Ver Todos <ChevronRight size={16} />
