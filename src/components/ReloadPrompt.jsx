@@ -6,16 +6,16 @@ import './ReloadPrompt.css';
 
 function ReloadPrompt() {
   const {
-    offlineReady: [offlineReady, setOfflineReady],
-    needUpdate: [needUpdate, setNeedUpdate],
+    offlineReady: [offlineReady, setOfflineReady] = [false, () => {}],
+    needUpdate: [needUpdate, setNeedUpdate] = [false, () => {}],
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      console.log('SW Registered: ' + r);
+      console.log('SW Registered: ', r);
       if (r) {
         setInterval(() => {
           r.update();
-        }, 60 * 60 * 1000); // Check every hour
+        }, 60 * 60 * 1000);
       }
     },
     onRegisterError(error) {
