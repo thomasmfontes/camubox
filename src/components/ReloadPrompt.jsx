@@ -59,16 +59,34 @@ function ReloadPrompt() {
   }, []);
 
   const handleUpdate = () => {
+    setNeedUpdate(false); // Esconde a mensagem instantaneamente para evitar sensação de clique duplo
+    
     const waiting = registrationRef.current?.waiting;
-    if (waiting) {
-      waiting.postMessage({ type: 'SKIP_WAITING' });
-    }
-    // Reload after SW activates
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!waiting) {
       window.location.reload();
-    }, { once: true });
-    // Fallback reload after 1s if controllerchange doesn't fire
-    setTimeout(() => window.location.reload(), 1000);
+      return;
+    }
+
+    let refreshed = false;
+    
+    // Recarrega a página assim que o novo Service Worker assumir o controle
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshed) {
+        refreshed = true;
+        window.location.reload();
+      }
+    });
+
+    // Avisa o Service Worker para pular a fila
+    waiting.postMessage({ type: 'SKIP_WAITING' });
+
+    // Fallback de segurança maior para caso o controllerchange falhe (evita recarregar com o SW ainda em waiting)
+    setTimeout(() => {
+      if (!refreshed) {
+        refreshed = true;
+        window.location.reload();
+      }
+    }, 3000);
   };
 
   if (!needUpdate) return null;
