@@ -37,7 +37,6 @@ const LockerManagement = () => {
     });
     const [lookups, setLookups] = useState({ floors: {}, sizes: {} });
 
-    const [isSaving, setIsSaving] = useState(false);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, title: '', message: '', type: 'confirm', onConfirm: null, isLoading: false });
     const [toast, setToast] = useState(null);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -180,7 +179,7 @@ const LockerManagement = () => {
                 return matchesSearch && matchesFloor && matchesSize && matchesStatus;
             })
             .sort((a, b) => (parseInt(a.nr) || 0) - (parseInt(b.nr) || 0));
-    }, [lockers, filters, searchTerm]);
+    }, [lockers, filters, searchTerm, lookups.floors, lookups.sizes]);
 
     useEffect(() => {
         if (selectedLocker) {

@@ -136,7 +136,6 @@ const PixPayment = ({ user }) => {
                         if (payload.new.id_status === 1) {
                             setStatus('confirmed');
                             dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
-                            triggerConfetti();
                         }
                     })
                     .subscribe();
@@ -151,7 +150,6 @@ const PixPayment = ({ user }) => {
                     
                     if (currentRental?.id_status === 1) {
                         setStatus('confirmed');
-                        triggerConfetti();
                         clearInterval(checkInterval);
                     }
                 }, 5000);
@@ -169,7 +167,7 @@ const PixPayment = ({ user }) => {
             if (subscription) subscription.unsubscribe();
             if (checkInterval) clearInterval(checkInterval);
         };
-    }, [user, exchangeInfo?.rentalId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id]);
+    }, [user, exchangeInfo?.rentalId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id, navigate]);
 
     const handleCopy = () => {
         if (qrCodeData?.brCode) {

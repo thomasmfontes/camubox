@@ -304,14 +304,6 @@ export const dbService = {
                 .select('id_usuario, nm_usuario, dc_email, is_adm')
                 .eq('is_adm', true);
         },
-        getByEmail: async (email) => {
-            if (isMockMode) return { data: null, error: null };
-            return await supabase
-                .from('t_usuario')
-                .select('*')
-                .eq('dc_email', email)
-                .maybeSingle();
-        },
         getById: async (id) => {
             if (isMockMode) return { data: null, error: null };
             return await supabase
@@ -328,14 +320,6 @@ export const dbService = {
                 .from('t_usuario')
                 .insert([dataToInsert])
                 .select()
-                .maybeSingle();
-        },
-        getByPhone: async (phone) => {
-            if (isMockMode) return { data: null, error: null };
-            return await supabase
-                .from('t_usuario')
-                .select('*')
-                .eq('nr_celular', phone)
                 .maybeSingle();
         },
         updateEmail: async (id, email) => {
