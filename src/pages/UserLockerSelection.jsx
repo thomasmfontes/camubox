@@ -532,7 +532,6 @@ const UserLockerSelection = ({ user }) => {
                                     setStatusModal(null);
                                     navigate('/dashboard/my-lockers');
                                 }}
-                                style={{ marginTop: '1rem' }}
                             >
                                 <User size={18} />
                                 Ir para Meus Armários
