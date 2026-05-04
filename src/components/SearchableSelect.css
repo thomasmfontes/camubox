@@ -113,17 +113,19 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    width: 100%; /* Garante que a lista não encolha */
+    width: 100%;
 }
 
 .option-item {
     padding: 12px 14px;
     border-radius: 10px;
     font-size: 0.9rem;
+    line-height: 1.4;
     font-weight: 600;
     color: #475569;
     cursor: pointer;
     transition: all 0.2s;
+    word-break: break-word;
 }
 
 .option-item:hover {
