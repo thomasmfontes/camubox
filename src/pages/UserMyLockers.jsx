@@ -247,7 +247,7 @@ const UserMyLockers = ({ user }) => {
                             </div>
                             <div className="empty-text-content">
                                 <h2>Nenhum armário ainda</h2>
-                                <p>Sua jornada acadêmica fica muito melhor com um espaço seguro para seus pertences. Reserve seu CAMUBOX agora!</p>
+                                <p>Sua jornada acadêmica fica muito melhor com um espaço seguro para seus pertences.</p>
                                 <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
                                     <span>Ver Armários Disponíveis</span>
                                     <ChevronRight size={20} />
