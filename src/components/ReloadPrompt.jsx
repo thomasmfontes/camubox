@@ -76,14 +76,18 @@ function ReloadPrompt() {
   return (
     <div className="reload-prompt-container">
       <div className="reload-prompt-toast">
-        <div className="reload-prompt-inner">
-          <div className="reload-dot" />
-          <span className="reload-message">Atualização disponível</span>
-          <button className="reload-btn" onClick={handleUpdate}>
-            <RefreshCw size={14} />
-            Atualizar
-          </button>
+        <div className="reload-header">
+          <div className="reload-icon-wrap">
+            <RefreshCw size={18} />
+          </div>
+          <div className="reload-text">
+            <strong>Nova versão disponível</strong>
+            <span>Atualize para carregar as últimas melhorias.</span>
+          </div>
         </div>
+        <button className="reload-btn" onClick={handleUpdate}>
+          Atualizar agora
+        </button>
       </div>
     </div>
   );
