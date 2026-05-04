@@ -5,6 +5,8 @@ import { RefreshCw, X } from 'lucide-react';
 import './ReloadPrompt.css';
 
 function ReloadPrompt() {
+  const registrationRef = React.useRef(null);
+
   const {
     offlineReady: [offlineReady, setOfflineReady] = [false, () => {}],
     needUpdate: [needUpdate, setNeedUpdate] = [false, () => {}],
@@ -12,6 +14,7 @@ function ReloadPrompt() {
   } = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ', r);
+      registrationRef.current = r;
       if (r) {
         setInterval(() => {
           r.update();
@@ -22,6 +25,17 @@ function ReloadPrompt() {
       console.log('SW registration error', error);
     },
   });
+
+  // Check for updates when user returns to the app
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && registrationRef.current) {
+        registrationRef.current.update();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const close = () => {
     setOfflineReady(false);
