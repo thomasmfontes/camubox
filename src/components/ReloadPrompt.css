@@ -1,0 +1,109 @@
+
+.reload-prompt-container {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    margin: 16px;
+    padding: 8px;
+    z-index: 999999;
+}
+
+.reload-prompt-toast {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 40px rgba(0, 61, 43, 0.2);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 380px;
+    animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.reload-prompt-toast .message {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.reload-prompt-toast .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.reload-btn {
+    flex: 1;
+    background: #003d2b;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.reload-btn:hover {
+    background: #005a3f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 61, 43, 0.3);
+}
+
+.reload-btn svg {
+    animation: spin 3s linear infinite;
+}
+
+.close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+    .reload-prompt-container {
+        left: 0;
+        margin: 12px;
+    }
+    .reload-prompt-toast {
+        min-width: unset;
+        width: 100%;
+    }
+}

@@ -16,32 +16,14 @@ import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
 import InstallPWA from './components/InstallPWA';
 import { requestFirebaseToken, setupForegroundListener } from './services/firebase';
-import { useRegisterSW } from 'virtual:pwa-register/react';
 import ScrollToTop from './components/ScrollToTop';
+import ReloadPrompt from './components/ReloadPrompt';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
 
 function App() {
-  const { updateServiceWorker } = useRegisterSW({
-    onRegistered(r) {
-      // Verifica atualizações a cada hora (opcional, mas bom ter)
-      r && setInterval(() => {
-        r.update();
-      }, 60 * 60 * 1000);
-    }
-  });
 
-  // Efeito para checar atualização sempre que o usuário "volta" para o app
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        updateServiceWorker(true);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [updateServiceWorker]);
 
   const location = useLocation();
   const [user, setUser] = useState(() => {
@@ -178,6 +160,7 @@ function App() {
         />
       </Routes>
       <InstallPWA />
+      <ReloadPrompt />
     </>
   );
 }
