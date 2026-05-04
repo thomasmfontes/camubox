@@ -59,10 +59,11 @@ const UserLockerSelection = ({ user }) => {
             setIsLoading(true);
             try {
                 // Fetch in parallel
-                const [lockersRes, lookupRes, configRes] = await Promise.all([
+                const [lockersRes, lookupRes, configRes, rentalsRes] = await Promise.all([
                     dbService.lockers.getAll(),
                     dbService.lockers.getLookups(),
-                    dbService.lockers.getConfig()
+                    dbService.lockers.getConfig(),
+                    user ? dbService.rentals.getByUser(user.id_usuario) : Promise.resolve({ data: [] })
                 ]);
 
                 if (lookupRes.error) throw lookupRes.error;
@@ -86,6 +87,7 @@ const UserLockerSelection = ({ user }) => {
                         return normalized;
                     };
 
+                    const userActiveLockers = new Set((rentalsRes?.data || []).filter(r => r.id_status === 1).map(r => r.id_armario));
                     const uniqueMap = new Map();
 
                     lockersRes.data.forEach(l => {
@@ -109,6 +111,7 @@ const UserLockerSelection = ({ user }) => {
                                 nm_liga: l.nm_liga,
                                 priceSem: isLarge ? config.vl_grande_semestral : config.vl_pequeno_semestral,
                                 priceAnn: isLarge ? config.vl_grande_anual : config.vl_pequeno_anual,
+                                isMine: userActiveLockers.has(l.id_armario)
                             });
                         }
                     });
@@ -124,7 +127,7 @@ const UserLockerSelection = ({ user }) => {
         };
 
         fetchData();
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         if (isPanelOpen || statusModal) {
@@ -175,10 +178,15 @@ const UserLockerSelection = ({ user }) => {
                     matchesSize = locker.size.toLowerCase() === exchangeSize.toLowerCase();
                 }
 
-                return matchesSearch && matchesFloor && matchesSize;
+                let matchesStatus = true;
+                if (exchangeFor) {
+                    matchesStatus = locker.status === 'disponivel';
+                }
+
+                return matchesSearch && matchesFloor && matchesSize && matchesStatus;
             })
             .sort((a, b) => (parseInt(a.nr) || 0) - (parseInt(b.nr) || 0));
-    }, [lockers, filters.floorId, filters.sizeId, searchTerm, lookups, exchangeSize]);
+    }, [lockers, filters.floorId, filters.sizeId, searchTerm, lookups, exchangeSize, exchangeFor]);
 
     const openLockerDetails = useCallback(async (locker) => {
         // If locker is reserved, check if it's for this user
@@ -483,15 +491,16 @@ const UserLockerSelection = ({ user }) => {
                         </div>
                         <h2>Armário {statusModal.id}</h2>
                         <p className="status-modal-message">
-                            {statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para o período selecionado.'}
-                            {statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
-                            {statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
-                            {statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
-                            {statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
-                            {statusModal.status === 'liga' && (statusModal.nm_liga ? `Esta unidade está reservada para a liga: ${statusModal.nm_liga}.` : 'Esta unidade está reservada para uma Liga Acadêmica.')}
+                            {statusModal.isMine && 'Este é o seu armário atual. Você pode gerenciá-lo através da aba Meus Armários.'}
+                            {!statusModal.isMine && statusModal.status === 'ocupado' && 'Esta unidade já está ocupada por outro aluno para o período selecionado.'}
+                            {!statusModal.isMine && statusModal.status === 'reservado' && 'Esta unidade está reservada para uma pessoa na fila de espera.'}
+                            {!statusModal.isMine && statusModal.status === 'vistoria' && 'Unidade em processo de vistoria. Estará disponível em breve.'}
+                            {!statusModal.isMine && statusModal.status === 'manutencao' && 'Unidade em manutenção técnica no momento.'}
+                            {!statusModal.isMine && statusModal.status === 'bloqueado' && 'Esta unidade está reservada para uso da CAMU.'}
+                            {!statusModal.isMine && statusModal.status === 'liga' && (statusModal.nm_liga ? `Esta unidade está reservada para a liga: ${statusModal.nm_liga}.` : 'Esta unidade está reservada para uma Liga Acadêmica.')}
                         </p>
 
-                        {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
+                        {(!statusModal.isMine && (statusModal.status === 'ocupado' || statusModal.status === 'reservado')) && (
                             <div className="waiting-list-container">
                                 {waitingListStatus ? (
                                     <div className="waiting-list-status">
@@ -509,6 +518,19 @@ const UserLockerSelection = ({ user }) => {
                                     </button>
                                 )}
                             </div>
+                        )}
+
+                        {statusModal.isMine && (
+                            <button 
+                                className="primary-btn" 
+                                onClick={() => {
+                                    setStatusModal(null);
+                                    navigate('/dashboard/my-lockers');
+                                }}
+                                style={{ marginTop: '1.5rem', width: '100%' }}
+                            >
+                                Ir para Meus Armários
+                            </button>
                         )}
 
                         <button className="status-modal-close" onClick={() => setStatusModal(null)} style={{ marginTop: '1rem' }}>
