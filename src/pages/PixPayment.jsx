@@ -36,7 +36,7 @@ const PixPayment = ({ user }) => {
     };
 
     const isSemestral = selectedLocker.plan?.toLowerCase() === 'semestral';
-    const price = isExchange ? 20 : (isSemestral ? selectedLocker.priceSem : selectedLocker.priceAnn);
+    const price = isExchange ? (exchangeInfo?.fee ?? 20) : (isSemestral ? selectedLocker.priceSem : selectedLocker.priceAnn);
 
     const rentalDetails = {
         id: selectedLocker.id,

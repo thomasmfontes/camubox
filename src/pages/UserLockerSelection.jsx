@@ -46,6 +46,7 @@ const UserLockerSelection = ({ user }) => {
     const [statusModal, setStatusModal] = useState(null);
     const [waitingListStatus, setWaitingListStatus] = useState(null);
     const [isProcessingWaitingList, setIsProcessingWaitingList] = useState(false);
+    const [exchangeFee, setExchangeFee] = useState(20);
 
     useEffect(() => {
         if (exchangeSize) {
@@ -69,6 +70,7 @@ const UserLockerSelection = ({ user }) => {
 
                 if (!lockersRes.error && lockersRes.data) {
                     const config = configRes.data || {};
+                    setExchangeFee(config.vl_taxa_troca ?? 20);
 
                     // Normalize status helper
                     const normalizeStatus = (str) => {
@@ -420,7 +422,7 @@ const UserLockerSelection = ({ user }) => {
                                         <div className="info-card-premium blue">
                                             <Clock size={18} />
                                             <div className="info-content">
-                                                <h4>Taxa de Troca: R$ 20,00</h4>
+                                                <h4>Taxa de Troca: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(exchangeFee)}</h4>
                                                 <p>Ao confirmar, seu armário atual será liberado para vistoria e o novo será ativado instantaneamente.</p>
                                             </div>
                                         </div>
@@ -440,7 +442,8 @@ const UserLockerSelection = ({ user }) => {
                                                     type: 'exchange',
                                                     exchangeInfo: {
                                                         rentalId: exchangeFor,
-                                                        oldLockerId: oldLockerId
+                                                        oldLockerId: oldLockerId,
+                                                        fee: exchangeFee
                                                     }
                                                 }
                                             });
@@ -457,7 +460,7 @@ const UserLockerSelection = ({ user }) => {
                                     }}
                                 >
                                     {(selectedLocker.status === 'disponivel' || selectedLocker.status === 'reservado') 
-                                        ? (exchangeFor ? 'Confirmar Troca (R$ 20,00)' : 'Prosseguir para o Contrato') 
+                                        ? (exchangeFor ? `Confirmar Troca (${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(exchangeFee)})` : 'Prosseguir para o Contrato') 
                                         : 'Unidade Indisponível'}
                                     <ChevronRight size={20} />
                                 </button>
