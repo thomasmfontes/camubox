@@ -115,6 +115,11 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('camubox_user', JSON.stringify(userData));
+    
+    // Haptic feedback: vibrar duas vezes rápido no login
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([60, 100, 60]);
+    }
   };
 
   const handleLogout = async () => {
