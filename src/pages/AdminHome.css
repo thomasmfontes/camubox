@@ -44,18 +44,39 @@
 }
 
 .mini-stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    border: 1px solid currentColor;
 }
 
-.mini-stat-icon svg {
-    width: 24px;
-    height: 24px;
+.mini-stat-icon svg, .locker-icon-standard, .contract-icon-standard {
+    width: 28px;
+    height: 28px;
+}
+
+.locker-icon-standard, .contract-icon-standard {
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+.locker-icon-standard {
+    mask-image: url('/lockers.png');
+    -webkit-mask-image: url('/lockers.png');
+}
+
+.contract-icon-standard {
+    mask-image: url('/contract.png');
+    -webkit-mask-image: url('/contract.png');
 }
 
 .mini-stat-label {

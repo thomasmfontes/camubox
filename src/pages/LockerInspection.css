@@ -304,7 +304,6 @@
 
 .btn-compact-success,
 .btn-compact-warning {
-    flex: 1;
     /* Stretch on mobile */
     display: flex;
     align-items: center;
@@ -317,6 +316,17 @@
     border: 1.5px solid transparent;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+@media (max-width: 768px) {
+    .btn-compact-success {
+        flex: 1;
+    }
+    .btn-compact-warning {
+        width: 46px;
+        flex-shrink: 0;
+        padding: 0;
+    }
 }
 
 @media (min-width: 1024px) {

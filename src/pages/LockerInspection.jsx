@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import {
     ClipboardCheck,
@@ -23,7 +24,8 @@ const LockerInspection = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFloor, setSelectedFloor] = useState('all');
-    const [activeTab, setActiveTab] = useState('vistoria'); // 'vistoria' or 'manutencao'
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.initialTab || 'vistoria'); // 'vistoria' or 'manutencao'
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
@@ -138,9 +140,9 @@ const LockerInspection = () => {
                         padding: '12px 16px', 
                         border: 'none', 
                         background: 'transparent', 
-                        color: activeTab === 'vistoria' ? '#2563eb' : '#64748b', 
+                        color: activeTab === 'vistoria' ? 'var(--primary)' : '#64748b', 
                         fontWeight: activeTab === 'vistoria' ? 600 : 500, 
-                        borderBottom: activeTab === 'vistoria' ? '2px solid #2563eb' : '2px solid transparent',
+                        borderBottom: activeTab === 'vistoria' ? '2px solid var(--primary)' : '2px solid transparent',
                         marginBottom: '-1px',
                         transition: 'all 0.2s',
                         display: 'flex',
@@ -160,9 +162,9 @@ const LockerInspection = () => {
                         padding: '12px 16px', 
                         border: 'none', 
                         background: 'transparent', 
-                        color: activeTab === 'manutencao' ? '#2563eb' : '#64748b', 
+                        color: activeTab === 'manutencao' ? 'var(--primary)' : '#64748b', 
                         fontWeight: activeTab === 'manutencao' ? 600 : 500, 
-                        borderBottom: activeTab === 'manutencao' ? '2px solid #2563eb' : '2px solid transparent',
+                        borderBottom: activeTab === 'manutencao' ? '2px solid var(--primary)' : '2px solid transparent',
                         marginBottom: '-1px',
                         transition: 'all 0.2s',
                         display: 'flex',
@@ -256,7 +258,7 @@ const LockerInspection = () => {
                                                     onClick={() => handleAction(item.dbId, 'problem')}
                                                 >
                                                     <Wrench size={16} />
-                                                    <span>Manutenção</span>
+                                                    <span className="hide-on-mobile">Manutenção</span>
                                                 </button>
                                             </div>
                                         ) : (

@@ -8,7 +8,8 @@ import {
     LayoutGrid,
     ClipboardCheck,
     Users,
-    ShieldOff
+    ShieldOff,
+    Lock
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import './AdminHome.css';
@@ -46,13 +47,13 @@ const AdminHome = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState([
-        { label: 'Total de armários', value: 0, icon: <div className="locker-icon-standard" />, color: 'var(--primary)', key: 'total' },
-        { label: 'Disponíveis', value: 0, icon: <LayoutGrid />, color: '#10b981', key: 'disponivel' },
-        { label: 'Em uso', value: 0, icon: <CheckCircle />, color: '#6366f1', key: 'em-uso' },
-        { label: 'Vistoria', value: 0, icon: <Clock />, color: '#f59e0b', key: 'vistoria' },
-        { label: 'Manutenção', value: 0, icon: <Wrench />, color: '#94a3b8', key: 'manutencao' },
-        { label: 'Bloqueados', value: 0, icon: <ShieldOff />, color: '#ec4899', key: 'bloqueado' },
-        { label: 'Ligas', value: 0, icon: <Users />, color: '#f97316', key: 'liga' },
+        { label: 'Total de armários', value: 0, icon: <div className="locker-icon-standard" />, color: '#003d2b', bgColor: '#f4f7f6', borderColor: '#d1dad7', key: 'total' },
+        { label: 'Disponíveis', value: 0, icon: <CheckCircle />, color: '#166534', bgColor: '#f0fdf4', borderColor: '#bbf7d0', key: 'disponivel' },
+        { label: 'Em uso', value: 0, icon: <Lock />, color: '#1e40af', bgColor: '#eff6ff', borderColor: '#dbeafe', key: 'em-uso' },
+        { label: 'Vistoria', value: 0, icon: <Clock />, color: '#92400e', bgColor: '#fffbeb', borderColor: '#fef3c7', key: 'vistoria' },
+        { label: 'Manutenção', value: 0, icon: <Wrench />, color: '#991b1b', bgColor: '#fef2f2', borderColor: '#fee2e2', key: 'manutencao' },
+        { label: 'Bloqueados', value: 0, icon: <ShieldOff />, color: '#475569', bgColor: '#f1f5f9', borderColor: '#e2e8f0', key: 'bloqueado' },
+        { label: 'Ligas', value: 0, icon: <Users />, color: '#c2410c', bgColor: '#fff7ed', borderColor: '#fdba74', key: 'liga' },
     ]);
 
     useEffect(() => {
@@ -119,9 +120,9 @@ const AdminHome = () => {
     }, []);
 
     const quickActions = [
-        { label: 'Ver contratos', icon: <ClipboardCheck size={20} />, color: '#6366f1', path: '/dashboard/admin/contracts' },
-        { label: 'Realizar vistoria', icon: <Clock size={20} />, color: '#f59e0b', path: '/dashboard/admin/inspections' },
-        { label: 'Pendências', icon: <Wrench size={20} />, color: '#94a3b8', path: '/dashboard/admin/inspections' },
+        { label: 'Ver contratos', icon: <div className="contract-icon-standard" />, color: '#1e40af', bgColor: '#eff6ff', borderColor: '#dbeafe', path: '/dashboard/admin/contracts' },
+        { label: 'Realizar vistoria', icon: <Clock size={20} />, color: '#92400e', bgColor: '#fffbeb', borderColor: '#fef3c7', path: '/dashboard/admin/inspections', initialTab: 'vistoria' },
+        { label: 'Pendências', icon: <Wrench size={20} />, color: '#991b1b', bgColor: '#fef2f2', borderColor: '#fee2e2', path: '/dashboard/admin/inspections', initialTab: 'manutencao' },
     ];
 
     return (
@@ -137,7 +138,7 @@ const AdminHome = () => {
             <div className="stats-grid-6">
                 {stats.map((stat, i) => (
                     <div key={i} className="mini-stat-card card">
-                        <div className="mini-stat-icon" style={{ backgroundColor: stat.color + '10', color: stat.color }}>
+                        <div className="mini-stat-icon" style={{ backgroundColor: stat.bgColor, color: stat.color, borderColor: stat.borderColor }}>
                             {stat.icon}
                         </div>
                         <div className="mini-stat-content">
@@ -161,9 +162,9 @@ const AdminHome = () => {
                         <button 
                             key={i} 
                             className="action-tile-large" 
-                            onClick={() => navigate(action.path)}
+                            onClick={() => navigate(action.path, { state: { initialTab: action.initialTab } })}
                         >
-                            <div className="action-icon" style={{ backgroundColor: action.color + '10', color: action.color }}>
+                            <div className="action-icon" style={{ backgroundColor: action.bgColor, color: action.color, borderColor: action.borderColor, border: '1px solid ' + action.borderColor }}>
                                 {action.icon}
                             </div>
                             <span>{action.label}</span>
