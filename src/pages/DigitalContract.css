@@ -15,47 +15,95 @@
     width: 100%;
 }
 
-/* Compact Rental Summary */
+/* Improved Rental Summary */
 .compact-rental-summary {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 1.5rem;
-    padding: 1rem 1.5rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    padding: 1.25rem 2rem;
+    background: #ffffff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
 }
 
-.summary-item {
+.summary-section {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #475569;
+    gap: 1rem;
 }
 
-.summary-item svg {
-    color: #10b981;
+.summary-icon {
+    width: 42px;
+    height: 42px;
+    background: #f8fafc;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
 }
 
-.summary-item.price-badge {
-    margin-left: auto;
-    background: #10b981;
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
+.summary-icon svg {
+    opacity: 0.8;
+}
+
+.summary-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-info label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 2px;
+}
+
+.summary-info span {
     font-size: 0.95rem;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.price-badge-premium {
+    background: #003d2b;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    box-shadow: 0 8px 20px rgba(0, 61, 43, 0.25);
+    transition: all 0.3s;
+}
+
+.price-badge-premium:hover {
+    transform: scale(1.02);
+}
+
+.price-badge-premium label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.7;
+    margin-bottom: 2px;
+}
+
+.price-badge-premium span {
+    font-size: 1.2rem;
+    font-weight: 800;
 }
 
 .locker-picto {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
-    filter: brightness(0) saturate(100%) invert(35%) sepia(87%) saturate(351%) hue-rotate(114deg) brightness(95%) contrast(92%);
+    filter: brightness(0) saturate(100%) invert(14%) sepia(82%) saturate(836%) hue-rotate(113deg) brightness(95%) contrast(106%);
 }
 
 /* Main Contract Card */
@@ -199,13 +247,19 @@
     }
 
     .compact-rental-summary {
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+        padding: 1.5rem;
     }
 
-    .summary-item.price-badge {
+    .summary-section {
         width: 100%;
-        justify-content: center;
+    }
+
+    .price-badge-premium {
+        width: 100%;
+        align-items: center;
     }
 
     .contract-view-card {

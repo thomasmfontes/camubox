@@ -57,7 +57,7 @@ const DigitalContract = () => {
         floor: selectedLocker.floor,
         size: selectedLocker.size,
         contractType: isSemestral ? 'Semestral' : 'Anual',
-        price: `R$ ${price},00`,
+        price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price),
         duration: isSemestral ? `6 meses (${academicPeriod})` : `12 meses (${academicPeriod})`
     };
 
@@ -80,20 +80,40 @@ const DigitalContract = () => {
             </header>
 
             <div className="contract-flex-layout">
-                {/* Compact Top Summary */}
+                {/* Improved Rental Summary */}
                 <section className="compact-rental-summary">
-                    <div className="summary-item">
-                        <img src="/locker-icon.png" alt="Locker" className="locker-picto" />
-                        <span>#{rentalSummary.id} ({rentalSummary.size})</span>
+                    <div className="summary-section">
+                        <div className="summary-icon">
+                            <img src="/locker-icon.png" alt="Locker" className="locker-picto" />
+                        </div>
+                        <div className="summary-info">
+                            <label>Armário</label>
+                            <span>#{rentalSummary.id} ({rentalSummary.size})</span>
+                        </div>
                     </div>
-                    <div className="summary-item">
-                        <span>{rentalSummary.floor}</span>
+
+                    <div className="summary-section">
+                        <div className="summary-icon">
+                            <Library size={18} />
+                        </div>
+                        <div className="summary-info">
+                            <label>Localização</label>
+                            <span>{rentalSummary.floor}</span>
+                        </div>
                     </div>
-                    <div className="summary-item">
-                        <Calendar size={16} />
-                        <span>{rentalSummary.duration}</span>
+
+                    <div className="summary-section">
+                        <div className="summary-icon">
+                            <Calendar size={18} />
+                        </div>
+                        <div className="summary-info">
+                            <label>Período</label>
+                            <span>{rentalSummary.duration}</span>
+                        </div>
                     </div>
-                    <div className="summary-item price-badge">
+
+                    <div className="price-badge-premium">
+                        <label>Total a pagar</label>
                         <span>{rentalSummary.price}</span>
                     </div>
                 </section>
