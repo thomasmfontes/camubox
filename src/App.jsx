@@ -131,28 +131,24 @@ function App() {
         flexDirection: 'column',
         alignItems: 'center', 
         justifyContent: 'center',
-        background: '#ffffff',
-        gap: '20px'
+        background: '#003d2b',
+        gap: '24px'
       }}>
-        <div style={{
-          width: '64px',
-          height: '64px',
-          backgroundImage: 'url(/lockers.png)',
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          opacity: 0.85
-        }} />
+        <img 
+          src="/pwa-icon.png" 
+          alt="CAMUBOX"
+          style={{ width: '80px', height: '80px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }} 
+        />
         <div style={{
           width: '120px',
           height: '3px',
-          background: '#e2e8f0',
+          background: 'rgba(255,255,255,0.15)',
           borderRadius: '100px',
           overflow: 'hidden'
         }}>
           <div style={{
             height: '100%',
-            background: '#003d2b',
+            background: 'rgba(255,255,255,0.8)',
             borderRadius: '100px',
             animation: 'camubox-load 1.2s ease-in-out infinite'
           }} />
