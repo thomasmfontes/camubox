@@ -254,8 +254,8 @@ const UserLockerSelection = ({ user }) => {
         <div className="user-selection premium-theme">
             <header className="page-header">
                 <div className="header-text">
-                    <h1>{exchangeFor ? `Trocar para #${exchangeSize}` : 'Armários Disponíveis'}</h1>
-                    <p>{exchangeFor ? `Selecione um novo armário ${exchangeSize.toLowerCase()} para realizar a troca.` : 'Encontre a melhor unidade para seu semestre.'}</p>
+                    <h1>{exchangeFor ? 'Troca de Armário' : 'Armários Disponíveis'}</h1>
+                    <p>{exchangeFor ? 'Selecione o armário desejado para concluir a troca.' : 'Encontre a melhor unidade para seu semestre.'}</p>
                 </div>
                 <button className="help-guide-btn" onClick={() => setIsGuideOpen(true)}>
                     <HelpCircle size={20} />
@@ -347,7 +347,7 @@ const UserLockerSelection = ({ user }) => {
                             <header className="drawer-header">
                                 <div className="drawer-header-main">
                                     <div className="drawer-badge">ARMÁRIO #{selectedLocker.id}</div>
-                                    <h2>Detalhes da Unidade</h2>
+                                    <h2>Detalhes do Armário</h2>
                                 </div>
                                 <button className="close-drawer-btn" onClick={() => setIsPanelOpen(false)}>
                                     <X size={20} />
@@ -384,7 +384,7 @@ const UserLockerSelection = ({ user }) => {
                                         <div className="spec-item">
                                             <Search size={18} className="spec-icon" />
                                             <div className="spec-info">
-                                                <label>Posição no Bloco</label>
+                                                <label>Posição</label>
                                                 <span>{selectedLocker.position}</span>
                                             </div>
                                         </div>
@@ -469,7 +469,7 @@ const UserLockerSelection = ({ user }) => {
                                     }}
                                 >
                                     {(selectedLocker.status === 'disponivel' || selectedLocker.status === 'reservado') 
-                                        ? (exchangeFor ? `Confirmar Troca (${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(exchangeFee)})` : 'Prosseguir para o Contrato') 
+                                        ? (exchangeFor ? 'Confirmar Troca' : 'Prosseguir para o Contrato') 
                                         : 'Unidade Indisponível'}
                                     <ChevronRight size={20} />
                                 </button>
@@ -483,16 +483,12 @@ const UserLockerSelection = ({ user }) => {
             {statusModal && (
                 <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
                     <div className="status-modal" onClick={e => e.stopPropagation()}>
-                        <div className={`status-modal-icon ${statusModal.isMine ? 'status-available' : getStatusClass(statusModal.status)}`}>
-                            {statusModal.isMine ? <CheckCircle2 size={40} /> : (
-                                <>
-                                    {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
-                                    {statusModal.status === 'vistoria' && <Clock size={40} />}
-                                    {statusModal.status === 'manutencao' && <Wrench size={40} />}
-                                    {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
-                                    {statusModal.status === 'liga' && <Users size={40} />}
-                                </>
-                            )}
+                        <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
+                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
+                            {statusModal.status === 'vistoria' && <Clock size={40} />}
+                            {statusModal.status === 'manutencao' && <Wrench size={40} />}
+                            {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
+                            {statusModal.status === 'liga' && <Users size={40} />}
                         </div>
                         <h2>Armário {statusModal.id}</h2>
                         <p className="status-modal-message">
@@ -505,37 +501,37 @@ const UserLockerSelection = ({ user }) => {
                             {!statusModal.isMine && statusModal.status === 'liga' && (statusModal.nm_liga ? `Esta unidade está reservada para a liga: ${statusModal.nm_liga}.` : 'Esta unidade está reservada para uma Liga Acadêmica.')}
                         </p>
 
-                        {(!statusModal.isMine && (statusModal.status === 'ocupado' || statusModal.status === 'reservado')) && (
+                        {(statusModal.isMine || statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
                             <div className="waiting-list-container">
-                                {waitingListStatus ? (
-                                    <div className="waiting-list-status">
-                                        <CheckCircle2 size={18} />
-                                        {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
-                                    </div>
-                                ) : (
+                                {statusModal.isMine ? (
                                     <button 
                                         className="btn-waiting-list" 
-                                        onClick={handleJoinWaitingList}
-                                        disabled={isProcessingWaitingList}
+                                        onClick={() => {
+                                            setStatusModal(null);
+                                            navigate('/dashboard/my-locker');
+                                        }}
                                     >
-                                        {isProcessingWaitingList ? <Loader2 size={18} className="spinner" /> : <Clock size={16} />}
-                                        Entrar na Fila de Espera
+                                        <User size={16} />
+                                        Ir para Meus Armários
                                     </button>
+                                ) : (
+                                    waitingListStatus ? (
+                                        <div className="waiting-list-status">
+                                            <CheckCircle2 size={18} />
+                                            {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            className="btn-waiting-list" 
+                                            onClick={handleJoinWaitingList}
+                                            disabled={isProcessingWaitingList}
+                                        >
+                                            {isProcessingWaitingList ? <Loader2 size={18} className="spinner" /> : <Clock size={16} />}
+                                            Entrar na Fila de Espera
+                                        </button>
+                                    )
                                 )}
                             </div>
-                        )}
-
-                        {statusModal.isMine && (
-                            <button 
-                                className="status-modal-primary" 
-                                onClick={() => {
-                                    setStatusModal(null);
-                                    navigate('/dashboard/my-lockers');
-                                }}
-                            >
-                                <User size={18} />
-                                Ir para Meus Armários
-                            </button>
                         )}
 
                         <button className="status-modal-close" onClick={() => setStatusModal(null)} style={{ marginTop: '1rem' }}>
