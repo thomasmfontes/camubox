@@ -1,67 +1,90 @@
 
-import React from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import './ReloadPrompt.css';
 
 function ReloadPrompt() {
-  const registrationRef = React.useRef(null);
+  const [needUpdate, setNeedUpdate] = useState(false);
+  const registrationRef = useRef(null);
 
-  const {
-    offlineReady: [offlineReady, setOfflineReady] = [false, () => {}],
-    needUpdate: [needUpdate, setNeedUpdate] = [false, () => {}],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      console.log('SW Registered: ', r);
-      registrationRef.current = r;
-      if (r) {
-        setInterval(() => {
-          r.update();
-        }, 60 * 60 * 1000);
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const checkForUpdate = async () => {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) return;
+
+      await reg.update();
+
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        setNeedUpdate(true);
       }
-    },
-    onRegisterError(error) {
-      console.log('SW registration error', error);
-    },
-  });
+    };
 
-  // Check for updates when user returns to the app
-  React.useEffect(() => {
+    navigator.serviceWorker.ready.then((reg) => {
+      registrationRef.current = reg;
+
+      // If a SW is already waiting when the app loads
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        setNeedUpdate(true);
+      }
+
+      // Listen for a newly installed SW entering "waiting"
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            setNeedUpdate(true);
+          }
+        });
+      });
+    });
+
+    // Check on every tab focus
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && registrationRef.current) {
-        registrationRef.current.update();
+      if (document.visibilityState === 'visible') {
+        checkForUpdate();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+    // Also check every 30 minutes
+    const interval = setInterval(checkForUpdate, 30 * 60 * 1000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
   }, []);
 
-  const close = () => {
-    setOfflineReady(false);
-    setNeedUpdate(false);
+  const handleUpdate = () => {
+    const waiting = registrationRef.current?.waiting;
+    if (waiting) {
+      waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    // Reload after SW activates
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    }, { once: true });
+    // Fallback reload after 1s if controllerchange doesn't fire
+    setTimeout(() => window.location.reload(), 1000);
   };
 
-  if (!offlineReady && !needUpdate) return null;
+  if (!needUpdate) return null;
 
   return (
     <div className="reload-prompt-container">
       <div className="reload-prompt-toast">
         <div className="message">
-          {offlineReady ? (
-            <span>App pronto para uso offline!</span>
-          ) : (
-            <span>Nova versão disponível! Clique para atualizar.</span>
-          )}
+          <span>Nova versão disponível! Clique para atualizar.</span>
         </div>
         <div className="actions">
-          {needUpdate && (
-            <button className="reload-btn" onClick={() => updateServiceWorker(true)}>
-              <RefreshCw size={16} />
-              Atualizar agora
-            </button>
-          )}
-          <button className="close-btn" onClick={() => close()}>
+          <button className="reload-btn" onClick={handleUpdate}>
+            <RefreshCw size={16} />
+            Atualizar agora
+          </button>
+          <button className="close-btn" onClick={() => setNeedUpdate(false)}>
             <X size={18} />
           </button>
         </div>
