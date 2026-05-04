@@ -42,7 +42,7 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
         <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">
-                    <div className="nav-mask-icon icon-lockers logo-mask" />
+                    <img src="/pwa-icon.png" alt="Logo" className="sidebar-logo-img" />
                     <span>CAMUBOX</span>
                 </div>
                 <button className="mobile-close-btn-wrapper" onClick={onClose}>
