@@ -41,13 +41,38 @@ export default async function handler(req, res) {
           process.env.SUPABASE_SERVICE_ROLE_KEY
         );
 
-        const { error } = await supabase
-          .from('t_locacao')
-          .update({ id_status: 1 })
-          .eq('id_locacao', correlationID);
-        
-        if (error) throw error;
-        console.log(`✅ Pagamento Confirmado: ${correlationID}`);
+        if (correlationID.startsWith('EXC_')) {
+          const parts = correlationID.split('_');
+          const rentalId = parts[1];
+          const oldLockerId = parts[2];
+          const newLockerId = parts[3];
+
+          // 0. Fetch existing rental
+          const { data: oldRental } = await supabase.from('t_locacao').select('*').eq('id_locacao', rentalId).single();
+          if (oldRental) {
+            const { id_locacao: _, ...historyRecord } = oldRental;
+            historyRecord.id_status = 2; // ENCERRADA
+            historyRecord.dt_termino = new Date().toISOString().split('T')[0];
+            await supabase.from('t_locacao').insert([historyRecord]);
+          }
+
+          // 1. Update rental with new locker
+          await supabase.from('t_locacao').update({ id_armario: newLockerId }).eq('id_locacao', rentalId);
+          // 2. Free old locker (Status 2 = Vistoria)
+          await supabase.from('t_armario').update({ id_status: 2 }).eq('id_armario', oldLockerId);
+          // 3. Occupy new locker (Status 1 = Em Uso)
+          await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', newLockerId);
+
+          console.log(`✅ Troca Confirmada: ${correlationID}`);
+        } else {
+          const { error } = await supabase
+            .from('t_locacao')
+            .update({ id_status: 1 })
+            .eq('id_locacao', correlationID);
+          
+          if (error) throw error;
+          console.log(`✅ Pagamento Confirmado: ${correlationID}`);
+        }
       }
     } catch (err) {
       console.error('❌ Erro no processamento:', err.message);

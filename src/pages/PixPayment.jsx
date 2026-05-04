@@ -81,7 +81,7 @@ const PixPayment = ({ user }) => {
                 // 1. Criar o registro da locação no Supabase primeiro para ter o ID (se não houver um pendente)
                 if (!correlationID) {
                     if (isExchange) {
-                        correlationID = `${exchangeInfo?.rentalId || 'new'}`;
+                        correlationID = `EXC_${exchangeInfo.rentalId}_${exchangeInfo.oldLockerId}_${selectedLocker.dbId}`;
                     } else {
                     const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
                         id_armario: selectedLocker.dbId,
@@ -124,33 +124,54 @@ const PixPayment = ({ user }) => {
                 setStatus('pending');
 
                 // 3. Escutar mudanças via Realtime (Canal Único)
+                const watchId = isExchange ? exchangeInfo.rentalId.toString() : correlationID;
                 subscription = supabase
-                    .channel(`status-${correlationID}`)
+                    .channel(`status-${watchId}`)
                     .on('postgres_changes', { 
                         event: 'UPDATE', 
                         schema: 'public', 
                         table: 't_locacao',
-                        filter: `id_locacao=eq.${correlationID}`
+                        filter: `id_locacao=eq.${watchId}`
                     }, (payload) => {
                         console.log('🔔 Realtime Update:', payload);
-                        if (payload.new.id_status === 1) {
-                            setStatus('confirmed');
-                            dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
+                        if (isExchange) {
+                            if (payload.new.id_armario === selectedLocker.dbId) {
+                                setStatus('confirmed');
+                                dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
+                            }
+                        } else {
+                            if (payload.new.id_status === 1) {
+                                setStatus('confirmed');
+                                dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
+                            }
                         }
                     })
                     .subscribe();
 
                 // 4. Fallback: Verificação Manual a cada 5 segundos
                 checkInterval = setInterval(async () => {
-                    const { data: currentRental } = await supabase
-                        .from('t_locacao')
-                        .select('id_status')
-                        .eq('id_locacao', correlationID)
-                        .single();
-                    
-                    if (currentRental?.id_status === 1) {
-                        setStatus('confirmed');
-                        clearInterval(checkInterval);
+                    if (isExchange) {
+                        const { data: currentRental } = await supabase
+                            .from('t_locacao')
+                            .select('id_armario')
+                            .eq('id_locacao', exchangeInfo.rentalId)
+                            .single();
+                        
+                        if (currentRental?.id_armario === selectedLocker.dbId) {
+                            setStatus('confirmed');
+                            clearInterval(checkInterval);
+                        }
+                    } else {
+                        const { data: currentRental } = await supabase
+                            .from('t_locacao')
+                            .select('id_status')
+                            .eq('id_locacao', correlationID)
+                            .single();
+                        
+                        if (currentRental?.id_status === 1) {
+                            setStatus('confirmed');
+                            clearInterval(checkInterval);
+                        }
                     }
                 }, 5000);
 
@@ -167,7 +188,7 @@ const PixPayment = ({ user }) => {
             if (subscription) subscription.unsubscribe();
             if (checkInterval) clearInterval(checkInterval);
         };
-    }, [user, exchangeInfo?.rentalId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id, navigate]);
+    }, [user, exchangeInfo?.rentalId, exchangeInfo?.oldLockerId, isExchange, isSemestral, price, selectedLocker.dbId, selectedLocker.id, navigate]);
 
     const handleCopy = () => {
         if (qrCodeData?.brCode) {
@@ -221,11 +242,7 @@ const PixPayment = ({ user }) => {
                                 {status === 'confirmed' && <><CheckCircle2 size={14} /> <span>Pago</span></>}
                                 {status === 'error' && <><XCircle size={14} /> <span>Erro</span></>}
                             </div>
-                            {status !== 'confirmed' && (
-                                <div className="timer-text">
-                                    Expira em: <strong>30:00</strong>
-                                </div>
-                            )}
+
                         </div>
 
                         <div className="qr-main-container">
