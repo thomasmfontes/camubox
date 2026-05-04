@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import './ReloadPrompt.css';
 
 function ReloadPrompt() {
@@ -76,16 +76,12 @@ function ReloadPrompt() {
   return (
     <div className="reload-prompt-container">
       <div className="reload-prompt-toast">
-        <div className="message">
-          <span>Nova versão disponível! Clique para atualizar.</span>
-        </div>
-        <div className="actions">
+        <div className="reload-prompt-inner">
+          <div className="reload-dot" />
+          <span className="reload-message">Atualização disponível</span>
           <button className="reload-btn" onClick={handleUpdate}>
-            <RefreshCw size={16} />
-            Atualizar agora
-          </button>
-          <button className="close-btn" onClick={() => setNeedUpdate(false)}>
-            <X size={18} />
+            <RefreshCw size={14} />
+            Atualizar
           </button>
         </div>
       </div>
