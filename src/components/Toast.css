@@ -78,3 +78,18 @@
         opacity: 1;
     }
 }
+
+@media (max-width: 480px) {
+    .toast-container-shared {
+        left: 16px;
+        right: 16px;
+        bottom: 24px;
+        display: flex;
+        justify-content: center;
+    }
+    .toast-notification-shared {
+        width: 100%;
+        min-width: unset;
+        max-width: 360px;
+    }
+}
