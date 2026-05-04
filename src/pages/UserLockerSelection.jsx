@@ -15,6 +15,7 @@ import {
     Calendar,
     TrendingDown,
     Users,
+    User,
     HelpCircle,
     ShieldOff
 } from 'lucide-react';
@@ -482,12 +483,16 @@ const UserLockerSelection = ({ user }) => {
             {statusModal && (
                 <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
                     <div className="status-modal" onClick={e => e.stopPropagation()}>
-                        <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
-                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
-                            {statusModal.status === 'vistoria' && <Clock size={40} />}
-                            {statusModal.status === 'manutencao' && <Wrench size={40} />}
-                            {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
-                            {statusModal.status === 'liga' && <Users size={40} />}
+                        <div className={`status-modal-icon ${statusModal.isMine ? 'status-available' : getStatusClass(statusModal.status)}`}>
+                            {statusModal.isMine ? <CheckCircle2 size={40} /> : (
+                                <>
+                                    {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
+                                    {statusModal.status === 'vistoria' && <Clock size={40} />}
+                                    {statusModal.status === 'manutencao' && <Wrench size={40} />}
+                                    {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
+                                    {statusModal.status === 'liga' && <Users size={40} />}
+                                </>
+                            )}
                         </div>
                         <h2>Armário {statusModal.id}</h2>
                         <p className="status-modal-message">
@@ -522,13 +527,14 @@ const UserLockerSelection = ({ user }) => {
 
                         {statusModal.isMine && (
                             <button 
-                                className="primary-btn" 
+                                className="status-modal-primary" 
                                 onClick={() => {
                                     setStatusModal(null);
                                     navigate('/dashboard/my-lockers');
                                 }}
-                                style={{ marginTop: '1.5rem', width: '100%' }}
+                                style={{ marginTop: '1rem' }}
                             >
+                                <User size={18} />
                                 Ir para Meus Armários
                             </button>
                         )}
