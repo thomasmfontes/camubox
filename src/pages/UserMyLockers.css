@@ -577,51 +577,78 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 5rem 1.5rem;
-    background: white;
+    padding: 6rem 2rem;
+    background: #ffffff;
     border: 1.5px solid var(--border);
-    border-radius: 28px;
-    box-shadow: var(--shadow);
+    border-radius: 32px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
     margin-top: 1rem;
-}
-
-.empty-illustration {
-    margin-bottom: 2rem;
     position: relative;
+    overflow: hidden;
 }
 
-.empty-icon-ring {
-    width: 100px;
-    height: 100px;
-    background: #f0fdf4;
-    border-radius: 50%;
+.empty-illustration-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    border: 2px solid #d1fae5;
-    animation: pulse-ring 3s infinite ease-in-out;
+    animation: floating 5s infinite ease-in-out;
 }
 
-.empty-emoji {
-    font-size: 3rem;
-    filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.2));
+.empty-locker-icon-large {
+    width: 100px;
+    height: 100px;
+    background-image: url('/lockers.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.35;
+}
+
+.illustration-overlay-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(0, 61, 43, 0.07) 0%, transparent 70%);
+    border-radius: 50%;
+    border: 2px solid rgba(0, 61, 43, 0.07);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.empty-text-content {
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 .empty-lockers-premium h2 {
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 850;
     color: var(--primary);
-    margin-bottom: 0.75rem;
     letter-spacing: -0.03em;
+    margin: 0;
 }
 
 .empty-lockers-premium p {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     color: var(--text-muted);
-    max-width: 320px;
     line-height: 1.6;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
 }
 
 .btn-cta-premium {

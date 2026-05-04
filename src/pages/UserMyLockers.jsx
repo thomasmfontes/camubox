@@ -241,17 +241,18 @@ const UserMyLockers = ({ user }) => {
                         </div>
                     ) : (
                         <div className="empty-lockers-premium">
-                            <div className="empty-illustration">
-                                <div className="empty-icon-ring">
-                                    <span className="empty-emoji">🔒</span>
-                                </div>
+                            <div className="empty-illustration-container">
+                                <div className="empty-locker-icon-large" />
+                                <div className="illustration-overlay-glow" />
                             </div>
-                            <h2>Nenhum armário ainda</h2>
-                            <p>Você ainda não possui nenhuma locação ativa.<br />Escolha seu armário agora e garanta seu espaço!</p>
-                            <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
-                                Ver Armários Disponíveis
-                                <ChevronRight size={18} />
-                            </button>
+                            <div className="empty-text-content">
+                                <h2>Nenhum armário ainda</h2>
+                                <p>Sua jornada acadêmica fica muito melhor com um espaço seguro para seus pertences. Reserve seu CAMUBOX agora!</p>
+                                <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
+                                    <span>Ver Armários Disponíveis</span>
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
                         </div>
                     )}
 
