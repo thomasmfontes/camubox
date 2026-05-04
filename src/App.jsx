@@ -127,14 +127,43 @@ function App() {
     return (
       <div style={{ 
         height: '100vh', 
-        display: 'flex', 
+        display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center', 
         justifyContent: 'center',
-        background: '#0f172a',
-        color: 'white',
-        fontFamily: 'system-ui'
+        background: '#ffffff',
+        gap: '20px'
       }}>
-        <div className="loading-spinner">Carregando...</div>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          backgroundImage: 'url(/lockers.png)',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.85
+        }} />
+        <div style={{
+          width: '120px',
+          height: '3px',
+          background: '#e2e8f0',
+          borderRadius: '100px',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            background: '#003d2b',
+            borderRadius: '100px',
+            animation: 'camubox-load 1.2s ease-in-out infinite'
+          }} />
+        </div>
+        <style>{`
+          @keyframes camubox-load {
+            0%   { width: 0%; margin-left: 0; }
+            50%  { width: 60%; margin-left: 20%; }
+            100% { width: 0%; margin-left: 100%; }
+          }
+        `}</style>
       </div>
     );
   }
