@@ -110,14 +110,10 @@ export default async function handler(req, res) {
     const accessToken = await getAccessToken();
     const projectId = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT).project_id;
 
-    // 4. Enviar notificações
+    // 4. Enviar notificações via t_notificacao
+    // O webhook do Supabase chamará api/fcm/send-push.js que enviará Push + Email
     const results = [];
     for (const rental of rentals) {
-      // Encontrar o e-mail do usuário dono dessa locação
-      const userObj = users.find(u => u.id_usuario === rental.id_usuario);
-      if (!userObj?.dc_email) continue;
-
-      const userTokens = tokens.filter(t => t.dc_email === userObj.dc_email);
       const lockerObj = lockers?.find(l => l.id_armario === rental.id_armario);
       const lockerDisplay = lockerObj?.cd_armario || rental.id_armario;
 
@@ -129,71 +125,28 @@ export default async function handler(req, res) {
         ? `Seu contrato do armário #${lockerDisplay} venceu hoje!` 
         : `Sua locação do armário #${lockerDisplay} vence em ${daysLeft} dia(s).`;
 
-      // 4.1 Salvar no histórico (t_notificacoes) para o sininho
-      // Fazemos isso independente de ter tokens, para aparecer no dashboard
       try {
-        await supabase
+        const { error } = await supabase
           .from('t_notificacao')
           .insert({
             id_usuario: rental.id_usuario,
             dc_titulo: 'Vencimento de Armário 📦',
             dc_mensagem: notificationBody,
+            tp_entidade: 'armario',
+            id_entidade: rental.id_armario,
             is_lida: false
           });
+        
+        if (error) throw error;
+        results.push({ user: rental.id_usuario, status: 'notified' });
       } catch (dbErr) {
         console.error('Error saving notification to history:', dbErr);
-      }
-
-      for (const t of userTokens) {
-        try {
-          const fcmResponse = await fetch(
-            `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                message: {
-                  token: t.token,
-                  data: {
-                    title: 'Vencimento de Armário 📦',
-                    body: notificationBody,
-                    icon: 'https://camubox.com/pwa-icon.png',
-                    badge: 'https://camubox.com/badge-72.png',
-                    url: 'https://camubox.com/dashboard/my-locker'
-                  },
-                  android: {
-                    priority: 'high'
-                  },
-                  webpush: {
-                    headers: {
-                      Urgency: 'high'
-                    },
-                    fcm_options: {
-                      link: 'https://camubox.com/dashboard/my-locker'
-                    }
-                  }
-                }
-              })
-            }
-          );
-
-          const resultData = await fcmResponse.json();
-          results.push({ 
-            user: rental.id_usuario, 
-            status: fcmResponse.ok ? 'success' : 'failed',
-            details: resultData 
-          });
-        } catch (err) {
-          results.push({ user: rental.id_usuario, status: 'error', error: err.message });
-        }
+        results.push({ user: rental.id_usuario, status: 'error', error: dbErr.message });
       }
     }
 
     return res.status(200).json({ 
-      summary: `Processed ${rentals.length} rentals, sent to ${results.filter(r => r.status === 'success').length} devices.`,
+      summary: `Processed ${rentals.length} rentals, triggered notifications via database.`,
       results 
     });
   } catch (error) {
@@ -201,3 +154,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
+

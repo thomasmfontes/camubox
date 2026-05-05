@@ -587,10 +587,29 @@ export const dbService = {
                 console.log(`Mock: Updating password for rental ${rentalId} to ${newPassword}`);
                 return { data: null, error: null };
             }
-            return await supabase
+
+            // 1. Update password
+            const { data, error } = await supabase
                 .from('t_locacao')
                 .update({ cd_senha: newPassword })
-                .eq('id_locacao', rentalId);
+                .eq('id_locacao', rentalId)
+                .select('id_usuario, id_armario')
+                .single();
+            
+            if (error) return { error };
+
+            // 2. Trigger notification
+            if (data) {
+                await supabase.from('t_notificacao').insert([{
+                    id_usuario: data.id_usuario,
+                    dc_titulo: 'Senha Alterada 🔐',
+                    dc_mensagem: `A senha do seu armário #${data.id_armario} foi alterada para: ${newPassword}.`,
+                    tp_entidade: 'armario',
+                    id_entidade: data.id_armario
+                }]);
+            }
+
+            return { data, error: null };
         },
 
         /**

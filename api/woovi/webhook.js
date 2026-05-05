@@ -63,14 +63,38 @@ export default async function handler(req, res) {
           // 3. Occupy new locker (Status 1 = Em Uso)
           await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', newLockerId);
 
+          // 4. Create notification
+          await supabase.from('t_notificacao').insert([{
+            id_usuario: oldRental.id_usuario,
+            dc_titulo: 'Troca de Armário Confirmada! 🔄',
+            dc_mensagem: `Sua troca para o armário #${newLockerId} foi processada com sucesso.`,
+            tp_entidade: 'armario',
+            id_entidade: newLockerId
+          }]);
+
           console.log(`✅ Troca Confirmada: ${correlationID}`);
         } else {
+          // Fetch rental to get user ID
+          const { data: rental } = await supabase.from('t_locacao').select('id_usuario, id_armario').eq('id_locacao', correlationID).single();
+          
           const { error } = await supabase
             .from('t_locacao')
             .update({ id_status: 1 })
             .eq('id_locacao', correlationID);
           
           if (error) throw error;
+
+          // Create notification
+          if (rental) {
+            await supabase.from('t_notificacao').insert([{
+              id_usuario: rental.id_usuario,
+              dc_titulo: 'Pagamento Confirmado! 📦',
+              dc_mensagem: `Sua locação do armário #${rental.id_armario} está ativa. Aproveite!`,
+              tp_entidade: 'armario',
+              id_entidade: rental.id_armario
+            }]);
+          }
+
           console.log(`✅ Pagamento Confirmado: ${correlationID}`);
         }
       }
