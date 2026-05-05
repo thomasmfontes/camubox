@@ -29,45 +29,65 @@ async function getAccessToken() {
   return tokens.access_token;
 }
 
-const getEmailTemplate = (name, title, message, url) => `
+/**
+ * Template de e-mail responsivo e premium do CAMUBOX
+ */
+function getEmailTemplate(userName, title, message, url) {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f7f9; }
-    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e1e8ed; }
-    .header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff; padding: 30px 20px; text-align: center; }
-    .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
-    .content { padding: 30px; }
-    .content h2 { color: #0f172a; margin-top: 0; font-size: 20px; }
-    .message-box { background: #f8fafc; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
-    .button { display: inline-block; padding: 12px 24px; background-color: #3b82f6; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; margin-top: 20px; }
-    .footer { padding: 20px; text-align: center; font-size: 12px; color: #64748b; background: #f8fafc; border-top: 1px solid #e1e8ed; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #002b1f; margin: 0; padding: 0; background-color: #f4f7f6; }
+    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 43, 31, 0.12); border: 1px solid #d1dad7; }
+    .header { background-color: #003d2b; color: #ffffff; padding: 40px 20px; text-align: center; border-bottom: 4px solid #d4af37; }
+    .header img { width: 80px; height: 80px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+    .header h1 { margin: 0; font-size: 26px; font-weight: 850; letter-spacing: -1px; }
+    .content { padding: 40px 30px; }
+    .content h2 { color: #003d2b; margin-top: 0; font-size: 22px; font-weight: 800; }
+    .message-box { background: #f0f7f4; border-left: 4px solid #003d2b; padding: 24px; margin: 25px 0; border-radius: 4px 16px 16px 4px; color: #002b1f; }
+    .message-box strong { color: #003d2b; font-size: 18px; display: block; margin-bottom: 8px; }
+    .button-container { text-align: center; margin-top: 35px; }
+    .button { display: inline-block; padding: 16px 32px; background-color: #003d2b; color: #ffffff !important; text-decoration: none; border-radius: 100px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 15px rgba(0, 61, 43, 0.2); transition: transform 0.2s; }
+    .footer { padding: 30px; text-align: center; font-size: 13px; color: #4a635d; background: #f4f7f6; border-top: 1px solid #d1dad7; }
+    .footer p { margin: 5px 0; }
+    .footer .social { margin-top: 15px; color: #d4af37; font-weight: 700; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
+      <img src="https://camubox.com/pwa-icon.png" alt="CAMUBOX Logo">
       <h1>CAMUBOX</h1>
     </div>
     <div class="content">
-      <h2>Olá, ${name}!</h2>
-      <p>Você tem uma nova notificação do CAMUBOX:</p>
+      <h2>Olá, ${userName}!</h2>
+      <p>Você tem uma nova atualização importante sobre seu armário no CAMUBOX:</p>
+      
       <div class="message-box">
-        <strong>${title}</strong><br>
+        <strong>${title}</strong>
         ${message}
       </div>
-      <p>Para mais detalhes, acesse seu painel:</p>
-      <a href="${url}" class="button">Ver no App</a>
+      
+      <p>Para conferir mais detalhes ou realizar outras ações, acesse seu painel no aplicativo:</p>
+      
+      <div class="button-container">
+        <a href="${url}" class="button">Abrir Aplicativo</a>
+      </div>
     </div>
     <div class="footer">
-      &copy; ${new Date().getFullYear()} CAMUBOX - Sistema de Gestão de Armários.
+      <p><strong>CAMUBOX - Gestão Inteligente de Armários</strong></p>
+      <p>Este é um e-mail automático, por favor não responda.</p>
+      <div class="social">&bull; Medicina Unimar &bull;</div>
+      <p style="margin-top: 20px; font-size: 11px; opacity: 0.7;">&copy; 2026 CAMUBOX. Todos os direitos reservados.</p>
     </div>
   </div>
 </body>
 </html>
 `;
+}
 
 export default async function handler(req, res) {
   // Only allow POST with proper auth
@@ -96,8 +116,8 @@ export default async function handler(req, res) {
     const userName = user.nm_usuario?.split(' ')[0] || 'Aluno';
     const notificationTitle = record.dc_titulo || 'CAMUBOX 📦';
     const notificationUrl = record.tp_entidade === 'armario' 
-      ? `https://camubox.com/dashboard/locker?openLockerId=${record.id_entidade}`
-      : 'https://camubox.com/dashboard/locker';
+      ? `https://camubox.com/dashboard/my-locker?openLockerId=${record.id_entidade}`
+      : 'https://camubox.com/dashboard/my-locker';
 
     // 2. Send Email via Resend
     let emailResult = null;

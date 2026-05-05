@@ -600,15 +600,23 @@ export const dbService = {
 
             // 2. Trigger notification with friendly locker number
             if (data) {
-                // Fetch locker display number from v_armario (view)
-                const { data: locker } = await supabase
-                    .from('v_armario')
-                    .select('cd_armario, nr_armario')
-                    .eq('id_armario', data.id_armario)
-                    .maybeSingle();
+                let lockerFriendlyNumber = data.id_armario;
+                
+                try {
+                    // Busca direta na tabela física para ser mais rápido e preciso
+                    const { data: locker } = await supabase
+                        .from('t_armario')
+                        .select('cd_armario, nr_armario')
+                        .eq('id_armario', data.id_armario)
+                        .maybeSingle();
 
-                // Usa cd_armario (que costuma ser o formato 013) ou nr_armario
-                const lockerFriendlyNumber = locker?.cd_armario || locker?.nr_armario || data.id_armario;
+                    if (locker) {
+                        // Prioriza cd_armario (013) ou nr_armario
+                        lockerFriendlyNumber = locker.cd_armario || locker.nr_armario || data.id_armario;
+                    }
+                } catch (e) {
+                    console.error('Erro ao buscar número do armário:', e);
+                }
 
                 await supabase.from('t_notificacao').insert([{
                     id_usuario: data.id_usuario,
