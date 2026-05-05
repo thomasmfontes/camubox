@@ -600,19 +600,20 @@ export const dbService = {
 
             // 2. Trigger notification with friendly locker number
             if (data) {
-                // Fetch locker display number
+                // Fetch locker display number from v_armario (view)
                 const { data: locker } = await supabase
-                    .from('t_armario')
-                    .select('nr_armario, cd_armario')
+                    .from('v_armario')
+                    .select('cd_armario, nr_armario')
                     .eq('id_armario', data.id_armario)
-                    .single();
+                    .maybeSingle();
 
-                const lockerDisplay = locker?.nr_armario || locker?.cd_armario || data.id_armario;
+                // Usa cd_armario (que costuma ser o formato 013) ou nr_armario
+                const lockerFriendlyNumber = locker?.cd_armario || locker?.nr_armario || data.id_armario;
 
                 await supabase.from('t_notificacao').insert([{
                     id_usuario: data.id_usuario,
                     dc_titulo: 'Senha Alterada 🔐',
-                    dc_mensagem: `A senha do seu armário #${lockerDisplay} foi alterada para: ${newPassword}.`,
+                    dc_mensagem: `A senha do seu armário #${lockerFriendlyNumber} foi alterada para: ${newPassword}.`,
                     tp_entidade: 'armario',
                     id_entidade: data.id_armario
                 }]);

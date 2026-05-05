@@ -64,8 +64,8 @@ export default async function handler(req, res) {
           await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', newLockerId);
 
           // 4. Create notification
-          const { data: lockerInfo } = await supabase.from('t_armario').select('nr_armario, cd_armario').eq('id_armario', newLockerId).single();
-          const lockerDisplay = lockerInfo?.nr_armario || lockerInfo?.cd_armario || newLockerId;
+          const { data: lockerInfo } = await supabase.from('v_armario').select('cd_armario, nr_armario').eq('id_armario', newLockerId).maybeSingle();
+          const lockerDisplay = lockerInfo?.cd_armario || lockerInfo?.nr_armario || newLockerId;
 
           await supabase.from('t_notificacao').insert([{
             id_usuario: oldRental.id_usuario,
@@ -89,8 +89,8 @@ export default async function handler(req, res) {
 
           // Create notification
           if (rental) {
-            const { data: lockerInfo } = await supabase.from('t_armario').select('nr_armario, cd_armario').eq('id_armario', rental.id_armario).single();
-            const lockerDisplay = lockerInfo?.nr_armario || lockerInfo?.cd_armario || rental.id_armario;
+            const { data: lockerInfo } = await supabase.from('v_armario').select('cd_armario, nr_armario').eq('id_armario', rental.id_armario).maybeSingle();
+            const lockerDisplay = lockerInfo?.cd_armario || lockerInfo?.nr_armario || rental.id_armario;
 
             await supabase.from('t_notificacao').insert([{
               id_usuario: rental.id_usuario,
