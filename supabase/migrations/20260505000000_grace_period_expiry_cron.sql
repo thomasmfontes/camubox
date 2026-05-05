@@ -27,8 +27,8 @@ DECLARE
     v_processed INT := 0;
 BEGIN
     -- Busca locações cujo prazo de carência de 15 dias expirou:
-    --   id_status = 1 (ATIVA no banco, mas data já passou + 15 dias)
-    --   dt_termino < CURRENT_DATE - 15 dias
+    --   id_status = 1 (ATIVA)
+    --   (dt_termino + 15 dias) < HOJE
     FOR v_rental IN
         SELECT
             id_locacao,
@@ -38,21 +38,19 @@ BEGIN
         FROM t_locacao
         WHERE
             id_status = 1
-            AND dt_termino < (CURRENT_DATE - INTERVAL '15 days')
+            AND (dt_termino + INTERVAL '15 days') < CURRENT_DATE
     LOOP
-        -- 1. Encerrar a locação
+        -- 1. Encerrar a locação (Status 4 = ENCERRADA conforme banco)
         UPDATE t_locacao
-        SET
-            id_status = 2,
-            dc_status_locacao = 'ENCERRADA'
+        SET id_status = 4
         WHERE id_locacao = v_rental.id_locacao;
 
-        -- 2. Colocar o armário em Vistoria (id_status = 2)
+        -- 2. Colocar o armário em Vistoria (ID 2 na t_armario)
         UPDATE t_armario
         SET id_status = 2
         WHERE id_armario = v_rental.id_armario;
 
-        -- 3. (Opcional) Criar notificação para o usuário informando que o prazo expirou
+        -- 3. Criar notificação para o usuário informando que o prazo expirou
         INSERT INTO t_notificacao (id_usuario, dc_titulo, dc_mensagem, is_lida, dt_criacao)
         VALUES (
             v_rental.id_usuario,
@@ -66,7 +64,7 @@ BEGIN
         v_processed := v_processed + 1;
     END LOOP;
 
-    -- Log no PostgreSQL (visível em Supabase > Logs > Postgres)
+    -- Log no PostgreSQL
     IF v_processed > 0 THEN
         RAISE NOTICE '[CAMUBOX CRON] % locações encerradas por expiração de carência em %',
             v_processed,

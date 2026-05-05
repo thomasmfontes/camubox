@@ -65,36 +65,31 @@ const LockerManagement = () => {
 
             // Detecta armários em carência de renovação (locação id_status=1 com dt_termino expirado ≤15 dias)
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - 15);
-            const cutoffStr = cutoff.toISOString().split('T')[0];
-
             const graceMap = {}; // { id_armario: { graceDaysLeft, expiredOn, responsible } }
             const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             
             (rentalsRes.data || []).forEach(r => {
-                if (
-                    r.id_status === 1 &&
-                    r.dt_termino < todayStr &&
-                    r.dt_termino >= cutoffStr
-                ) {
+                if (r.id_status === 1 && r.dt_termino) {
                     const termino = new Date(r.dt_termino + 'T00:00:00');
                     const dTermino = new Date(termino.getFullYear(), termino.getMonth(), termino.getDate());
                     
-                    const graceEnd = new Date(dTermino);
-                    graceEnd.setDate(graceEnd.getDate() + 15);
-                    
-                    const diffTime = graceEnd.getTime() - dToday.getTime();
-                    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    // Se o término é hoje ou no passado, entra em carência
+                    if (dTermino <= dToday) {
+                        const graceEnd = new Date(dTermino);
+                        graceEnd.setDate(graceEnd.getDate() + 15);
+                        
+                        // Verifica se ainda está dentro dos 15 dias
+                        if (dToday <= graceEnd) {
+                            const diffTime = graceEnd.getTime() - dToday.getTime();
+                            const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                    if (daysLeft >= 0) {
-                        graceMap[r.id_armario] = {
-                            graceDaysLeft: daysLeft,
-                            expiredOn: termino.toLocaleDateString('pt-BR'),
-                            graceDeadline: graceEnd.toLocaleDateString('pt-BR'),
-                            responsible: r.nm_aluno || userMap[r.id_usuario] || 'Aluno'
-                        };
+                            graceMap[r.id_armario] = {
+                                graceDaysLeft: daysLeft,
+                                expiredOn: termino.toLocaleDateString('pt-BR'),
+                                graceDeadline: graceEnd.toLocaleDateString('pt-BR'),
+                                responsible: r.nm_aluno || userMap[r.id_usuario] || 'Aluno'
+                            };
+                        }
                     }
                 }
             });

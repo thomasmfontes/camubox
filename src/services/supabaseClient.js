@@ -529,10 +529,10 @@ export const dbService = {
                 return { data: null, error: null };
             }
             
-            // 1. Terminate rental (Status 2 = ENCERRADA)
+            // 1. Terminate rental (Status 4 = ENCERRADA)
             const { error: rentalError } = await supabase
                 .from('t_locacao')
-                .update({ id_status: 2 })
+                .update({ id_status: 4 })
                 .eq('id_locacao', rentalId);
             
             if (rentalError) return { error: rentalError };
