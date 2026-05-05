@@ -221,24 +221,32 @@ const UserMyLockers = ({ user }) => {
                                             </div>
                                         </div>
 
-                                        <div className="locker-timeline">
+                                        <div className="grace-past-info">
+                                            <AlertCircle size={14} className="icon-muted" />
+                                            <span>Contrato vencido em <strong>{renewable.expiredOn}</strong></span>
+                                        </div>
+
+                                        <div className="locker-timeline grace-timeline-premium">
                                             <div className="timeline-info">
-                                                <div className="expiry-date">
+                                                <div className="expiry-date" style={{ color: renewable.graceDaysLeft <= 3 ? '#dc2626' : '#d97706' }}>
                                                     <Clock size={16} />
-                                                    <span>Venceu em <strong>{renewable.expiredOn}</strong></span>
+                                                    <span style={{ fontWeight: '700', letterSpacing: '-0.3px' }}>Prazo de Renovação</span>
                                                 </div>
-                                                <span className={`days-counter ${renewable.graceDaysLeft <= 3 ? 'urgent' : ''}`}>
-                                                    {renewable.graceDaysLeft} {renewable.graceDaysLeft === 1 ? 'dia' : 'dias'} de carência
+                                                <span className="days-counter" style={{ color: renewable.graceDaysLeft <= 3 ? '#dc2626' : '#d97706', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                                    {renewable.graceDaysLeft} dias
                                                 </span>
                                             </div>
-                                            <div className="progress-bar-container grace">
+                                            <div className="progress-bar-container" style={{ background: renewable.graceDaysLeft <= 3 ? '#fee2e2' : '#fef3c7', height: '6px' }}>
                                                 <div
-                                                    className={`progress-fill ${renewable.graceDaysLeft <= 3 ? 'urgent' : 'warning'}`}
-                                                    style={{ width: `${(renewable.graceDaysLeft / 15) * 100}%` }}
+                                                    className="progress-fill"
+                                                    style={{ 
+                                                        width: `${(renewable.graceDaysLeft / 15) * 100}%`,
+                                                        background: renewable.graceDaysLeft <= 3 ? '#ef4444' : '#f59e0b'
+                                                    }}
                                                 />
                                             </div>
-                                            <div className="grace-footer">
-                                                <span>Prazo final: <strong>{new Date(renewable.graceDeadline).toLocaleDateString('pt-BR')}</strong></span>
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px', fontSize: '0.7rem', fontWeight: '600', color: '#94a3b8' }}>
+                                                <span>Expira em <strong style={{ color: '#64748b' }}>{new Date(renewable.graceDeadline).toLocaleDateString('pt-BR')}</strong></span>
                                             </div>
                                         </div>
 

@@ -159,6 +159,10 @@
     color: var(--text-main);
 }
 
+.expiry-date span {
+    white-space: nowrap;
+}
+
 .days-counter {
     font-size: 0.75rem;
     font-weight: 800;
@@ -765,6 +769,52 @@
     background: white;
     color: var(--primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* New Grace Period Tracker Styles */
+
+/* =========================================================================
+   PREMIUM GRACE PERIOD STYLES
+   ========================================================================= */
+
+.grace-past-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: -4px;
+    border: 1px dashed #e2e8f0;
+}
+
+.grace-past-info .icon-muted {
+    color: #94a3b8;
+}
+
+.grace-past-info strong {
+    color: #475569;
+    font-weight: 700;
+}
+
+.grace-timeline-premium {
+    background: #fffcf8;
+    border: 1px solid #fef3c7;
+    position: relative;
+}
+
+.grace-timeline-premium::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #f59e0b;
+    border-radius: 12px 0 0 12px;
 }
 
 .btn-renew-confirm {
