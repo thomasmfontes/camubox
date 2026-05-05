@@ -123,7 +123,7 @@ export default async function handler(req, res) {
     if (resend) {
       try {
         emailResult = await resend.emails.send({
-          from: 'CAMUBOX <onboarding@resend.dev>',
+          from: 'CAMUBOX <naoresponda@camubox.com>',
           to: user.dc_email,
           subject: notificationTitle,
           html: getEmailTemplate(userName, notificationTitle, record.dc_mensagem, notificationUrl)

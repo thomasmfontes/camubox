@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   try {
     const data = await resend.emails.send({
-      from: 'CAMUBOX <onboarding@resend.dev>',
+      from: 'CAMUBOX <naoresponda@camubox.com>',
       to,
       subject,
       html: html || text,
