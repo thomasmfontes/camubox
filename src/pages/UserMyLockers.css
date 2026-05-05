@@ -1011,3 +1011,88 @@
 .renewal-plan-btn.active .plan-price {
     color: #b45309;
 }
+/* Termination Styles */
+.btn-not-interested {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    text-align: center;
+    width: 100%;
+    margin-top: -4px;
+}
+
+.btn-not-interested:hover {
+    color: #ef4444;
+}
+
+.termination-modal {
+    max-width: 420px !important;
+}
+
+.alert-icon-container {
+    background: #fef2f2;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.alert-icon-red {
+    color: #ef4444;
+}
+
+.modal-footer-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-confirm-terminate {
+    background: #ef4444;
+    color: white;
+    height: 52px;
+    border-radius: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.btn-confirm-terminate:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+}
+
+.btn-cancel-terminate {
+    background: #f1f5f9;
+    color: #475569;
+    height: 52px;
+    border-radius: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel-terminate:hover {
+    background: #e2e8f0;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}

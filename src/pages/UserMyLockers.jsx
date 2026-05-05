@@ -16,6 +16,8 @@ const UserMyLockers = ({ user }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [newPassValue, setNewPassValue] = useState('');
     const [isSavingPass, setIsSavingPass] = useState(false);
+    const [confirmTerminate, setConfirmTerminate] = useState(null);
+    const [isTerminating, setIsTerminating] = useState(false);
 
     const fetchData = useCallback(async () => {
         if (!user?.id_usuario) return;
@@ -161,6 +163,26 @@ const UserMyLockers = ({ user }) => {
         });
     };
 
+    const handleTerminate = async (renewable) => {
+        if (!renewable) return;
+        setIsTerminating(true);
+        try {
+            const { error } = await dbService.rentals.terminate(renewable.id, renewable.id_armario);
+            if (!error) {
+                // Remove from lists and close modal
+                setRenewableLockers(prev => prev.filter(r => r.id !== renewable.id));
+                setMyLockers(prev => prev.filter(l => l.id !== renewable.id));
+                setConfirmTerminate(null);
+            } else {
+                alert('Erro ao encerrar contrato. Tente novamente.');
+            }
+        } catch (err) {
+            console.error('[TERMINATE ERROR]', err);
+        } finally {
+            setIsTerminating(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="my-lockers-premium">
@@ -272,6 +294,13 @@ const UserMyLockers = ({ user }) => {
                                             >
                                                 <RotateCcw size={16} />
                                                 <span>Renovar agora</span>
+                                            </button>
+
+                                            <button
+                                                className="btn-not-interested"
+                                                onClick={() => setConfirmTerminate(renewable)}
+                                            >
+                                                <span>Não tenho interesse em renovar</span>
                                             </button>
                                         </div>
                                     </div>
@@ -483,6 +512,38 @@ const UserMyLockers = ({ user }) => {
                                         </button>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Termination Confirmation Modal */}
+                {confirmTerminate && (
+                    <div className="modal-overlay" onClick={() => setConfirmTerminate(null)}>
+                        <div className="password-modal termination-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <div className="alert-icon-container">
+                                    <AlertCircle size={40} className="alert-icon-red" />
+                                </div>
+                                <h2>Encerrar Contrato?</h2>
+                                <p>Ao confirmar, o armário <strong>#{confirmTerminate.lockerNumber}</strong> será liberado para vistoria e você perderá a prioridade de renovação.</p>
+                            </div>
+                            
+                            <div className="modal-footer-vertical">
+                                <button 
+                                    className="btn-confirm-terminate" 
+                                    onClick={() => handleTerminate(confirmTerminate)}
+                                    disabled={isTerminating}
+                                >
+                                    {isTerminating ? <Loader2 className="spinner" size={18} /> : null}
+                                    Confirmar Encerramento
+                                </button>
+                                <button 
+                                    className="btn-cancel-terminate" 
+                                    onClick={() => setConfirmTerminate(null)}
+                                    disabled={isTerminating}
+                                >
+                                    Manter por enquanto
+                                </button>
                             </div>
                         </div>
                     </div>
