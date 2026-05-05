@@ -64,10 +64,13 @@ export default async function handler(req, res) {
           await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', newLockerId);
 
           // 4. Create notification
+          const { data: lockerInfo } = await supabase.from('t_armario').select('nr_armario, cd_armario').eq('id_armario', newLockerId).single();
+          const lockerDisplay = lockerInfo?.nr_armario || lockerInfo?.cd_armario || newLockerId;
+
           await supabase.from('t_notificacao').insert([{
             id_usuario: oldRental.id_usuario,
             dc_titulo: 'Troca de Armário Confirmada! 🔄',
-            dc_mensagem: `Sua troca para o armário #${newLockerId} foi processada com sucesso.`,
+            dc_mensagem: `Sua troca para o armário #${lockerDisplay} foi processada com sucesso.`,
             tp_entidade: 'armario',
             id_entidade: newLockerId
           }]);
@@ -86,10 +89,13 @@ export default async function handler(req, res) {
 
           // Create notification
           if (rental) {
+            const { data: lockerInfo } = await supabase.from('t_armario').select('nr_armario, cd_armario').eq('id_armario', rental.id_armario).single();
+            const lockerDisplay = lockerInfo?.nr_armario || lockerInfo?.cd_armario || rental.id_armario;
+
             await supabase.from('t_notificacao').insert([{
               id_usuario: rental.id_usuario,
               dc_titulo: 'Pagamento Confirmado! 📦',
-              dc_mensagem: `Sua locação do armário #${rental.id_armario} está ativa. Aproveite!`,
+              dc_mensagem: `Sua locação do armário #${lockerDisplay} está ativa. Aproveite!`,
               tp_entidade: 'armario',
               id_entidade: rental.id_armario
             }]);

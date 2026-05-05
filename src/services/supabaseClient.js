@@ -598,12 +598,21 @@ export const dbService = {
             
             if (error) return { error };
 
-            // 2. Trigger notification
+            // 2. Trigger notification with friendly locker number
             if (data) {
+                // Fetch locker display number
+                const { data: locker } = await supabase
+                    .from('t_armario')
+                    .select('nr_armario, cd_armario')
+                    .eq('id_armario', data.id_armario)
+                    .single();
+
+                const lockerDisplay = locker?.nr_armario || locker?.cd_armario || data.id_armario;
+
                 await supabase.from('t_notificacao').insert([{
                     id_usuario: data.id_usuario,
                     dc_titulo: 'Senha Alterada 🔐',
-                    dc_mensagem: `A senha do seu armário #${data.id_armario} foi alterada para: ${newPassword}.`,
+                    dc_mensagem: `A senha do seu armário #${lockerDisplay} foi alterada para: ${newPassword}.`,
                     tp_entidade: 'armario',
                     id_entidade: data.id_armario
                 }]);
