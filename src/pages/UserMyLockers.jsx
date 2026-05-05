@@ -240,7 +240,7 @@ const UserMyLockers = ({ user }) => {
                                                 <div
                                                     className="progress-fill"
                                                     style={{ 
-                                                        width: `${(renewable.graceDaysLeft / 15) * 100}%`,
+                                                        width: `${((15 - renewable.graceDaysLeft) / 15) * 100}%`,
                                                         background: renewable.graceDaysLeft <= 3 ? '#ef4444' : '#f59e0b'
                                                     }}
                                                 />
@@ -284,12 +284,8 @@ const UserMyLockers = ({ user }) => {
                     {myLockers.length > 0 ? (
                         <div className="lockers-matrix">
                             {myLockers.map((locker) => (
-                                <div
-                                    key={locker.id}
-                                    className={`locker-card-premium ${locker.isExpired ? 'expired' : ''}`}
-                                >
+                                <div key={locker.id} className={`locker-card-premium ${locker.isExpired ? 'expired' : ''}`}>
                                     <div className="card-glass-effect" />
-
                                     <div className="locker-header">
                                         <div className="locker-main-info">
                                             <div className="locker-avatar">
@@ -297,8 +293,8 @@ const UserMyLockers = ({ user }) => {
                                             </div>
                                             <div className="locker-titles">
                                                 <span className="locker-id">Armário #{locker.lockerNumber}</span>
-                                                <span className={`status-tag ${locker.status.toLowerCase()}`}>
-                                                    {locker.status}
+                                                <span className={`status-tag ${locker.isExpired ? 'encerrada' : 'ativa'}`}>
+                                                    {locker.isExpired ? 'ENCERRADA' : 'ATIVA'}
                                                 </span>
                                             </div>
                                         </div>
@@ -313,16 +309,25 @@ const UserMyLockers = ({ user }) => {
                                         </div>
                                     </div>
 
-                                    <div className="locker-timeline">
+                                    {/* Premium Info Ribbon */}
+                                    <div className="grace-past-info">
+                                        <Clock size={14} className="icon-muted" />
+                                        <span>{locker.isExpired ? 'Vigência encerrada em' : 'Vencimento em'} <strong>{locker.validUntil}</strong></span>
+                                    </div>
+
+                                    <div className={`locker-timeline ${locker.isExpired ? 'timeline-expired' : 'timeline-active-premium'}`}>
                                         <div className="timeline-info">
                                             <div className="expiry-date">
                                                 <Clock size={16} />
-                                                <span>{locker.isExpired ? 'Venceu em' : 'Vence em'} <strong>{locker.validUntil}</strong></span>
+                                                <span>{locker.isExpired ? 'Status do Contrato' : 'Tempo Restante'}</span>
                                             </div>
                                             {!locker.isExpired && (
                                                 <span className="days-counter">
                                                     {locker.daysLeft} dias
                                                 </span>
+                                            )}
+                                            {locker.isExpired && (
+                                                <span className="days-counter" style={{ color: '#ef4444' }}>Finalizado</span>
                                             )}
                                         </div>
                                         {!locker.isExpired && (
@@ -333,8 +338,12 @@ const UserMyLockers = ({ user }) => {
                                                 />
                                             </div>
                                         )}
+                                        {locker.isExpired && (
+                                            <div className="progress-bar-container" style={{ background: '#fee2e2' }}>
+                                                <div className="progress-fill" style={{ width: '100%', background: '#f87171' }} />
+                                            </div>
+                                        )}
                                     </div>
-
                                     <div className="locker-actions-grid">
                                         <button
                                             className="btn-action-glass"
@@ -353,39 +362,27 @@ const UserMyLockers = ({ user }) => {
                                             </button>
                                         )}
                                     </div>
-
                                 </div>
                             ))}
-
-                            <div
-                                className="add-locker-card-premium"
-                                onClick={() => navigate('/dashboard/lockers')}
-                            >
-                                <div className="add-content">
-                                    <div className="add-icon-sphere">
-                                        <img src="/deal.png" alt="Deal" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-                                    </div>
-                                    <h3>Novo Aluguel</h3>
-                                    <ChevronRight size={20} className="arrow" />
+                        </div>
+                    ) : (
+                        renewableLockers.length === 0 && (
+                            <div className="empty-lockers-premium">
+                                <div className="empty-illustration-container">
+                                    <div className="empty-locker-icon-large" />
+                                    <div className="illustration-overlay-glow" />
+                                </div>
+                                <div className="empty-text-content">
+                                    <h2>Nenhum armário ainda</h2>
+                                    <p>Sua jornada acadêmica fica muito melhor com um espaço seguro para seus pertences.</p>
+                                    <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
+                                        <span>Ver Armários Disponíveis</span>
+                                        <ChevronRight size={20} />
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ) : renewableLockers.length === 0 ? (
-                        <div className="empty-lockers-premium">
-                            <div className="empty-illustration-container">
-                                <div className="empty-locker-icon-large" />
-                                <div className="illustration-overlay-glow" />
-                            </div>
-                            <div className="empty-text-content">
-                                <h2>Nenhum armário ainda</h2>
-                                <p>Sua jornada acadêmica fica muito melhor com um espaço seguro para seus pertences.</p>
-                                <button className="btn-cta-premium" onClick={() => navigate('/dashboard/lockers')}>
-                                    <span>Ver Armários Disponíveis</span>
-                                    <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    ) : null}
+                        )
+                    )}
 
                     {leagueLockers.length > 0 && (
                         <div className="league-lockers-section" style={{ marginTop: '2rem' }}>
@@ -428,7 +425,6 @@ const UserMyLockers = ({ user }) => {
                     )}
             </div>
 
-            {/* Password Modal */}
             {/* Password Modal */}
                 {viewPassword && (
                     <div className="modal-overlay" onClick={() => setViewPassword(null)}>

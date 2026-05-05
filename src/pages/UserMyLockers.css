@@ -806,14 +806,38 @@
     position: relative;
 }
 
-.grace-timeline-premium::before {
+.timeline-active-premium {
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    position: relative;
+}
+
+.timeline-active-premium::before {
     content: '';
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
     width: 4px;
-    background: #f59e0b;
+    background: var(--primary);
+    border-radius: 12px 0 0 12px;
+}
+
+.timeline-expired {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    position: relative;
+    opacity: 0.9;
+}
+
+.timeline-expired::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #ef4444;
     border-radius: 12px 0 0 12px;
 }
 
