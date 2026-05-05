@@ -299,6 +299,7 @@
 }
 
 .status-badge.active { background: #f0fdf4; color: #166534; }
+.status-badge.grace { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 .status-badge.expired { background: #fef2f2; color: #991b1b; }
 .status-badge.pending { background: #fffbeb; color: #92400e; }
 .status-badge.cancelled { background: #f9fafb; color: #4b5563; }

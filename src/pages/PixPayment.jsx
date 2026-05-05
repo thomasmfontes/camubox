@@ -26,6 +26,7 @@ const PixPayment = ({ user }) => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const isExchange = state?.type === 'exchange';
+    const isRenewal = state?.locker?.isRenewal === true;
     const exchangeInfo = state?.exchangeInfo;
     const selectedLocker = state?.locker || {
         id: '000',
@@ -40,7 +41,7 @@ const PixPayment = ({ user }) => {
 
     const rentalDetails = {
         id: selectedLocker.id,
-        contract: isExchange ? 'Taxa de Troca' : (isSemestral ? 'Semestral' : 'Anual'),
+        contract: isExchange ? 'Taxa de Troca' : isRenewal ? `Renovação ${isSemestral ? 'Semestral' : 'Anual'}` : (isSemestral ? 'Semestral' : 'Anual'),
         price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
     };
 
@@ -83,6 +84,14 @@ const PixPayment = ({ user }) => {
                     if (isExchange) {
                         correlationID = `EXC_${exchangeInfo.rentalId}_${exchangeInfo.oldLockerId}_${selectedLocker.dbId}`;
                     } else {
+                    // Para renovação: encerra o contrato anterior (atualiza id_status para 2) antes de criar o novo
+                    if (isRenewal && selectedLocker.previousContractId) {
+                        await supabase
+                            .from('t_locacao')
+                            .update({ id_status: 2, dc_status_locacao: 'ENCERRADA' })
+                            .eq('id_locacao', selectedLocker.previousContractId);
+                    }
+
                     const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
                         id_armario: selectedLocker.dbId,
                         id_usuario: user.id_usuario,
@@ -206,8 +215,8 @@ const PixPayment = ({ user }) => {
                     <ChevronLeft size={20} />
                 </button>
                 <div className="header-text">
-                    <h1>{isExchange ? 'Pagamento da Taxa de Troca' : 'Finalizar Pagamento'}</h1>
-                    <p>{isExchange ? 'Após o pagamento, sua troca será processada instantaneamente.' : 'Sua reserva está garantida enquanto o QR Code for válido.'}</p>
+                    <h1>{isExchange ? 'Pagamento da Taxa de Troca' : isRenewal ? 'Renovar Contrato' : 'Finalizar Pagamento'}</h1>
+                    <p>{isExchange ? 'Após o pagamento, sua troca será processada instantaneamente.' : isRenewal ? 'Renove seu armário com prioridade. O prazo de carência garante a sua vaga.' : 'Sua reserva está garantida enquanto o QR Code for válido.'}</p>
                 </div>
             </header>
 
@@ -322,7 +331,7 @@ const PixPayment = ({ user }) => {
                                     <CheckCircle2 size={32} />
                                     <h3>{isExchange ? 'Troca Realizada!' : 'Sucesso!'}</h3>
                                 </div>
-                                <p>{isExchange ? 'Sua troca foi concluída e o novo armário já está ativo.' : 'Sua locação foi confirmada e o armário já está liberado.'}</p>
+                                <p>{isExchange ? 'Sua troca foi concluída e o novo armário já está ativo.' : isRenewal ? 'Seu contrato foi renovado! O armário continua garantido para você.' : 'Sua locação foi confirmada e o armário já está liberado.'}</p>
                                 <button className="go-to-lockers-btn" onClick={() => navigate('/dashboard/my-locker')}>
                                     Ver Meus Armários
                                     <ArrowRight size={18} />

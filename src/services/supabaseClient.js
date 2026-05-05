@@ -591,6 +591,85 @@ export const dbService = {
                 .from('t_locacao')
                 .update({ cd_senha: newPassword })
                 .eq('id_locacao', rentalId);
+        },
+
+        /**
+         * Busca locações do usuário que expiraram naturalmente (id_status = 1, mas dt_termino < hoje)
+         * e ainda estão dentro do prazo de carência de 15 dias para renovação prioritária.
+         * O armário permanece bloqueado (Em Uso) durante todo o período de carência.
+         * Após 15 dias sem renovação, o pg_cron encerra o contrato e manda o armário para Vistoria.
+         */
+        getRenewableByUser: async (userId) => {
+            if (isMockMode) return { data: [], error: null };
+
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 15);
+            const cutoffStr = cutoff.toISOString().split('T')[0];
+
+            // Garante que userId é número (pode vir como string do auth)
+            const numericUserId = parseInt(userId, 10);
+
+            // Locações com id_status = 1 (ATIVA) mas cujo dt_termino já passou
+            // O banco é corrigido diariamente pelo pg_cron para manter consistência:
+            //   - Dentro dos 15 dias: id_status = 1 (armário bloqueado)
+            //   - Após 15 dias: id_status = 2 + armário → Vistoria
+            const { data: rentals, error } = await supabase
+                .from('t_locacao')
+                .select('*')
+                .eq('id_usuario', numericUserId)
+                .eq('id_status', 1)
+                .lt('dt_termino', todayStr)
+                .gte('dt_termino', cutoffStr)
+                .order('dt_termino', { ascending: false });
+
+            if (error) return { data: null, error };
+            if (!rentals?.length) return { data: [], error: null };
+
+            // Join com v_armario para pegar detalhes do armário
+            const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
+            const { data: lockers } = await supabase
+                .from('v_armario')
+                .select('*')
+                .in('id_armario', lockerIds);
+
+            // Join com t_configuracao para pegar preços
+            const { data: config } = await supabase
+                .from('t_configuracao')
+                .select('*')
+                .single();
+
+            const combined = rentals.map(r => {
+                const locker = lockers?.find(l => l.id_armario === r.id_armario);
+                const termino = new Date(r.dt_termino + 'T00:00:00');
+                const graceEnd = new Date(termino);
+                graceEnd.setDate(graceEnd.getDate() + 15);
+                const daysLeft = Math.ceil((graceEnd - today) / (1000 * 60 * 60 * 24));
+
+                const isLarge = (locker?.nm_tamanho || '').toLowerCase() === 'grande';
+                const priceSem = isLarge ? (config?.vl_grande_semestral ?? 80) : (config?.vl_pequeno_semestral ?? 50);
+                const priceAnn = isLarge ? (config?.vl_grande_anual ?? 150) : (config?.vl_pequeno_anual ?? 90);
+
+                return {
+                    id: r.id_locacao,
+                    id_armario: r.id_armario,
+                    lockerNumber: (locker?.nr_armario || locker?.cd_armario || '---').toString().padStart(3, '0'),
+                    floor: locker?.nm_local || 'N/A',
+                    size: locker?.nm_tamanho || 'Pequeno',
+                    position: locker?.nm_posicao || 'MÉDIO',
+                    dbId: r.id_armario,
+                    priceSem,
+                    priceAnn,
+                    graceDeadline: graceEnd,
+                    graceDaysLeft: Math.max(0, daysLeft),
+                    expiredOn: termino.toLocaleDateString('pt-BR'),
+                    previousContractId: r.id_locacao
+                };
+            });
+
+            return { data: combined, error: null };
         }
     },
 

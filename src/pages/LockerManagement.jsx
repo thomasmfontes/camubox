@@ -17,7 +17,8 @@ import {
     ShieldOff,
     Users,
     Phone,
-    HelpCircle
+    HelpCircle,
+    RotateCcw
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
@@ -61,6 +62,42 @@ const LockerManagement = () => {
             setLeagues(leaguesRes.data || []);
 
             const userMap = (usersRes.data || []).reduce((acc, u) => ({ ...acc, [u.id_usuario]: u.nm_usuario }), {});
+
+            // Detecta armários em carência de renovação (locação id_status=1 com dt_termino expirado ≤15 dias)
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 15);
+            const cutoffStr = cutoff.toISOString().split('T')[0];
+
+            const graceMap = {}; // { id_armario: { graceDaysLeft, expiredOn, responsible } }
+            const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            (rentalsRes.data || []).forEach(r => {
+                if (
+                    r.id_status === 1 &&
+                    r.dt_termino < todayStr &&
+                    r.dt_termino >= cutoffStr
+                ) {
+                    const termino = new Date(r.dt_termino + 'T00:00:00');
+                    const dTermino = new Date(termino.getFullYear(), termino.getMonth(), termino.getDate());
+                    
+                    const graceEnd = new Date(dTermino);
+                    graceEnd.setDate(graceEnd.getDate() + 15);
+                    
+                    const diffTime = graceEnd.getTime() - dToday.getTime();
+                    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (daysLeft >= 0) {
+                        graceMap[r.id_armario] = {
+                            graceDaysLeft: daysLeft,
+                            expiredOn: termino.toLocaleDateString('pt-BR'),
+                            graceDeadline: graceEnd.toLocaleDateString('pt-BR'),
+                            responsible: r.nm_aluno || userMap[r.id_usuario] || 'Aluno'
+                        };
+                    }
+                }
+            });
 
             // Map standard active rentals
             const activeDataMap = (rentalsRes.data || []).reduce((acc, r) => {
@@ -115,20 +152,33 @@ const LockerManagement = () => {
                             floor: l.nm_local || l.dc_andar || 'Térreo',
                             size: l.nm_tamanho || l.dc_tamanho || 'Pequeno',
                             position: l.nm_posicao || l.dc_posicao || 'MÉDIO',
-                            status: normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel')),
+                            status: (function() {
+                                if (graceMap[l.id_armario]) return 'em-carencia';
+                                
+                                // Se tem locação ativa mas passou de 15 dias, força 'vistoria' visualmente
+                                const ad = activeDataMap[l.id_armario];
+                                if (ad && ad.type === 'rental' && (ad.status === 'ATIVA' || ad.status === 'Ativo')) {
+                                    const expDate = new Date(ad.expiry + 'T00:00:00');
+                                    const dExp = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
+                                    const deadline = new Date(dExp);
+                                    deadline.setDate(deadline.getDate() + 15);
+                                    if (dToday > deadline) return 'vistoria';
+                                }
+
+                                return normalizeStatus((l.id_status === 3 || l.id_status === 6 || l.id_status === 7) ? l.dc_status : (l.situacao || l.dc_status || 'disponivel'));
+                            })(),
                             responsible: (activeData && activeData.name) || (l.nm_liga ? `Liga: ${l.nm_liga}` : (userMap[l.id_usuario] || l.id_usuario || 'Disponível')),
                             id_liga: l.id_liga,
                             nm_liga: l.nm_liga,
                             nm_presidente: l.nm_presidente || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nm_usuario : leagueData.t_usuario?.nm_usuario) : null),
                             tel_presidente: leagueData?.nr_telefone || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nr_celular : leagueData.t_usuario?.nr_celular) : l.nr_celular_presidente),
                             isReservation,
+                            graceInfo: graceMap[l.id_armario] || null,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
                                 if (isReservation) {
-                                    // Reservations use Full Timestamp (ISO)
                                     const d = new Date(dt);
                                     return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
                                 }
-                                // Rentals use YYYY-MM-DD
                                 const [y, m, d] = dt.split('-').map(Number);
                                 return new Date(y, m - 1, d).toLocaleDateString();
                             })(activeData.expiry) : l.dt_termino ? (function (dt) {
@@ -280,6 +330,7 @@ const LockerManagement = () => {
         const labels = {
             'disponivel': 'Disponível',
             'em-uso': 'Em uso',
+            'em-carencia': 'Em Carência',
             'vistoria': 'Aguardando Vistoria',
             'manutencao': 'Manutenção',
             'gratuito': 'Gratuito',
@@ -293,6 +344,7 @@ const LockerManagement = () => {
     const getStatusClass = (status) => {
         if (status === 'disponivel') return 'status-available';
         if (status === 'em-uso') return 'status-occupied';
+        if (status === 'em-carencia') return 'status-grace';
         if (status === 'vistoria') return 'status-inspection';
         if (status === 'manutencao') return 'status-maintenance';
         if (status === 'reservado') return 'status-reserved';
@@ -375,6 +427,7 @@ const LockerManagement = () => {
                                 >
                                     <span className="unit-number">{locker.id}</span>
                                     {locker.status === 'em-uso' && <Lock size={14} className="unit-icon" />}
+                                    {locker.status === 'em-carencia' && <RotateCcw size={14} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={14} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={14} className="unit-icon" />}
                                     {locker.status === 'reservado' && <Calendar size={14} className="unit-icon" />}
@@ -458,7 +511,34 @@ const LockerManagement = () => {
                                         </div>
                                     </div>
 
-                                    {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado' || selectedLocker.status === 'liga') && (
+                                    {/* Banner de Carência */}
+                                    {selectedLocker.status === 'em-carencia' && selectedLocker.graceInfo && (
+                                        <div className="grace-admin-banner">
+                                            <div className="grace-admin-banner-header">
+                                                <RotateCcw size={16} />
+                                                <strong>Em Carência de Renovação</strong>
+                                                <span className={`grace-admin-pill ${selectedLocker.graceInfo.graceDaysLeft <= 3 ? 'urgent' : selectedLocker.graceInfo.graceDaysLeft <= 7 ? 'warning' : ''}`}>
+                                                    {selectedLocker.graceInfo.graceDaysLeft} {selectedLocker.graceInfo.graceDaysLeft === 1 ? 'dia' : 'dias'} restantes
+                                                </span>
+                                            </div>
+                                            <div className="grace-admin-rows">
+                                                <div className="grace-admin-row">
+                                                    <User size={14} />
+                                                    <span><strong>Aluno:</strong> {selectedLocker.graceInfo.responsible}</span>
+                                                </div>
+                                                <div className="grace-admin-row">
+                                                    <Calendar size={14} />
+                                                    <span><strong>Venceu em:</strong> {selectedLocker.graceInfo.expiredOn}</span>
+                                                </div>
+                                                <div className="grace-admin-row">
+                                                    <Clock size={14} />
+                                                    <span><strong>Prazo até:</strong> {selectedLocker.graceInfo.graceDeadline}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'em-carencia' || selectedLocker.status === 'gratuito' || selectedLocker.status === 'reservado' || selectedLocker.status === 'liga') && (
                                         <div className="drawer-section">
                                             <h3 className="section-title">
                                                 {selectedLocker.status === 'reservado' ? 'Reserva Ativa' : 
@@ -512,7 +592,7 @@ const LockerManagement = () => {
                                                 </button>
                                             )}
                                             
-                                            {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'gratuito') && (
+                                            {(selectedLocker.status === 'em-uso' || selectedLocker.status === 'em-carencia' || selectedLocker.status === 'gratuito') && (
                                                 <button className="admin-btn danger" onClick={() => handleStatusChange('vistoria')}>
                                                     <AlertCircle size={18} /> Encerrar locação
                                                 </button>

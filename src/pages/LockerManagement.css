@@ -220,6 +220,12 @@
     border-color: #fdba74;
 }
 
+.status-grace {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
 /* Desktop Enhancements */
 @media (min-width: 768px) {
     .user-selection.premium-theme {
@@ -450,6 +456,10 @@
 
 .status-banner-def.liga {
     background: #f97316;
+}
+
+.status-banner-def.em-carencia {
+    background: #d97706; /* Amber 600 */
 }
 
 .drawer-section {
@@ -908,5 +918,75 @@
 
 .locker-modal-btn.primary {
     width: 100%;
+}
+
+/* Grace Period Admin Banner */
+.grace-admin-banner {
+    background: #fffbeb;
+    border: 1.5px solid #fde68a;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.grace-admin-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #92400e;
+}
+
+.grace-admin-banner-header strong {
+    font-size: 0.9rem;
+    font-weight: 800;
+    flex: 1;
+}
+
+.grace-admin-pill {
+    padding: 4px 10px;
+    background: #fef3c7;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+.grace-admin-pill.warning {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fdba74;
+}
+
+.grace-admin-pill.urgent {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+    animation: pulse-border 2s infinite;
+}
+
+.grace-admin-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grace-admin-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #78350f;
+}
+
+.grace-admin-row strong {
+    color: #92400e;
+}
+
+@keyframes pulse-border {
+    0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(185, 28, 28, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0); }
 }
 

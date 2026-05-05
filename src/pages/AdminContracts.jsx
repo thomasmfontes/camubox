@@ -56,7 +56,18 @@ const AdminContracts = () => {
 
             let finalStatus = contrato.dc_status_locacao || 'ATIVA';
             if (expirationDate && expirationDate < today && finalStatus === 'ATIVA') {
-                finalStatus = 'VENCIDA';
+                // Normaliza para comparar apenas a data (sem horas)
+                const dToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const dExpiry = new Date(expirationDate.getFullYear(), expirationDate.getMonth(), expirationDate.getDate());
+                
+                const graceDeadline = new Date(dExpiry);
+                graceDeadline.setDate(graceDeadline.getDate() + 15);
+                
+                if (dToday <= graceDeadline) {
+                    finalStatus = 'EM_RENOVACAO';
+                } else {
+                    finalStatus = 'ENCERRADA';
+                }
             }
 
             mapped.push({
@@ -181,8 +192,8 @@ const AdminContracts = () => {
         switch (status) {
             case 'ATIVA':
                 return <span className="status-badge active"><CheckCircle2 size={12} /> Ativo</span>;
-            case 'VENCIDA':
-                return <span className="status-badge expired"><AlertTriangle size={12} /> Vencido</span>;
+            case 'EM_RENOVACAO':
+                return <span className="status-badge grace"><RotateCcw size={12} /> Carência</span>;
             case 'AGUARDANDO_VISTORIA':
                 return <span className="status-badge pending"><Clock size={12} /> Vistoria</span>;
             case 'CANCELADA':
@@ -372,6 +383,7 @@ const AdminContracts = () => {
                     options={{
                         'All': 'Todos os Status',
                         'ATIVA': 'Ativos',
+                        'EM_RENOVACAO': 'Em Carência',
                         'ENCERRADA': 'Encerrados'
                     }}
                     onChange={(val) => setFilters({ ...filters, status: val })}

@@ -42,20 +42,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     box-shadow: var(--shadow);
 }
 
-.locker-card-premium:hover {
-    transform: translateY(-8px) scale(1.01);
-    border-color: var(--primary);
-    box-shadow: 0 20px 40px rgba(0, 43, 31, 0.12);
-}
-
-.locker-card-premium:active {
-    transform: scale(0.98);
-}
 
 .card-glass-effect {
     position: absolute;
@@ -72,9 +62,10 @@
     transition: all 0.6s ease;
 }
 
-.locker-card-premium:hover .card-glass-effect {
-    left: 100%;
+.card-glass-effect {
+    display: none; /* Removendo o efeito de brilho que pode ser distrativo */
 }
+
 
 .locker-header {
     display: flex;
@@ -666,4 +657,273 @@
 
 .btn-cta-premium:active {
     transform: scale(0.97);
+}
+
+/* ===========================
+   RENEWAL / GRACE PERIOD STYLES
+   =========================== */
+
+/* Alert Banner */
+.renewal-alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1.5px solid #fcd34d;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.renewal-alert-icon {
+    width: 36px;
+    height: 36px;
+    background: #f59e0b;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.renewal-alert-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.renewal-alert-content strong {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #92400e;
+}
+
+.renewal-alert-content p {
+    font-size: 0.82rem;
+    color: #78350f;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Section Divider for Renewal */
+.section-divider-premium.renewal-divider {
+    color: #d97706;
+    border-top-color: #fde68a;
+}
+
+.section-divider-premium.renewal-divider h3 {
+    color: #92400e;
+}
+
+/* Status Tag */
+.status-tag.em-carencia {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+/* Renewal Controls & Plan Selector Mini */
+.renewal-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.plan-selector-mini {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
+}
+
+.plan-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.plan-btn span {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.plan-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.btn-renew-confirm {
+    width: 100%;
+}
+
+/* Timeline Overrides for Grace Period */
+.progress-bar-container.grace {
+    background: #f1f5f9;
+}
+
+.progress-fill.warning {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.progress-fill.urgent {
+    background: linear-gradient(90deg, #ef4444, #b91c1c);
+    animation: pulse-ring 2s infinite;
+}
+
+.grace-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.grace-footer strong {
+    color: var(--text-main);
+    margin-left: 4px;
+}
+
+/* Grace Progress Bar */
+.grace-progress-container {
+    height: 6px;
+    background: #fde68a;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.grace-progress-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 100px;
+    transition: width 0.5s ease, background 0.3s;
+}
+
+.grace-progress-fill.warning {
+    background: #f59e0b;
+}
+
+.grace-progress-fill.urgent {
+    background: #ef4444;
+}
+
+/* Grace deadline label */
+.grace-deadline-label {
+    font-size: 0.72rem;
+    color: #92400e;
+    font-weight: 600;
+}
+
+/* Renew Now Button */
+.btn-renew-now {
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
+    letter-spacing: 0.01em;
+}
+
+.btn-renew-now:hover {
+    filter: brightness(1.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(217, 119, 6, 0.4);
+}
+
+.btn-renew-now:active {
+    transform: scale(0.97);
+}
+
+/* Renewal section spacing */
+.renewal-section {
+    margin-bottom: 0.5rem;
+}
+
+@keyframes slideInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .renewal-alert-banner {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Renewal Plan Selector */
+.renewal-plan-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.renewal-plan-btn {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1.5px solid #fde68a;
+    background: #fffbeb;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+}
+
+.renewal-plan-btn:hover {
+    border-color: #f59e0b;
+    background: #fef3c7;
+}
+
+.renewal-plan-btn.active {
+    border-color: #d97706;
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+}
+
+.renewal-plan-btn .plan-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.renewal-plan-btn .plan-price {
+    display: block;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #d97706;
+    margin-top: 2px;
+}
+
+.renewal-plan-btn.active .plan-label {
+    color: #78350f;
+}
+
+.renewal-plan-btn.active .plan-price {
+    color: #b45309;
 }
