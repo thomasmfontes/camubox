@@ -447,7 +447,6 @@
 
 .btn-toggle-eye:hover {
     background: #d1fae5;
-    transform: translateY(-2px);
 }
 
 .btn-save {
@@ -459,8 +458,6 @@
 
 .btn-save:hover {
     background: #002d1f;
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 61, 43, 0.3);
 }
 
 .btn-cancel {
@@ -482,8 +479,11 @@
 
 .btn-close-modal:hover {
     color: #475569;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Remover efeito de clique (scale) especificamente para os botões do modal */
+.password-modal button:active {
+    transform: none !important;
 }
 
 @keyframes spin {
@@ -500,6 +500,16 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .btn-toggle-eye span {
+        display: none;
+    }
+    
+    .btn-toggle-eye {
+        padding: 0;
+        min-width: 52px;
+        flex: 0 0 52px;
+    }
+
     .lockers-matrix {
         grid-template-columns: 1fr;
     }

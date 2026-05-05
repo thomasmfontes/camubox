@@ -123,7 +123,7 @@ const UserMyLockers = ({ user }) => {
         if (!viewPassword) return;
         setIsSavingPass(true);
         try {
-            const { error } = await dbService.rentals.updatePassword(viewPassword.id, newPassValue);
+            const { error } = await dbService.rentals.updatePassword(viewPassword.id, newPassValue, viewPassword.lockerNumber);
             if (!error) {
                 setMyLockers(myLockers.map(l => l.id === viewPassword.id ? { ...l, password: newPassValue } : l));
                 setIsEditingPassword(false);
@@ -465,18 +465,18 @@ const UserMyLockers = ({ user }) => {
                                 {isEditingPassword ? (
                                     <div className="footer-actions">
                                         <button className="btn-cancel" onClick={() => setIsEditingPassword(false)} disabled={isSavingPass}>
-                                            Cancelar
+                                            Voltar
                                         </button>
                                         <button className="btn-save" onClick={handleSavePassword} disabled={isSavingPass}>
-                                            {isSavingPass ? <Loader2 className="spinner" size={18} /> : <Save size={18} />}
-                                            Salvar Senha
+                                            {isSavingPass ? <Loader2 className="spinner" size={18} /> : null}
+                                            Salvar
                                         </button>
                                     </div>
                                 ) : (
                                     <div className="footer-actions">
                                         <button className="btn-toggle-eye" onClick={() => setShowPassword(!showPassword)}>
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                            {showPassword ? 'Ocultar' : 'Visualizar'}
+                                            <span>{showPassword ? 'Ocultar' : 'Visualizar'}</span>
                                         </button>
                                         <button className="btn-close-modal" onClick={() => setViewPassword(null)}>
                                             Fechar

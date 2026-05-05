@@ -582,7 +582,7 @@ export const dbService = {
 
             return { data: null, error: null };
         },
-        updatePassword: async (rentalId, newPassword) => {
+        updatePassword: async (rentalId, newPassword, lockerNumber = null) => {
             if (isMockMode) {
                 console.log(`Mock: Updating password for rental ${rentalId} to ${newPassword}`);
                 return { data: null, error: null };
@@ -598,27 +598,29 @@ export const dbService = {
             
             if (error) return { error };
 
-            // 2. Trigger notification with friendly locker number
+            // 2. Trigger notification
             if (data) {
-                let lockerFriendlyNumber = data.id_armario;
+                let lockerFriendlyNumber = lockerNumber;
                 
-                try {
-                    // Garantimos que o ID seja tratado como número
-                    const lockerIdNum = Number(data.id_armario);
+                // Se não foi passado o número amigável, tenta descobrir
+                if (!lockerFriendlyNumber) {
+                    try {
+                        const lockerIdNum = Number(data.id_armario);
+                        const { data: lockerData } = await supabase
+                            .from('v_armario')
+                            .select('cd_armario, nr_armario')
+                            .eq('id_armario', lockerIdNum)
+                            .maybeSingle();
 
-                    // Busca na View v_armario
-                    const { data: lockerData } = await supabase
-                        .from('v_armario')
-                        .select('cd_armario, nr_armario')
-                        .eq('id_armario', lockerIdNum)
-                        .maybeSingle();
-
-                    if (lockerData) {
-                        // O seu sistema usa nr_armario ou cd_armario para exibir
-                        lockerFriendlyNumber = lockerData.cd_armario || lockerData.nr_armario || data.id_armario;
+                        if (lockerData) {
+                            const rawNum = lockerData.cd_armario || lockerData.nr_armario || data.id_armario;
+                            lockerFriendlyNumber = rawNum.toString().padStart(3, '0');
+                        } else {
+                            lockerFriendlyNumber = data.id_armario.toString().padStart(3, '0');
+                        }
+                    } catch (e) {
+                        lockerFriendlyNumber = data.id_armario;
                     }
-                } catch (e) {
-                    console.error('Erro ao buscar número do armário:', e);
                 }
 
                 await supabase.from('t_notificacao').insert([{
