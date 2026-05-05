@@ -603,16 +603,19 @@ export const dbService = {
                 let lockerFriendlyNumber = data.id_armario;
                 
                 try {
-                    // Busca direta na tabela física para ser mais rápido e preciso
-                    const { data: locker } = await supabase
-                        .from('t_armario')
+                    // Garantimos que o ID seja tratado como número
+                    const lockerIdNum = Number(data.id_armario);
+
+                    // Busca na View v_armario
+                    const { data: lockerData } = await supabase
+                        .from('v_armario')
                         .select('cd_armario, nr_armario')
-                        .eq('id_armario', data.id_armario)
+                        .eq('id_armario', lockerIdNum)
                         .maybeSingle();
 
-                    if (locker) {
-                        // Prioriza cd_armario (013) ou nr_armario
-                        lockerFriendlyNumber = locker.cd_armario || locker.nr_armario || data.id_armario;
+                    if (lockerData) {
+                        // O seu sistema usa nr_armario ou cd_armario para exibir
+                        lockerFriendlyNumber = lockerData.cd_armario || lockerData.nr_armario || data.id_armario;
                     }
                 } catch (e) {
                     console.error('Erro ao buscar número do armário:', e);

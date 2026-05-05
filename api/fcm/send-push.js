@@ -42,8 +42,8 @@ function getEmailTemplate(userName, title, message, url) {
   <style>
     body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #002b1f; margin: 0; padding: 0; background-color: #f4f7f6; }
     .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 43, 31, 0.12); border: 1px solid #d1dad7; }
-    .header { background-color: #003d2b; color: #ffffff; padding: 40px 20px; text-align: center; border-bottom: 4px solid #d4af37; }
-    .header img { width: 80px; height: 80px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+    .header { background-color: #003d2b; color: #ffffff; padding: 40px 20px; text-align: center; }
+    .header img { width: 80px; height: 80px; border-radius: 18px; margin-bottom: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.2); }
     .header h1 { margin: 0; font-size: 26px; font-weight: 850; letter-spacing: -1px; }
     .content { padding: 40px 30px; }
     .content h2 { color: #003d2b; margin-top: 0; font-size: 22px; font-weight: 800; }
@@ -53,7 +53,7 @@ function getEmailTemplate(userName, title, message, url) {
     .button { display: inline-block; padding: 16px 32px; background-color: #003d2b; color: #ffffff !important; text-decoration: none; border-radius: 100px; font-weight: 700; font-size: 16px; box-shadow: 0 6px 15px rgba(0, 61, 43, 0.2); transition: transform 0.2s; }
     .footer { padding: 30px; text-align: center; font-size: 13px; color: #4a635d; background: #f4f7f6; border-top: 1px solid #d1dad7; }
     .footer p { margin: 5px 0; }
-    .footer .social { margin-top: 15px; color: #d4af37; font-weight: 700; }
+    .footer .social { margin-top: 15px; color: #003d2b; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -80,7 +80,6 @@ function getEmailTemplate(userName, title, message, url) {
     <div class="footer">
       <p><strong>CAMUBOX - Gestão Inteligente de Armários</strong></p>
       <p>Este é um e-mail automático, por favor não responda.</p>
-      <div class="social">&bull; Medicina Unimar &bull;</div>
       <p style="margin-top: 20px; font-size: 11px; opacity: 0.7;">&copy; 2026 CAMUBOX. Todos os direitos reservados.</p>
     </div>
   </div>
