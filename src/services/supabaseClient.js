@@ -607,7 +607,7 @@ export const dbService = {
                     try {
                         const lockerIdNum = Number(data.id_armario);
                         const { data: lockerData } = await supabase
-                            .from('v_armario')
+                            .from('t_armario')
                             .select('cd_armario, nr_armario')
                             .eq('id_armario', lockerIdNum)
                             .maybeSingle();
