@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { correlationID, value, comment, customer } = req.body;
+  const { correlationID, value, comment, customer, additionalInfo } = req.body;
   const appId = process.env.WOOVI_APP_ID;
 
   if (!appId) {
@@ -21,7 +21,8 @@ export default async function handler(req, res) {
         correlationID,
         value,
         comment,
-        customer
+        customer,
+        additionalInfo
       })
     });
 

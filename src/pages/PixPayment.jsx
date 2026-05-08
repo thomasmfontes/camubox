@@ -115,11 +115,17 @@ const PixPayment = ({ user }) => {
                     body: JSON.stringify({
                         correlationID,
                         value: price * 100, // Woovi usa centavos
-                        comment: isExchange ? `Troca Armário ${selectedLocker.id}` : `Locação Armário ${selectedLocker.id}`,
+                        comment: `CAMUBOX: ${isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
                         customer: {
-                            name: user.nm_usuario || user.email,
+                            name: user.nm_usuario || user.name || user.email,
                             email: user.email,
-                        }
+                            // taxID: user.cpf // Futuro: Adicionar CPF aqui ajuda a reduzir flags de fraude
+                        },
+                        additionalInfo: [
+                            { key: 'Armário', value: selectedLocker.id },
+                            { key: 'Tipo', value: isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação' },
+                            { key: 'Usuario', value: user.name || user.email }
+                        ]
                     })
                 });
 
@@ -217,6 +223,11 @@ const PixPayment = ({ user }) => {
                 <div className="header-text">
                     <h1>{isExchange ? 'Pagamento da Taxa de Troca' : isRenewal ? 'Renovar Contrato' : 'Finalizar Pagamento'}</h1>
                     <p>{isExchange ? 'Após o pagamento, sua troca será processada instantaneamente.' : isRenewal ? 'Renove seu armário com prioridade. O prazo de carência garante a sua vaga.' : 'Sua reserva está garantida enquanto o QR Code for válido.'}</p>
+                    
+                    <div className="bank-security-notice">
+                        <Shield size={14} />
+                        <span>Atenção: Alguns bancos podem exibir um alerta de segurança por ser uma conta nova. A CAMUBOX é um serviço verificado e você pode prosseguir com segurança.</span>
+                    </div>
                 </div>
             </header>
 
