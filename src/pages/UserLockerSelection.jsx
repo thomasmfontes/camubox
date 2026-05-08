@@ -501,7 +501,7 @@ const UserLockerSelection = ({ user }) => {
                             {!statusModal.isMine && statusModal.status === 'liga' && (statusModal.nm_liga ? `Esta unidade está reservada para a liga: ${statusModal.nm_liga}.` : 'Esta unidade está reservada para uma Liga Acadêmica.')}
                         </p>
 
-                        {(statusModal.isMine || statusModal.status === 'ocupado' || statusModal.status === 'reservado') && (
+                        {(statusModal.isMine || ((statusModal.status === 'ocupado' || statusModal.status === 'reservado') && statusModal.size?.toLowerCase() === 'grande')) && (
                             <div className="waiting-list-container">
                                 {statusModal.isMine ? (
                                     <button 
