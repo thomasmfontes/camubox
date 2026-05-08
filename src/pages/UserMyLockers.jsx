@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3, Users, RotateCcw, Zap } from 'lucide-react';
+import { GrUpgrade } from "react-icons/gr";
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
 
@@ -18,16 +19,20 @@ const UserMyLockers = ({ user }) => {
     const [isSavingPass, setIsSavingPass] = useState(false);
     const [confirmTerminate, setConfirmTerminate] = useState(null);
     const [isTerminating, setIsTerminating] = useState(false);
+    const [settings, setSettings] = useState(null);
 
     const fetchData = useCallback(async () => {
         if (!user?.id_usuario) return;
         setIsLoading(true);
         try {
-            const [rentalsRes, renewableRes, leaguesRes] = await Promise.all([
+            const [rentalsRes, renewableRes, leaguesRes, settingsRes] = await Promise.all([
                 dbService.rentals.getByUser(user.id_usuario),
                 dbService.rentals.getRenewableByUser(user.id_usuario),
-                dbService.leagues.getByPresident(user.id_usuario)
+                dbService.leagues.getByPresident(user.id_usuario),
+                dbService.settings.get()
             ]);
+
+            if (!settingsRes.error) setSettings(settingsRes.data);
 
             // 1. Locações ativas
             if (!rentalsRes.error && rentalsRes.data) {
@@ -59,7 +64,7 @@ const UserMyLockers = ({ user }) => {
                             floor: r.dc_andar || 'N/A',
                             position: r.nm_posicao || 'MÉDIO',
                             size: r.dc_tamanho || 'Pequeno',
-                            password: r.cd_senha || '1234',
+                            id_tipo: r.id_tipo,
                             status: isActive ? 'ATIVA' : 'ENCERRADA',
                             validUntil: expiry.toLocaleDateString(),
                             daysLeft: diffDays > 0 ? diffDays : 0,
@@ -140,6 +145,35 @@ const UserMyLockers = ({ user }) => {
 
     const handleExchange = (locker) => {
         navigate(`/dashboard/lockers?exchange_for=${locker.id}&size=${locker.size}&old_id=${locker.id_armario}`);
+    };
+
+    const handleUpgrade = (locker) => {
+        if (!settings) return;
+        
+        const isLarge = locker.size?.toLowerCase() === 'grande';
+        const priceSem = isLarge ? settings.vl_grande_semestral : settings.vl_pequeno_semestral;
+        const priceAnn = isLarge ? settings.vl_grande_anual : settings.vl_pequeno_anual;
+        const diff = priceAnn - priceSem;
+
+        navigate('/dashboard/checkout/payment', {
+            state: {
+                type: 'upgrade',
+                upgradeInfo: {
+                    rentalId: locker.id,
+                    newTypeId: 2, // Anual
+                    fee: diff
+                },
+                locker: {
+                    id: locker.lockerNumber,
+                    dbId: locker.id_armario,
+                    size: locker.size,
+                    floor: locker.floor,
+                    plan: 'anual',
+                    priceSem,
+                    priceAnn
+                }
+            }
+        });
     };
 
     const handleRenew = (renewable) => {
@@ -387,7 +421,16 @@ const UserMyLockers = ({ user }) => {
                                                 onClick={() => handleExchange(locker)}
                                             >
                                                 <ArrowLeftRight size={16} />
-                                                <span>Trocar armário</span>
+                                                <span>Trocar</span>
+                                            </button>
+                                        )}
+                                        {!locker.isExpired && locker.id_tipo === 1 && (
+                                            <button 
+                                                className="btn-action-glass btn-upgrade-premium"
+                                                onClick={() => handleUpgrade(locker)}
+                                            >
+                                                <GrUpgrade size={18} />
+                                                <span>Upgrade para Plano Anual</span>
                                             </button>
                                         )}
                                     </div>

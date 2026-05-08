@@ -76,6 +76,41 @@ export default async function handler(req, res) {
           }]);
 
           console.log(`✅ Troca Confirmada: ${correlationID}`);
+        } else if (correlationID.startsWith('UPG_')) {
+          const parts = correlationID.split('_');
+          const rentalId = parts[1];
+          const newTypeId = parts[2]; // 2 para Anual
+
+          // 1. Buscar contrato atual
+          const { data: rental } = await supabase.from('t_locacao').select('*').eq('id_locacao', rentalId).single();
+          
+          if (rental) {
+            // 2. Atualizar para Anual e estender data
+            // Definimos o término como 1 ano após a data de INÍCIO original
+            const startDate = new Date(rental.dt_inicio);
+            const newExpiry = new Date(startDate);
+            newExpiry.setFullYear(newExpiry.getFullYear() + 1);
+            const newExpiryStr = newExpiry.toISOString().split('T')[0];
+
+            await supabase.from('t_locacao').update({ 
+                id_tipo: Number(newTypeId),
+                dt_termino: newExpiryStr,
+                id_status: 1 // Garante que está ativa
+            }).eq('id_locacao', rentalId);
+
+            // 3. Notificação
+            const { data: lockerInfo } = await supabase.from('t_armario').select('cd_armario, nr_armario').eq('id_armario', Number(rental.id_armario)).maybeSingle();
+            const lockerDisplay = (lockerInfo?.cd_armario || lockerInfo?.nr_armario || rental.id_armario).toString().padStart(3, '0');
+
+            await supabase.from('t_notificacao').insert([{
+              id_usuario: rental.id_usuario,
+              dc_titulo: 'Upgrade Confirmado! ⭐',
+              dc_mensagem: `Seu plano do armário #${lockerDisplay} foi alterado para ANUAL com sucesso.`,
+              tp_entidade: 'armario',
+              id_entidade: rental.id_armario
+            }]);
+          }
+          console.log(`✅ Upgrade Confirmado: ${correlationID}`);
         } else {
           // Fetch rental to get user ID
           const { data: rental } = await supabase.from('t_locacao').select('id_usuario, id_armario').eq('id_locacao', correlationID).single();

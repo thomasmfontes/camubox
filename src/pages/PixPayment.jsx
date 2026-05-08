@@ -9,7 +9,8 @@ import {
     Clock,
     XCircle,
     ChevronLeft,
-    ArrowRight
+    ArrowRight,
+    Shield
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import './PixPayment.css';
@@ -26,8 +27,10 @@ const PixPayment = ({ user }) => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const isExchange = state?.type === 'exchange';
+    const isUpgrade = state?.type === 'upgrade';
     const isRenewal = state?.locker?.isRenewal === true;
     const exchangeInfo = state?.exchangeInfo;
+    const upgradeInfo = state?.upgradeInfo;
     const selectedLocker = state?.locker || {
         id: '000',
         size: 'N/A',
@@ -37,11 +40,11 @@ const PixPayment = ({ user }) => {
     };
 
     const isSemestral = selectedLocker.plan?.toLowerCase() === 'semestral';
-    const price = isExchange ? (exchangeInfo?.fee ?? 20) : (isSemestral ? selectedLocker.priceSem : selectedLocker.priceAnn);
+    const price = isUpgrade ? (upgradeInfo?.fee ?? 50) : (isExchange ? (exchangeInfo?.fee ?? 20) : (isSemestral ? selectedLocker.priceSem : selectedLocker.priceAnn));
 
     const rentalDetails = {
         id: selectedLocker.id,
-        contract: isExchange ? 'Taxa de Troca' : isRenewal ? `Renovação ${isSemestral ? 'Semestral' : 'Anual'}` : (isSemestral ? 'Semestral' : 'Anual'),
+        contract: isUpgrade ? 'Upgrade para Anual' : (isExchange ? 'Taxa de Troca' : isRenewal ? `Renovação ${isSemestral ? 'Semestral' : 'Anual'}` : (isSemestral ? 'Semestral' : 'Anual')),
         price: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price)
     };
 
@@ -81,7 +84,9 @@ const PixPayment = ({ user }) => {
 
                 // 1. Criar o registro da locação no Supabase primeiro para ter o ID (se não houver um pendente)
                 if (!correlationID) {
-                    if (isExchange) {
+                    if (isUpgrade) {
+                        correlationID = `UPG_${upgradeInfo.rentalId}_${upgradeInfo.newTypeId}`;
+                    } else if (isExchange) {
                         correlationID = `EXC_${exchangeInfo.rentalId}_${exchangeInfo.oldLockerId}_${selectedLocker.dbId}`;
                     } else {
                     // Para renovação: encerra o contrato anterior (atualiza id_status para 2) antes de criar o novo
@@ -115,7 +120,7 @@ const PixPayment = ({ user }) => {
                     body: JSON.stringify({
                         correlationID,
                         value: price * 100, // Woovi usa centavos
-                        comment: `CAMUBOX: ${isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
+                        comment: `CAMUBOX: ${isUpgrade ? 'Upgrade' : isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
                         customer: {
                             name: user.nm_usuario || user.name || user.email,
                             email: user.email,
@@ -123,7 +128,7 @@ const PixPayment = ({ user }) => {
                         },
                         additionalInfo: [
                             { key: 'Armário', value: selectedLocker.id },
-                            { key: 'Tipo', value: isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação' },
+                            { key: 'Tipo', value: isUpgrade ? 'Upgrade' : isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação' },
                             { key: 'Usuario', value: user.name || user.email }
                         ]
                     })
@@ -139,7 +144,7 @@ const PixPayment = ({ user }) => {
                 setStatus('pending');
 
                 // 3. Escutar mudanças via Realtime (Canal Único)
-                const watchId = isExchange ? exchangeInfo.rentalId.toString() : correlationID;
+                const watchId = (isExchange || isUpgrade) ? (isExchange ? exchangeInfo.rentalId.toString() : upgradeInfo.rentalId.toString()) : correlationID;
                 subscription = supabase
                     .channel(`status-${watchId}`)
                     .on('postgres_changes', { 
@@ -149,7 +154,11 @@ const PixPayment = ({ user }) => {
                         filter: `id_locacao=eq.${watchId}`
                     }, (payload) => {
                         console.log('🔔 Realtime Update:', payload);
-                        if (isExchange) {
+                        if (isUpgrade) {
+                            if (payload.new.id_tipo === 2) {
+                                setStatus('confirmed');
+                            }
+                        } else if (isExchange) {
                             if (payload.new.id_armario === selectedLocker.dbId) {
                                 setStatus('confirmed');
                                 dbService.waitingList.complete(selectedLocker.dbId, user.id_usuario);
@@ -165,7 +174,18 @@ const PixPayment = ({ user }) => {
 
                 // 4. Fallback: Verificação Manual a cada 5 segundos
                 checkInterval = setInterval(async () => {
-                    if (isExchange) {
+                    if (isUpgrade) {
+                        const { data: currentRental } = await supabase
+                            .from('t_locacao')
+                            .select('id_tipo')
+                            .eq('id_locacao', upgradeInfo.rentalId)
+                            .single();
+                        
+                        if (currentRental?.id_tipo === 2) {
+                            setStatus('confirmed');
+                            clearInterval(checkInterval);
+                        }
+                    } else if (isExchange) {
                         const { data: currentRental } = await supabase
                             .from('t_locacao')
                             .select('id_armario')
@@ -221,8 +241,8 @@ const PixPayment = ({ user }) => {
                     <ChevronLeft size={20} />
                 </button>
                 <div className="header-text">
-                    <h1>{isExchange ? 'Pagamento da Taxa de Troca' : isRenewal ? 'Renovar Contrato' : 'Finalizar Pagamento'}</h1>
-                    <p>{isExchange ? 'Após o pagamento, sua troca será processada instantaneamente.' : isRenewal ? 'Renove seu armário com prioridade. O prazo de carência garante a sua vaga.' : 'Sua reserva está garantida enquanto o QR Code for válido.'}</p>
+                    <h1>{isUpgrade ? 'Upgrade de Plano' : isExchange ? 'Pagamento da Taxa de Troca' : isRenewal ? 'Renovar Contrato' : 'Finalizar Pagamento'}</h1>
+                    <p>{isUpgrade ? 'Ao migrar para o plano anual, você garante mais tempo de uso com o melhor custo-benefício.' : isExchange ? 'Após o pagamento, sua troca será processada instantaneamente.' : isRenewal ? 'Renove seu armário com prioridade. O prazo de carência garante a sua vaga.' : 'Sua reserva está garantida enquanto o QR Code for válido.'}</p>
                     
                     <div className="bank-security-notice">
                         <Shield size={14} />
@@ -340,9 +360,9 @@ const PixPayment = ({ user }) => {
                             <div className="payment-success-card animate-bounce-in">
                                 <div className="success-header">
                                     <CheckCircle2 size={32} />
-                                    <h3>{isExchange ? 'Troca Realizada!' : 'Sucesso!'}</h3>
+                                    <h3>{isUpgrade ? 'Upgrade Realizado!' : isExchange ? 'Troca Realizada!' : 'Sucesso!'}</h3>
                                 </div>
-                                <p>{isExchange ? 'Sua troca foi concluída e o novo armário já está ativo.' : isRenewal ? 'Seu contrato foi renovado! O armário continua garantido para você.' : 'Sua locação foi confirmada e o armário já está liberado.'}</p>
+                                <p>{isUpgrade ? 'Seu plano foi alterado para Anual e a validade do seu contrato foi estendida.' : isExchange ? 'Sua troca foi concluída e o novo armário já está ativo.' : isRenewal ? 'Seu contrato foi renovado! O armário continua garantido para você.' : 'Sua locação foi confirmada e o armário já está liberado.'}</p>
                                 <button className="go-to-lockers-btn" onClick={() => navigate('/dashboard/my-locker')}>
                                     Ver Meus Armários
                                     <ArrowRight size={18} />
