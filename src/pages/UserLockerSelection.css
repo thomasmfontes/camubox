@@ -233,9 +233,10 @@
 
 /* Locker States - Multi-color Palette */
 .locker-unit:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-6px) scale(1.08);
+    box-shadow: 0 12px 20px rgba(0, 43, 31, 0.12);
     z-index: 10;
+    border-color: var(--primary);
 }
 
 .status-available {
@@ -286,9 +287,26 @@
     border-color: #fecaca;
 }
 
+.status-reserved {
+    background: #fdf2f8;
+    color: #9d174d;
+    border-color: #fbcfe8;
+}
+
 .status-reserved:hover {
     background: #fce7f3;
     border-color: #f9a8d4;
+}
+
+.locker-unit.is-waiting-mine {
+    background: #fdf2f8 !important;
+    border-color: #fbcfe8 !important;
+    box-shadow: none !important;
+}
+
+.unit-icon-mine {
+    color: #9d174d;
+    margin-top: 4px;
 }
 
 .status-blocked {

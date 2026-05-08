@@ -48,6 +48,7 @@ const UserLockerSelection = ({ user }) => {
     const [waitingListStatus, setWaitingListStatus] = useState(null);
     const [isProcessingWaitingList, setIsProcessingWaitingList] = useState(false);
     const [exchangeFee, setExchangeFee] = useState(20);
+    const [userWaitingList, setUserWaitingList] = useState(new Map());
 
     useEffect(() => {
         if (exchangeSize) {
@@ -60,11 +61,12 @@ const UserLockerSelection = ({ user }) => {
             setIsLoading(true);
             try {
                 // Fetch in parallel
-                const [lockersRes, lookupRes, configRes, rentalsRes] = await Promise.all([
+                const [lockersRes, lookupRes, configRes, rentalsRes, waitRes] = await Promise.all([
                     dbService.lockers.getAll(),
                     dbService.lockers.getLookups(),
                     dbService.lockers.getConfig(),
-                    user ? dbService.rentals.getByUser(user.id_usuario) : Promise.resolve({ data: [] })
+                    user ? dbService.rentals.getByUser(user.id_usuario) : Promise.resolve({ data: [] }),
+                    user ? dbService.waitingList.getByUser(user.id_usuario) : Promise.resolve({ data: [] })
                 ]);
 
                 if (lookupRes.error) throw lookupRes.error;
@@ -89,6 +91,14 @@ const UserLockerSelection = ({ user }) => {
                     };
 
                     const userActiveLockers = new Set((rentalsRes?.data || []).filter(r => r.id_status === 1).map(r => r.id_armario));
+                    
+                    // Sincronizar lista de espera do usuário
+                    if (waitRes && waitRes.data) {
+                        const waitMap = new Map();
+                        waitRes.data.forEach(item => waitMap.set(item.id_armario, item.id_status));
+                        setUserWaitingList(waitMap);
+                    }
+
                     const uniqueMap = new Map();
 
                     lockersRes.data.forEach(l => {
@@ -304,11 +314,13 @@ const UserLockerSelection = ({ user }) => {
                             displayLockers.map((locker) => (
                                 <button
                                     key={locker.dbId}
-                                    className={`locker-unit ${getStatusClass(locker.status)} ${selectedLocker?.id === locker.id ? 'active' : ''}`}
+                                    className={`locker-unit ${getStatusClass(locker.status)} ${selectedLocker?.id === locker.id ? 'active' : ''} ${userWaitingList.has(locker.dbId) ? 'is-waiting-mine' : ''}`}
                                     onClick={() => openLockerDetails(locker)}
                                 >
                                     <span className="unit-number">{locker.id}</span>
-                                    {(locker.status === 'ocupado' || locker.status === 'reservado') && <Lock size={12} className="unit-icon" />}
+                                    {userWaitingList.has(locker.dbId) && <Calendar size={14} className="unit-icon-mine" />}
+                                    {locker.status === 'ocupado' && !userWaitingList.has(locker.dbId) && <Lock size={12} className="unit-icon" />}
+                                    {locker.status === 'reservado' && !userWaitingList.has(locker.dbId) && <Calendar size={12} className="unit-icon" />}
                                     {locker.status === 'vistoria' && <Clock size={12} className="unit-icon" />}
                                     {locker.status === 'manutencao' && <Wrench size={12} className="unit-icon" />}
                                     {locker.status === 'bloqueado' && <ShieldOff size={14} className="unit-icon" />}
@@ -361,6 +373,11 @@ const UserLockerSelection = ({ user }) => {
                                         <div className="info-content">
                                             <h4>Unidade Reservada para Você!</h4>
                                             <p>Este armário foi liberado da fila de espera e está aguardando sua contratação.</p>
+                                            {waitingListStatus?.dt_expiracao_reserva && (
+                                                <p style={{ marginTop: '0.5rem', fontWeight: 'bold' }}>
+                                                    Você tem até {new Date(waitingListStatus.dt_expiracao_reserva).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} para concluir o pagamento.
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -484,7 +501,8 @@ const UserLockerSelection = ({ user }) => {
                 <div className="status-modal-overlay" onClick={() => setStatusModal(null)}>
                     <div className="status-modal" onClick={e => e.stopPropagation()}>
                         <div className={`status-modal-icon ${getStatusClass(statusModal.status)}`}>
-                            {(statusModal.status === 'ocupado' || statusModal.status === 'reservado') && <Lock size={40} />}
+                            {statusModal.status === 'ocupado' && <Lock size={40} />}
+                            {statusModal.status === 'reservado' && <Calendar size={40} />}
                             {statusModal.status === 'vistoria' && <Clock size={40} />}
                             {statusModal.status === 'manutencao' && <Wrench size={40} />}
                             {statusModal.status === 'bloqueado' && <ShieldOff size={40} />}
@@ -518,7 +536,9 @@ const UserLockerSelection = ({ user }) => {
                                     waitingListStatus ? (
                                         <div className="waiting-list-status">
                                             <CheckCircle2 size={18} />
-                                            {waitingListStatus.id_status === 1 ? 'Você está na fila de espera!' : 'Reserva ativa para você!'}
+                                            {waitingListStatus.id_status === 1 
+                                                ? 'Você está na fila de espera!' 
+                                                : `Reserva ativa para você! (Vence em: ${new Date(waitingListStatus.dt_expiracao_reserva).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })})`}
                                         </div>
                                     ) : (
                                         <button 

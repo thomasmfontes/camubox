@@ -807,6 +807,13 @@ export const dbService = {
                 .from('t_fila_espera')
                 .select('*, t_usuario(nm_usuario)')
                 .eq('id_status', 2); // 2 = RESERVADO
+        },
+        getByUser: async (userId) => {
+            return await supabase
+                .from('t_fila_espera')
+                .select('*')
+                .eq('id_usuario', userId)
+                .in('id_status', [1, 2]); // 1: AGUARDANDO, 2: RESERVADO
         }
     }
 };

@@ -30,7 +30,7 @@ BEGIN
             UPDATE t_fila_espera 
             SET id_status = 2,
                 dt_notificacao = NOW(),
-                dt_expiracao_reserva = NOW() + INTERVAL '24 hours'
+                dt_expiracao_reserva = NOW() + INTERVAL '3 days'
             WHERE id_fila = v_proximo_fila.id_fila;
 
             -- Create a notification for the user with entity ID for deep-linking
@@ -38,7 +38,7 @@ BEGIN
             VALUES (
                 v_proximo_fila.id_usuario,
                 'Armário Liberado! 📦',
-                'O armário ' || v_cd_armario || ' que você queria foi liberado e está reservado para você por 24 horas.',
+                'O armário ' || v_cd_armario || ' que você queria foi liberado e está reservado para você por 3 dias.',
                 FALSE,
                 NOW(),
                 NEW.id_armario::TEXT,
