@@ -68,7 +68,7 @@ export const dbService = {
     },
 
     lockers: {
-        getAll: async () => {
+        getAll: async (includeDescriptions = false) => {
             if (isMockMode) {
                 const mockLockers = [];
                 // Generate 150 lockers to match the "correct values" screenshot
@@ -98,7 +98,34 @@ export const dbService = {
                 });
                 return { data: mockLockers, error: null };
             }
-            return await supabase.from('v_armario').select('*').order('cd_armario');
+            const queries = [supabase.from('v_armario').select('*').order('cd_armario')];
+            
+            if (includeDescriptions) {
+                queries.push(supabase.from('t_armario').select('id_armario, ds_observacao'));
+            }
+
+            const [viewRes, tableRes] = await Promise.all(queries);
+
+            if (viewRes.error) return viewRes;
+
+            // Merge descriptions if table fetch succeeded AND requested
+            if (includeDescriptions && tableRes && !tableRes.error && tableRes.data) {
+                const descMap = tableRes.data.reduce((acc, item) => {
+                    acc[item.id_armario] = item.ds_observacao;
+                    return acc;
+                }, {});
+
+                const mergedData = viewRes.data.map(locker => ({
+                    ...locker,
+                    ds_observacao: descMap[locker.id_armario] || null
+                }));
+
+                return { data: mergedData, error: null };
+            } else if (includeDescriptions && tableRes && tableRes.error) {
+                console.warn('[DB Warning] ds_observacao column may be missing in t_armario.', tableRes.error);
+            }
+
+            return viewRes;
         },
         getLookups: async () => {
             if (isMockMode) {
@@ -157,7 +184,7 @@ export const dbService = {
             // Usually there is only 1 row.
             return await supabase.from('t_configuracao').update(updates).neq('id_configuracao', 0); // Hack to update the only row
         },
-        updateStatus: async (id, statusIdOrName, id_liga = null) => {
+        updateStatus: async (id, statusIdOrName, id_liga = null, description = null) => {
             if (isMockMode) {
                 console.log(`Mock: Updating locker ${id} to status ${statusIdOrName} with league ${id_liga}`);
                 return { data: null, error: null };
@@ -191,7 +218,19 @@ export const dbService = {
                 updates.id_liga = null;
             }
 
-            return await supabase.from('t_armario').update(updates).eq('id_armario', id);
+            if (description !== null) {
+                updates.ds_observacao = description;
+            }
+
+            const res = await supabase.from('t_armario').update(updates).eq('id_armario', id);
+            
+            // Graceful handling if column is missing
+            if (res.error && (res.error.code === '42703' || res.error.message?.includes('ds_observacao'))) {
+                console.error('[DB ERROR] Column ds_observacao missing. Update failed.', res.error);
+                throw new Error('A coluna ds_observacao não existe no banco de dados. Execute o SQL para habilitar esta função.');
+            }
+
+            return res;
         },
         getByLeague: async (leagueId) => {
             if (isMockMode) return { data: [], error: null };

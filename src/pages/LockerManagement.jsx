@@ -18,7 +18,8 @@ import {
     Users,
     Phone,
     HelpCircle,
-    RotateCcw
+    RotateCcw,
+    StickyNote
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
@@ -43,13 +44,14 @@ const LockerManagement = () => {
     const [isGuideOpen, setIsGuideOpen] = useState(false);
     const [leagues, setLeagues] = useState([]);
     const [selectedLeagueId, setSelectedLeagueId] = useState('');
+    const [lockerDescription, setLockerDescription] = useState('');
 
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
             const [lockersRes, lookupRes, usersRes, rentalsRes, waitingRes, leaguesRes] = await Promise.all([
-                dbService.lockers.getAll(),
+                dbService.lockers.getAll(true),
                 dbService.lockers.getLookups(),
                 dbService.users.getAll(),
                 dbService.rentals.getAll(),
@@ -169,6 +171,7 @@ const LockerManagement = () => {
                             tel_presidente: leagueData?.nr_telefone || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nr_celular : leagueData.t_usuario?.nr_celular) : l.nr_celular_presidente),
                             isReservation,
                             graceInfo: graceMap[l.id_armario] || null,
+                            description: l.ds_observacao,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
                                 if (isReservation) {
                                     const d = new Date(dt);
@@ -206,7 +209,11 @@ const LockerManagement = () => {
             .filter(locker => {
                 const lockerIdStr = locker.id ? String(locker.id).toLowerCase() : '';
                 const responsibleStr = locker.responsible ? String(locker.responsible).toLowerCase() : '';
-                const matchesSearch = !fSearch || lockerIdStr.includes(fSearch) || responsibleStr.includes(fSearch);
+                const descriptionStr = locker.description ? String(locker.description).toLowerCase() : '';
+                const matchesSearch = !fSearch || 
+                                     lockerIdStr.includes(fSearch) || 
+                                     responsibleStr.includes(fSearch) ||
+                                     descriptionStr.includes(fSearch);
 
                 const selectedFloorName = lookups.floors?.[fFloorId];
                 const selectedSizeName = lookups.sizes?.[fSizeId];
@@ -253,7 +260,8 @@ const LockerManagement = () => {
             content: config.content || null,
             contentType: config.contentType || null,
             onConfirm: config.onConfirm || null,
-            isLoading: false
+            isLoading: false,
+            newStatus: config.newStatus || null
         });
     };
 
@@ -288,36 +296,53 @@ const LockerManagement = () => {
         } else if (newStatus === 'vistoria') {
             title = 'Encerrar Locação';
             message = `Deseja encerrar IMEDIATAMENTE a locação de ${selectedLocker.responsible} no armário #${selectedLocker.id}?`;
+        } else if (newStatus === 'edit_description') {
+            title = 'Editar Observação';
+            message = `Atualize a descrição do armário #${selectedLocker.id}:`;
         }
+
+        setLockerDescription(selectedLocker.description || '');
 
         showModal({
             title,
             message,
             type: 'confirm',
-            contentType: newStatus === 'liga' ? 'league_selection' : null,
-            onConfirm: async () => {
-                if (newStatus === 'liga' && !selectedLeagueId) {
-                    showToast('Selecione uma liga para continuar', 'error');
-                    setModalConfig(prev => ({ ...prev, isLoading: false }));
-                    return;
-                }
-
-                try {
-                    const dbStatus = newStatus.toUpperCase().replace('-', '_');
-                    await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus, selectedLeagueId);
-
-                    await fetchData();
-                    setSelectedLocker(null);
-                    setSelectedLeagueId('');
-                    closeModal();
-                    showToast('Status atualizado com sucesso!');
-                } catch (error) {
-                    console.error('Error updating status:', error);
-                    closeModal();
-                    showToast('Erro ao atualizar status', 'error');
-                }
-            }
+            newStatus: newStatus,
+            contentType: newStatus === 'liga' ? 'league_selection' : 
+                         (newStatus === 'bloqueado' || newStatus === 'manutencao' || newStatus === 'edit_description') ? 'description_input' : null
         });
+    };
+
+    const handleModalConfirm = async () => {
+        if (!selectedLocker || !modalConfig.newStatus) return;
+
+        const newStatus = modalConfig.newStatus;
+
+        if (newStatus === 'liga' && !selectedLeagueId) {
+            showToast('Selecione uma liga para continuar', 'error');
+            return;
+        }
+
+        setModalConfig(prev => ({ ...prev, isLoading: true }));
+
+        try {
+            const dbStatus = newStatus === 'edit_description' ? selectedLocker.status.toUpperCase().replace('-', '_') : newStatus.toUpperCase().replace('-', '_');
+            const descToSave = (newStatus === 'bloqueado' || newStatus === 'manutencao' || newStatus === 'edit_description') ? lockerDescription : 
+                               (newStatus === 'disponivel') ? '' : null;
+
+            await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus, selectedLeagueId, descToSave);
+
+            await fetchData();
+            setSelectedLocker(null);
+            setSelectedLeagueId('');
+            setLockerDescription('');
+            closeModal();
+            showToast('Informações atualizadas com sucesso!');
+        } catch (error) {
+            console.error('Error updating status:', error);
+            setModalConfig(prev => ({ ...prev, isLoading: false }));
+            showToast(error.message || 'Erro ao atualizar informações', 'error');
+        }
     };
 
 
@@ -428,6 +453,11 @@ const LockerManagement = () => {
                                     {locker.status === 'reservado' && <Calendar size={14} className="unit-icon" />}
                                     {locker.status === 'bloqueado' && <ShieldOff size={14} className="unit-icon" />}
                                     {locker.status === 'liga' && <Users size={14} className="unit-icon" />}
+                                    {locker.description && (
+                                        <div className="locker-desc-indicator" title={locker.description}>
+                                            <StickyNote size={10} />
+                                        </div>
+                                    )}
                                 </button>
                             ))
                         ) : (
@@ -478,6 +508,18 @@ const LockerManagement = () => {
                                 <div className={`status-banner-def ${selectedLocker.status}`}>
                                     {getStatusLabel(selectedLocker.status)}
                                 </div>
+
+                                {(selectedLocker.status === 'bloqueado' || selectedLocker.status === 'manutencao' || selectedLocker.description) && (
+                                    <div className="drawer-section" style={{ marginBottom: '2rem' }}>
+                                        <h3 className="section-title">Observações / Conteúdo</h3>
+                                        <div className="description-card" style={{ background: selectedLocker.description ? '#f0fdf4' : '#f8fafc', borderColor: selectedLocker.description ? '#dcfce7' : '#e2e8f0' }}>
+                                            <StickyNote size={18} className="desc-card-icon" style={{ color: selectedLocker.description ? '#166534' : '#64748b' }} />
+                                            <p style={{ color: selectedLocker.description ? '#14532d' : '#64748b', fontStyle: selectedLocker.description ? 'normal' : 'italic' }}>
+                                                {selectedLocker.description || 'Nenhuma observação ou conteúdo registrado.'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <>
                                     <div className="drawer-section">
@@ -575,6 +617,12 @@ const LockerManagement = () => {
                                                 </>
                                             )}
                                             
+                                            {(selectedLocker.status === 'bloqueado' || selectedLocker.status === 'manutencao') && (
+                                                <button className="admin-btn" onClick={() => handleStatusChange('edit_description')}>
+                                                    <StickyNote size={18} /> Editar Observação
+                                                </button>
+                                            )}
+
                                             {selectedLocker.status !== 'manutencao' && (
                                                 <button className="admin-btn" onClick={() => handleStatusChange('manutencao')}>
                                                     <Wrench size={18} /> Colocar em manutenção
@@ -625,6 +673,33 @@ const LockerManagement = () => {
                             </div>
                         )}
 
+                        {modalConfig.contentType === 'description_input' && (
+                            <div className="modal-custom-content" style={{ width: '100%', alignSelf: 'stretch', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                                <div className="description-input-modal" style={{ width: '100%', alignSelf: 'stretch' }}>
+                                    <label style={{ display: 'block', textAlign: 'left', width: '100%', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                                        {selectedLocker?.status === 'manutencao' || modalConfig.title.toLowerCase().includes('manutenção') ? 'Descreva o problema:' : 'Conteúdo do armário:'}
+                                    </label>
+                                    <textarea 
+                                        className="modal-textarea"
+                                        value={lockerDescription} 
+                                        onChange={(val) => setLockerDescription(val.target.value)}
+                                        placeholder={selectedLocker?.status === 'manutencao' || modalConfig.title.toLowerCase().includes('manutenção') ? 'Ex: Porta empenada, fechadura travada...' : 'Ex: Grampeador manual, resmas de papel...'}
+                                        style={{ 
+                                            width: '100%', 
+                                            minHeight: '100px', 
+                                            borderRadius: '12px', 
+                                            border: '1.5px solid var(--border)', 
+                                            padding: '12px',
+                                            fontSize: '0.9rem',
+                                            fontFamily: 'inherit',
+                                            outline: 'none',
+                                            resize: 'none'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         {modalConfig.content && (
                             <div className="modal-custom-content" style={{ width: '100%', alignSelf: 'stretch' }}>
                                 {modalConfig.content}
@@ -639,11 +714,7 @@ const LockerManagement = () => {
                                     </button>
                                     <button 
                                         className="locker-modal-btn confirm" 
-                                        onClick={async () => {
-                                            setModalConfig({ ...modalConfig, isLoading: true });
-                                            await modalConfig.onConfirm();
-                                            setModalConfig({ ...modalConfig, isOpen: false, isLoading: false });
-                                        }}
+                                        onClick={handleModalConfirm}
                                         disabled={modalConfig.isLoading}
                                     >
                                         {modalConfig.isLoading ? <Loader2 className="spinner-mini" /> : 'Confirmar'}
