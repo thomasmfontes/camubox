@@ -103,7 +103,7 @@ const UserLockerSelection = ({ user }) => {
 
                     lockersRes.data.forEach(l => {
                         if (l.id_armario && !uniqueMap.has(l.id_armario)) {
-                            const rawNr = l.nr_armario || l.cd_armario;
+                            const rawNr = l.cd_armario;
                             const formattedNr = rawNr ? rawNr.toString().padStart(3, '0') : 'N/A';
 
                             const sizeLabel = l.dc_tamanho || l.nm_tamanho || 'Pequeno';

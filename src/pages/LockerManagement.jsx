@@ -141,8 +141,8 @@ const LockerManagement = () => {
                         const leagueData = l.id_liga ? (leaguesRes.data || []).find(lg => lg.id_liga === l.id_liga) : null;
 
                         uniqueMap.set(l.id_armario, {
-                            id: (l.nr_armario || l.cd_armario || '').toString().padStart(3, '0'),
-                            nr: l.nr_armario || l.cd_armario,
+                            id: (l.cd_armario || '').toString().padStart(3, '0'),
+                            nr: l.cd_armario,
                             dbId: l.id_armario,
                             localId: l.id_local,
                             sizeId: l.id_tamanho,

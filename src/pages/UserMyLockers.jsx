@@ -60,7 +60,7 @@ const UserMyLockers = ({ user }) => {
                         return {
                             id: r.id_locacao,
                             id_armario: r.id_armario,
-                            lockerNumber: (r.nr_armario || '---').toString().padStart(3, '0'),
+                            lockerNumber: (r.cd_armario || '---').toString().padStart(3, '0'),
                             floor: r.dc_andar || 'N/A',
                             position: r.nm_posicao || 'MÉDIO',
                             size: r.dc_tamanho || 'Pequeno',
@@ -97,7 +97,7 @@ const UserMyLockers = ({ user }) => {
                         allLeagueLockers.push(...lockers.map(l => ({
                             id: `league-${l.id_armario}`,
                             id_armario: l.id_armario,
-                            lockerNumber: (l.nr_armario || l.cd_armario || '---').toString().padStart(3, '0'),
+                            lockerNumber: (l.cd_armario || '---').toString().padStart(3, '0'),
                             floor: l.dc_andar || l.nm_local || 'Térreo',
                             size: l.dc_tamanho || l.nm_tamanho || 'Pequeno',
                             position: l.nm_posicao || 'MÉDIO',

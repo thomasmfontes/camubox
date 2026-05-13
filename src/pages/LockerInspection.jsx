@@ -61,7 +61,7 @@ const LockerInspection = () => {
                     const category = (rawStatus === 'manutencao' || rawStatus === 'manutenção') ? 'manutencao' : 'vistoria';
                     
                     return {
-                        id: (l.nr_armario || l.cd_armario || '').toString().padStart(3, '0'),
+                        id: (l.cd_armario || '').toString().padStart(3, '0'),
                         dbId: l.id_armario,
                         floor: l.nm_local || l.dc_andar || 'Térreo',
                         category,

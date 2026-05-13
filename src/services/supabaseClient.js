@@ -645,6 +645,8 @@ export const dbService = {
                 if (!lockerFriendlyNumber) {
                     try {
                         const lockerIdNum = Number(data.id_armario);
+                        const { data: lockerData } = await supabase
+                            .from('t_armario')
                             .select('cd_armario')
                             .eq('id_armario', lockerIdNum)
                             .maybeSingle();

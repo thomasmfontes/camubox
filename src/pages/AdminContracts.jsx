@@ -73,7 +73,7 @@ const AdminContracts = () => {
             mapped.push({
                 id: contrato.id_locacao,
                 lockerId: contrato.id_armario,
-                lockerNumber: String(contrato.nr_armario || '---'),
+                lockerNumber: String(contrato.cd_armario || '---'),
                 student: contrato.nm_aluno || '---',
                 ra: contrato.nm_ra || '---',
                 floor: contrato.dc_andar || '---',
@@ -302,7 +302,7 @@ const AdminContracts = () => {
                 }).sort((a, b) => {
                     // Sort by floor then number
                     if (a.nm_local !== b.nm_local) return (a.nm_local || '').localeCompare(b.nm_local || '');
-                    return (parseInt(a.nr_armario) || 0) - (parseInt(b.nr_armario) || 0);
+                    return (parseInt(a.cd_armario) || 0) - (parseInt(b.cd_armario) || 0);
                 });
                 setAvailableLockers(available);
             }
@@ -318,7 +318,7 @@ const AdminContracts = () => {
         
         showModal({
             title: 'Confirmar Troca',
-            message: `Deseja mudar o contrato para o armário #${newLocker.nr_armario || newLocker.cd_armario}?`,
+            message: `Deseja mudar o contrato para o armário #${newLocker.cd_armario}?`,
             type: 'confirm',
             onConfirm: async () => {
                 setIsSubmitting(true);
@@ -689,7 +689,7 @@ const AdminContracts = () => {
                                                         <div className="locker-details-text">
                                                             <div className="locker-number-row">
                                                                 <span className="locker-label">ARMÁRIO</span>
-                                                                <span className="locker-number">#{String(l.nr_armario || l.cd_armario).padStart(3, '0')}</span>
+                                                                <span className="locker-number">#{String(l.cd_armario).padStart(3, '0')}</span>
                                                             </div>
                                                             <div className="floor-part-simple">
                                                                 <span>{l.nm_local || l.dc_andar || 'Térreo'}</span>
