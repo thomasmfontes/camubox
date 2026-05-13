@@ -115,7 +115,7 @@ export default async function handler(req, res) {
     const results = [];
     for (const rental of rentals) {
       const lockerObj = lockers?.find(l => l.id_armario === rental.id_armario);
-      const lockerDisplay = lockerObj?.cd_armario || rental.id_armario;
+      const lockerDisplay = (lockerObj?.cd_armario || rental.id_armario).toString().padStart(3, '0');
 
       let daysLeft = 0;
       if (rental.dt_termino === in7Days) daysLeft = 7;

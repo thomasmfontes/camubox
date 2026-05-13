@@ -7,12 +7,15 @@ CREATE OR REPLACE FUNCTION fn_processar_fila_espera()
 RETURNS TRIGGER AS $$
 DECLARE
     v_proximo_fila RECORD;
-    v_cd_armario TEXT;
+    v_locker_display TEXT;
 BEGIN
     -- Check if locker became DISPONIVEL (id_status = 1)
     IF (NEW.id_status = 1 AND (OLD.id_status != 1 OR OLD.id_status IS NULL)) THEN
         -- Get the locker code first
-        SELECT cd_armario INTO v_cd_armario FROM t_armario WHERE id_armario = NEW.id_armario;
+        SELECT LPAD(COALESCE(cd_armario, id_armario::text), 3, '0') 
+        INTO v_locker_display 
+        FROM t_armario 
+        WHERE id_armario = NEW.id_armario;
 
         -- Check if there is someone in the queue for this locker
         SELECT * INTO v_proximo_fila 
@@ -38,7 +41,7 @@ BEGIN
             VALUES (
                 v_proximo_fila.id_usuario,
                 'Armário Liberado! 📦',
-                'O armário ' || v_cd_armario || ' que você queria foi liberado e está reservado para você por 3 dias.',
+                'O armário #' || v_locker_display || ' que você queria foi liberado e está reservado para você por 3 dias.',
                 FALSE,
                 NOW(),
                 NEW.id_armario::TEXT,

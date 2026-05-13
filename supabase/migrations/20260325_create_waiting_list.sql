@@ -53,7 +53,7 @@ BEGIN
             VALUES (
                 v_proximo_fila.id_usuario,
                 'Armário Liberado!',
-                'O armário ' || (SELECT nr_armario FROM t_armario WHERE id_armario = NEW.id_armario) || ' que você queria foi liberado e está reservado para você por 3 dias.',
+                'O armário #' || LPAD((SELECT cd_armario FROM t_armario WHERE id_armario = NEW.id_armario), 3, '0') || ' que você queria foi liberado e está reservado para você por 3 dias.',
                 FALSE,
                 NOW()
             );

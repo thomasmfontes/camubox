@@ -451,7 +451,7 @@ export const dbService = {
                 const locker = lockers?.find(l => l.id_armario === r.id_armario);
                 return {
                     ...r,
-                    nr_armario: locker?.nr_armario || locker?.cd_armario,
+                    nr_armario: locker?.cd_armario,
                     dc_andar: locker?.nm_local,
                     nm_posicao: locker?.nm_posicao,
                     dc_tamanho: locker?.nm_tamanho,
@@ -539,7 +539,7 @@ export const dbService = {
                     ...r,
                     id_locacao: r.id_locacao,
                     dc_andar: locker?.nm_local,
-                    nr_armario: locker?.nr_armario || locker?.cd_armario,
+                    nr_armario: locker?.cd_armario,
                     nm_aluno: user?.nm_usuario,
                     dt_vencimento: r.dt_termino,
                     dc_status_locacao: (r.dc_status_locacao || (r.id_status === 1 ? 'ATIVA' : 'ENCERRADA')).toUpperCase(),
@@ -645,14 +645,12 @@ export const dbService = {
                 if (!lockerFriendlyNumber) {
                     try {
                         const lockerIdNum = Number(data.id_armario);
-                        const { data: lockerData } = await supabase
-                            .from('t_armario')
-                            .select('cd_armario, nr_armario')
+                            .select('cd_armario')
                             .eq('id_armario', lockerIdNum)
                             .maybeSingle();
 
                         if (lockerData) {
-                            const rawNum = lockerData.cd_armario || lockerData.nr_armario || data.id_armario;
+                            const rawNum = lockerData.cd_armario || data.id_armario;
                             lockerFriendlyNumber = rawNum.toString().padStart(3, '0');
                         } else {
                             lockerFriendlyNumber = data.id_armario.toString().padStart(3, '0');
@@ -736,7 +734,7 @@ export const dbService = {
                 return {
                     id: r.id_locacao,
                     id_armario: r.id_armario,
-                    lockerNumber: (locker?.nr_armario || locker?.cd_armario || '---').toString().padStart(3, '0'),
+                    lockerNumber: (locker?.cd_armario || '---').toString().padStart(3, '0'),
                     floor: locker?.nm_local || 'N/A',
                     size: locker?.nm_tamanho || 'Pequeno',
                     position: locker?.nm_posicao || 'MÉDIO',

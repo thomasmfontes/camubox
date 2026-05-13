@@ -25,6 +25,7 @@ AS $$
 DECLARE
     v_rental RECORD;
     v_processed INT := 0;
+    v_locker_display TEXT;
 BEGIN
     -- Busca locações cujo prazo de carência de 15 dias expirou:
     --   id_status = 1 (ATIVA)
@@ -40,6 +41,12 @@ BEGIN
             id_status = 1
             AND (dt_termino + INTERVAL '15 days') < CURRENT_DATE
     LOOP
+        -- 0. Get locker display number
+        SELECT LPAD(COALESCE(cd_armario, id_armario::text), 3, '0') 
+        INTO v_locker_display 
+        FROM t_armario 
+        WHERE id_armario = v_rental.id_armario;
+
         -- 1. Encerrar a locação (Status 4 = ENCERRADA conforme banco)
         UPDATE t_locacao
         SET id_status = 4
@@ -54,8 +61,8 @@ BEGIN
         INSERT INTO t_notificacao (id_usuario, dc_titulo, dc_mensagem, is_lida, dt_criacao)
         VALUES (
             v_rental.id_usuario,
-            'Prazo de carência encerrado',
-            'O prazo de renovação prioritária do seu armário expirou após 15 dias. O armário foi liberado e está disponível para outros alunos.',
+            'Prazo de carência encerrado ⏰',
+            'O prazo de renovação prioritária do seu armário #' || v_locker_display || ' expirou após 15 dias. O armário foi liberado e está disponível para outros alunos.',
             false,
             NOW()
         )
