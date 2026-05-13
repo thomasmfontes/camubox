@@ -421,6 +421,7 @@ const LockerManagement = () => {
                         'All': 'Todos os Status',
                         'disponivel': 'Disponível',
                         'em-uso': 'Em uso',
+                        'em-carencia': 'Em Renovação',
                         'vistoria': 'Vistoria',
                         'manutencao': 'Manutenção',
                         'bloqueado': 'Bloqueado',
