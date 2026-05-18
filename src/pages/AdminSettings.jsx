@@ -427,7 +427,6 @@ const AdminSettings = () => {
                                             className="integrated-add-btn" 
                                             onClick={handleAddAdmin} 
                                             disabled={isLoadingAdmins || !newAdminEmail.trim()}
-                                            style={{ height: '40px', padding: '0 1.5rem' }}
                                         >
                                             {isLoadingAdmins ? <div className="spinner-mini-white"></div> : <><Plus size={18} /> <span className="btn-label-desktop" style={{ marginLeft: '6px' }}>Adicionar</span></>}
                                         </button>

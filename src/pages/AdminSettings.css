@@ -413,6 +413,7 @@
 
 .integrated-input-group input {
     flex: 1;
+    min-width: 0;
     border: none;
     background: transparent;
     padding: 0 1rem;
@@ -808,6 +809,7 @@
 .league-info {
     flex: 1;
     text-align: left;
+    min-width: 0;
 }
 
 .league-name-row {
@@ -815,11 +817,15 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 2px;
+    min-width: 0;
 }
 
 .league-name-row strong {
     font-size: 0.95rem;
     color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .league-tag {
@@ -830,12 +836,14 @@
     border-radius: 4px;
     font-weight: 700;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
 .league-info p {
     font-size: 0.8rem;
     color: var(--text-muted);
     margin: 0;
+    word-break: break-all;
 }
 
 .btn-delete-league {
@@ -850,6 +858,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .btn-delete-league:hover {
