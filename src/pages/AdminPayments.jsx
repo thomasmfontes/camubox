@@ -560,13 +560,12 @@ const AdminPayments = () => {
                                 <th>Operação</th>
                                 <th>Valor Pago</th>
                                 <th>Data do Pix</th>
-                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '3rem 0' }}>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '3rem 0' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                                             <Loader2 className="spinner animate-spin" size={32} style={{ color: 'var(--primary)' }} />
                                             <span style={{ fontWeight: 600, color: '#64748b' }}>Consultando extrato Woovi...</span>
@@ -575,7 +574,7 @@ const AdminPayments = () => {
                                 </tr>
                             ) : paginatedTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6">
+                                    <td colSpan="5">
                                         <div className="finance-empty-state">
                                             <AlertTriangle size={48} />
                                             <h3>Nenhum pagamento encontrado</h3>
@@ -609,11 +608,6 @@ const AdminPayments = () => {
                                             {formatCurrency(t.value)}
                                         </td>
                                         <td>{t.paymentDateFormatted}</td>
-                                        <td>
-                                            <span className="payment-status-badge pago">
-                                                <CheckCircle2 size={12} /> Pago
-                                            </span>
-                                        </td>
                                     </tr>
                                 ))
                             )}

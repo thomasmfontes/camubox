@@ -120,7 +120,63 @@ export default async function handler(req, res) {
               id_entidade: rental.id_armario
             }]);
           }
-          console.log(`✅ Upgrade Confirmado: ${correlationID}`);
+        } else if (correlationID.startsWith('REN_')) {
+          const parts = correlationID.split('_');
+          const rentalId = parts[1];
+
+          // 1. Buscar a nova locação de renovação
+          const { data: newRental } = await supabase
+            .from('t_locacao')
+            .select('*')
+            .eq('id_locacao', rentalId)
+            .maybeSingle();
+
+          if (newRental) {
+            // 2. Ativar a nova locação
+            const { error: updateErr } = await supabase
+              .from('t_locacao')
+              .update({ id_status: 1 })
+              .eq('id_locacao', rentalId);
+            
+            if (updateErr) throw updateErr;
+
+            // 3. Encerrar (status 4) contratos antigos remanescentes deste usuário e armário
+            const { data: oldRentals } = await supabase
+              .from('t_locacao')
+              .select('id_locacao')
+              .eq('id_usuario', newRental.id_usuario)
+              .eq('id_armario', newRental.id_armario)
+              .eq('id_status', 1)
+              .neq('id_locacao', rentalId);
+
+            if (oldRentals && oldRentals.length > 0) {
+              const oldIds = oldRentals.map(o => o.id_locacao);
+              await supabase
+                .from('t_locacao')
+                .update({ id_status: 4 })
+                .in('id_locacao', oldIds);
+              console.log(`✅ Antigos contratos de carência encerrados: [${oldIds.join(', ')}]`);
+            }
+
+            // 4. Inserir notificação de sucesso
+            const { data: lockerInfo } = await supabase
+              .from('t_armario')
+              .select('cd_armario')
+              .eq('id_armario', newRental.id_armario)
+              .maybeSingle();
+
+            const lockerDisplay = (lockerInfo?.cd_armario || newRental.id_armario).toString().padStart(3, '0');
+
+            await supabase.from('t_notificacao').insert([{
+              id_usuario: newRental.id_usuario,
+              dc_titulo: 'Renovação Confirmada! 🔄',
+              dc_mensagem: `Sua renovação do armário #${lockerDisplay} foi processada com sucesso.`,
+              tp_entidade: 'armario',
+              id_entidade: newRental.id_armario
+            }]);
+
+            console.log(`✅ Renovação Confirmada: ${correlationID}`);
+          }
         } else {
           // Fetch rental to get user ID
           const { data: rental } = await supabase.from('t_locacao').select('id_usuario, id_armario').eq('id_locacao', correlationID).single();

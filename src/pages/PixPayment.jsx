@@ -89,11 +89,11 @@ const PixPayment = ({ user }) => {
                     } else if (isExchange) {
                         correlationID = `EXC_${exchangeInfo.rentalId}_${exchangeInfo.oldLockerId}_${selectedLocker.dbId}`;
                     } else {
-                    // Para renovação: encerra o contrato anterior (atualiza id_status para 2) antes de criar o novo
+                    // Para renovação: encerra o contrato anterior (atualiza id_status para 4) antes de criar o novo
                     if (isRenewal && selectedLocker.previousContractId) {
                         await supabase
                             .from('t_locacao')
-                            .update({ id_status: 2, dc_status_locacao: 'ENCERRADA' })
+                            .update({ id_status: 4 })
                             .eq('id_locacao', selectedLocker.previousContractId);
                     }
 
