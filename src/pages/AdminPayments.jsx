@@ -13,7 +13,8 @@ import {
     CheckCircle2, 
     Clock, 
     ChevronLeft, 
-    ChevronRight 
+    ChevronRight,
+    User as UserIcon
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
@@ -549,77 +550,101 @@ const AdminPayments = () => {
                 </div>
             </div>
 
-            {/* Table Area */}
-            <div className="finance-table-card card">
-                <div className="finance-table-responsive">
-                    <table className="finance-table">
-                        <thead>
-                            <tr>
-                                <th>Armário</th>
-                                <th>Aluno / Pagador</th>
-                                <th>Operação</th>
-                                <th>Valor Pago</th>
-                                <th>Data do Pix</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {isLoading ? (
+            {/* Data Area */}
+            <div className="data-container">
+                <div className="inspection-container card">
+                    {isLoading ? (
+                        <div className="loading-state" style={{ padding: '40px', textAlign: 'center' }}>
+                            <Loader2 className="spinner animate-spin" size={40} />
+                            <p style={{ marginTop: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Consultando extrato Woovi...</p>
+                        </div>
+                    ) : (
+                        <table className="inspection-table-simple">
+                            <thead>
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '3rem 0' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                                            <Loader2 className="spinner animate-spin" size={32} style={{ color: 'var(--primary)' }} />
-                                            <span style={{ fontWeight: 600, color: '#64748b' }}>Consultando extrato Woovi...</span>
-                                        </div>
-                                    </td>
+                                    <th>Armário</th>
+                                    <th>Aluno / Pagador</th>
+                                    <th>Operação</th>
+                                    <th>Valor Pago</th>
+                                    <th>Data do Pix</th>
                                 </tr>
-                            ) : paginatedTransactions.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5">
-                                        <div className="finance-empty-state">
-                                            <AlertTriangle size={48} />
-                                            <h3>Nenhum pagamento encontrado</h3>
-                                            <p>Ajuste os filtros ou o termo de busca e tente novamente.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginatedTransactions.map(t => (
-                                    <tr key={t.id}>
-                                        <td>
-                                            {t.lockerNumber ? (
-                                                <span className="finance-locker-badge">#{String(t.lockerNumber).padStart(3, '0')}</span>
-                                            ) : (
-                                                <span className="finance-locker-badge no-locker">N/A</span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            <div className="finance-student-cell">
-                                                <span className="student-cell-name">{t.studentName}</span>
-                                                <span className="student-cell-email">{t.studentEmail}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className={`transaction-type-badge ${getTypeClass(t.transactionType)}`}>
-                                                {t.transactionType}
-                                            </span>
-                                        </td>
+                            </thead>
+                            <tbody>
+                                    {paginatedTransactions.map((t) => (
+                                        <tr key={t.id}>
+                                            <td className="col-armario">
+                                                {t.lockerNumber ? (
+                                                    <div className="unified-locker-badge">
+                                                        <span className="locker-id-part">{String(t.lockerNumber).padStart(3, '0')}</span>
+                                                        <div className="floor-part">
+                                                            <span>{t.lockerFloor || 'Térreo'}</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="unified-locker-badge no-locker">
+                                                        <span className="locker-id-part" style={{ background: '#cbd5e1', color: '#475569' }}>N/A</span>
+                                                        <div className="floor-part">
+                                                            <span>Sem Armário</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            
+                                            <td className="col-user">
+                                                <div className="info-item">
+                                                    <UserIcon size={14} className="icon-sub" />
+                                                    <div className="user-stack">
+                                                        <span className="txt-main">{t.studentName}</span>
+                                                        <span className="txt-sub small">{t.studentEmail}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                                        <td style={{ fontWeight: 700, color: '#166534' }}>
-                                            {formatCurrency(t.value)}
-                                        </td>
-                                        <td>{t.paymentDateFormatted}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                            <td className="col-type">
+                                                <div className="info-item">
+                                                    <span className={`transaction-type-badge ${getTypeClass(t.transactionType)}`}>
+                                                        {t.transactionType}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            <td className="col-type">
+                                                <div className="info-item">
+                                                    <span className="txt-main" style={{ color: '#166534', fontWeight: 800 }}>
+                                                        {formatCurrency(t.value)}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            <td className="col-date">
+                                                <div className="info-item">
+                                                    <Calendar size={14} className="icon-sub" />
+                                                    <span className="txt-sub">{t.paymentDateFormatted}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredTransactions.length === 0 && (
+                                        <tr>
+                                            <td colSpan="5" className="empty-state" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+                                                <div className="finance-empty-state">
+                                                    <AlertTriangle size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                                    <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#1e293b', fontWeight: 700 }}>Nenhum pagamento encontrado</h3>
+                                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: '#64748b' }}>Ajuste os filtros ou o termo de busca e tente novamente.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Pagination */}
                 {!isLoading && filteredTransactions.length > 0 && (
-                    <div className="finance-pagination">
+                    <div className="pagination-wrapper">
                         <div className="pagination-info">
-                            Mostrando <strong>{Math.min(filteredTransactions.length, (currentPage - 1) * itemsPerPage + 1)}</strong> - <strong>{Math.min(filteredTransactions.length, currentPage * itemsPerPage)}</strong> de <strong>{filteredTransactions.length}</strong> transações
+                            Mostrando <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> - <strong>{Math.min(currentPage * itemsPerPage, filteredTransactions.length)}</strong> de <strong>{filteredTransactions.length}</strong> transações
                         </div>
                         
                         <div className="pagination-controls simple">
