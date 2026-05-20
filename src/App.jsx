@@ -10,6 +10,7 @@ import PixPayment from './pages/PixPayment';
 import LockerInspection from './pages/LockerInspection';
 import AdminSettings from './pages/AdminSettings';
 import AdminContracts from './pages/AdminContracts';
+import AdminPayments from './pages/AdminPayments';
 import UserMyLockers from './pages/UserMyLockers';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -207,11 +208,11 @@ function DashboardLayout({ user, handleLogout, location }) {
             <Route path="/admin/contracts" element={<AdminContracts />} />
             <Route path="/admin/inspections" element={<LockerInspection />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/lockers" element={<UserLockerSelection user={user} />} />
             <Route path="/checkout/contract" element={<DigitalContract />} />
             <Route path="/checkout/payment" element={<PixPayment user={user} />} />
             <Route path="/my-locker" element={<UserMyLockers user={user} />} />
-            <Route path="/payments" element={<div>Pagamentos (Em breve)</div>} />
             <Route path="*" element={<div>Página em construção...</div>} />
           </Routes>
       </div>

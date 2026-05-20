@@ -20,12 +20,21 @@
     border: 1.5px solid #e2e8f0;
     border-radius: 12px;
     padding: 0 16px;
+    height: 48px;
+    box-sizing: border-box;
     transition: all 0.2s ease;
+}
+
+.search-group:hover,
+.filter-group.search:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
 }
 
 .search-group:focus-within,
 .filter-group.search:focus-within {
     border-color: #10b981;
+    background: #ffffff;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
@@ -43,8 +52,16 @@
     outline: none !important;
     padding: 12px 0;
     font-size: 0.95rem;
+    font-weight: 500;
+    color: #334155;
     width: 100%;
     background: transparent;
+}
+
+.search-group input::placeholder,
+.filter-group.search input::placeholder {
+    color: #94a3b8;
+    opacity: 0.8;
 }
 
 /* Custom Select Component */

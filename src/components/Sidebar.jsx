@@ -33,6 +33,7 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
         { label: 'Contratos', icon: <div className="nav-mask-icon icon-contract" />, path: '/dashboard/admin/contracts' },
         { label: 'Armários', icon: <div className="nav-mask-icon icon-lockers" />, path: '/dashboard/admin/lockers' },
         { label: 'Vistorias', icon: <div className="nav-mask-icon icon-check" />, path: '/dashboard/admin/inspections' },
+        { label: 'Financeiro', icon: <CreditCard size={20} />, path: '/dashboard/admin/payments' },
         { label: 'Configurações', icon: <div className="nav-mask-icon icon-config" />, path: '/dashboard/admin/settings' },
     ];
 

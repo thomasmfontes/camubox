@@ -1,0 +1,521 @@
+.admin-payments.premium-theme {
+    width: 100%;
+    padding: 1rem;
+    animation: fadeInPage 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Header */
+.admin-payments .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.admin-payments .header-text h1 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--primary, #003d2b);
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+.admin-payments .header-text p {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0.25rem 0 0 0;
+}
+
+.export-btn-premium {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary, #003d2b) 0%, #005a3f 100%);
+    border: none;
+    border-radius: 100px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 61, 43, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.export-btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 61, 43, 0.3);
+    background: linear-gradient(135deg, #005a3f 0%, #007c57 100%);
+}
+
+.export-btn-premium:active {
+    transform: translateY(0);
+}
+
+/* Stats Cards Grid */
+.financial-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.finance-stat-card {
+    background: white;
+    border: 1.5px solid var(--border, #e2e8f0);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.finance-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+.finance-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.12), 0 4px 12px -5px rgba(0, 61, 43, 0.1);
+    border-color: rgba(0, 61, 43, 0.15);
+}
+
+.finance-stat-card:hover::before {
+    background: var(--primary, #003d2b);
+}
+
+.finance-stat-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    border: 1px solid transparent;
+}
+
+.finance-stat-info {
+    flex: 1;
+}
+
+.finance-stat-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.finance-stat-value {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0.2rem 0 0 0;
+    letter-spacing: -0.03em;
+}
+
+/* Filters & Search */
+.finance-filters-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+/* Table Area */
+.finance-table-card {
+    background: white;
+    border: 1.5px solid var(--border, #e2e8f0);
+    border-radius: 24px;
+    box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.finance-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.finance-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.finance-table th {
+    background: #f8fafc;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 1.5px solid #e2e8f0;
+}
+
+.finance-table td {
+    padding: 1.15rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.finance-table tr:last-child td {
+    border-bottom: none;
+}
+
+.finance-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.finance-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Student & Locker Layouts */
+.finance-student-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-cell-name {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.student-cell-email {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.finance-locker-badge {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+}
+
+.finance-locker-badge.no-locker {
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fee2e2;
+}
+
+/* Contract Plan Badges */
+.plan-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: inline-block;
+}
+
+.plan-badge.semestral {
+    background: rgba(0, 61, 43, 0.08);
+    color: var(--primary, #003d2b);
+}
+
+.plan-badge.anual {
+    background: rgba(30, 64, 175, 0.08);
+    color: #1e40af;
+}
+
+.plan-badge.gratuidade {
+    background: rgba(22, 101, 52, 0.08);
+    color: #166534;
+}
+
+.plan-badge.n-a {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* Transaction Type Badges */
+.transaction-type-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
+}
+
+.transaction-type-badge.locacao {
+    background-color: #e6fcf5;
+    color: #0ca678;
+    border-color: #c3fae8;
+}
+
+.transaction-type-badge.troca {
+    background-color: #fff4e6;
+    color: #fd7e14;
+    border-color: #ffe8cc;
+}
+
+.transaction-type-badge.upgrade {
+    background-color: #f3f0ff;
+    color: #7950f2;
+    border-color: #e5dbff;
+}
+
+.transaction-type-badge.renovacao {
+    background-color: #e7f5ff;
+    color: #228be6;
+    border-color: #d0ebff;
+}
+
+/* Status Badges */
+.payment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.payment-status-badge.pago {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.payment-status-badge.pendente {
+    background-color: #fef9c3;
+    color: #a16207;
+}
+
+.payment-status-badge.cancelado {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.payment-status-badge.expirado {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Empty State */
+.finance-empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.finance-empty-state svg {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.finance-empty-state h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.finance-empty-state p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+}
+
+/* Pagination */
+.finance-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.finance-pagination .pagination-info {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+    .admin-payments {
+        padding: 0.5rem;
+    }
+    
+    .admin-payments .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+    
+    .export-btn-premium {
+        width: 100%;
+    }
+    
+    .finance-filters-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .search-group,
+    .custom-select-wrapper,
+    .finance-date-filter-wrapper {
+        min-width: 100%;
+        width: 100%;
+    }
+    
+    .finance-table th, 
+    .finance-table td {
+        padding: 0.85rem 1rem;
+    }
+
+    .finance-pagination {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem 1rem;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+/* Premium Date Filter Styles */
+.finance-date-filter-wrapper {
+    flex: 1;
+    min-width: 200px;
+}
+
+.date-input-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0 1rem;
+    height: 48px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.date-input-container:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.date-input-container:focus-within {
+    border-color: #10b981;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.finance-date-icon {
+    color: #10b981;
+    display: flex;
+    align-items: center;
+}
+
+.date-input-field-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.date-input-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.premium-date-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #334155;
+    width: 100%;
+    font-family: inherit;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Webkit calendar indicator overlay for full-container clicking triggers */
+.premium-date-input::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0;
+    color: transparent;
+    cursor: pointer;
+    height: auto;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: auto;
+}
+
+.clear-date-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.clear-date-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
