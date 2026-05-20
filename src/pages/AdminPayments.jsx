@@ -191,9 +191,15 @@ const AdminPayments = () => {
                         const d = String(date.getDate()).padStart(2, '0');
                         const m = String(date.getMonth() + 1).padStart(2, '0');
                         const y = date.getFullYear();
+                        return `${d}/${m}/${y}`;
+                    };
+
+                    const formatIsoTime = (isoStr) => {
+                        if (!isoStr) return '';
+                        const date = new Date(isoStr);
                         const hr = String(date.getHours()).padStart(2, '0');
                         const min = String(date.getMinutes()).padStart(2, '0');
-                        return `${d}/${m}/${y} às ${hr}:${min}`;
+                        return `${hr}:${min}`;
                     };
 
                     combinedData = dbTransactions.map((tx) => {
@@ -210,6 +216,7 @@ const AdminPayments = () => {
                             contractType: tx.tp_plano || 'SEMESTRAL',
                             transactionType: tx.tp_operacao || 'Locação',
                             paymentDateFormatted: formatIsoDate(tx.dt_pagamento || tx.dt_criacao),
+                            paymentTimeFormatted: formatIsoTime(tx.dt_pagamento || tx.dt_criacao),
                         };
                     });
                 } else {
@@ -223,9 +230,15 @@ const AdminPayments = () => {
                         const d = String(date.getDate()).padStart(2, '0');
                         const m = String(date.getMonth() + 1).padStart(2, '0');
                         const y = date.getFullYear();
+                        return `${d}/${m}/${y}`;
+                    };
+
+                    const formatIsoTime = (isoStr) => {
+                        if (!isoStr) return '';
+                        const date = new Date(isoStr);
                         const hr = String(date.getHours()).padStart(2, '0');
                         const min = String(date.getMinutes()).padStart(2, '0');
-                        return `${d}/${m}/${y} às ${hr}:${min}`;
+                        return `${hr}:${min}`;
                     };
 
                     combinedData = mockCharges.map((charge, idx) => {
@@ -277,6 +290,7 @@ const AdminPayments = () => {
                             contractType: contractType,
                             transactionType: transactionType,
                             paymentDateFormatted: formatIsoDate(charge.paymentDate || charge.createdAt),
+                            paymentTimeFormatted: formatIsoTime(charge.paymentDate || charge.createdAt),
                         };
                     });
                 }
@@ -375,6 +389,7 @@ const AdminPayments = () => {
     // Export to Excel handler
     const handleExport = () => {
         const rows = filteredTransactions.map(t => {
+            const fullDate = t.paymentTimeFormatted ? `${t.paymentDateFormatted} às ${t.paymentTimeFormatted}` : t.paymentDateFormatted;
             return {
                 'ID Transação': t.id,
                 'Armário': t.lockerNumber || 'N/A',
@@ -384,7 +399,7 @@ const AdminPayments = () => {
                 'E-mail': t.studentEmail,
                 'Operação': t.transactionType,
                 'Valor Pago': formatCurrency(t.value),
-                'Data do Pagamento': t.paymentDateFormatted,
+                'Data do Pagamento': fullDate,
                 'Status': 'Confirmado (Pago)'
             };
         });
@@ -622,7 +637,12 @@ const AdminPayments = () => {
                                             <td className="col-date">
                                                 <div className="info-item">
                                                     <Calendar size={14} className="icon-sub" />
-                                                    <span className="txt-sub">{t.paymentDateFormatted}</span>
+                                                    <div className="user-stack">
+                                                        <span className="txt-main">{t.paymentDateFormatted}</span>
+                                                        {t.paymentTimeFormatted && (
+                                                            <span className="txt-sub small">{t.paymentTimeFormatted}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
