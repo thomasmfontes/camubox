@@ -457,37 +457,37 @@ const AdminPayments = () => {
 
             {/* KPI Cards Row */}
             <div className="financial-stats-grid">
-                <div className="finance-stat-card card">
-                    <div className="finance-stat-icon-wrapper" style={{ backgroundColor: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
-                        <DollarSign size={24} />
+                <div className="mini-stat-card card">
+                    <div className="mini-stat-icon" style={{ backgroundColor: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
+                        <DollarSign size={28} />
                     </div>
-                    <div className="finance-stat-info">
-                        <p className="finance-stat-label">Faturamento Confirmado</p>
-                        <h3 className="finance-stat-value">
+                    <div className="mini-stat-content">
+                        <p className="mini-stat-label">Faturamento Confirmado</p>
+                        <h3 className="mini-stat-value">
                             {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : formatCurrency(metrics.totalPaid)}
                         </h3>
                     </div>
                 </div>
 
-                <div className="finance-stat-card card">
-                    <div className="finance-stat-icon-wrapper" style={{ backgroundColor: '#eff6ff', color: '#1e40af', borderColor: '#dbeafe' }}>
-                        <CreditCard size={24} />
+                <div className="mini-stat-card card">
+                    <div className="mini-stat-icon" style={{ backgroundColor: '#eff6ff', color: '#1e40af', borderColor: '#dbeafe' }}>
+                        <CreditCard size={28} />
                     </div>
-                    <div className="finance-stat-info">
-                        <p className="finance-stat-label">Total de Recebimentos</p>
-                        <h3 className="finance-stat-value">
+                    <div className="mini-stat-content">
+                        <p className="mini-stat-label">Total de Recebimentos</p>
+                        <h3 className="mini-stat-value">
                             {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : metrics.totalSalesCount}
                         </h3>
                     </div>
                 </div>
 
-                <div className="finance-stat-card card">
-                    <div className="finance-stat-icon-wrapper" style={{ backgroundColor: '#faf5ff', color: '#6b21a8', borderColor: '#e9d5ff' }}>
-                        <TrendingUp size={24} />
+                <div className="mini-stat-card card">
+                    <div className="mini-stat-icon" style={{ backgroundColor: '#faf5ff', color: '#6b21a8', borderColor: '#e9d5ff' }}>
+                        <TrendingUp size={28} />
                     </div>
-                    <div className="finance-stat-info">
-                        <p className="finance-stat-label">Plano Preferido</p>
-                        <h3 className="finance-stat-value">
+                    <div className="mini-stat-content">
+                        <p className="mini-stat-label">Plano Preferido</p>
+                        <h3 className="mini-stat-value">
                             {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : metrics.preferredPlan}
                         </h3>
                     </div>
