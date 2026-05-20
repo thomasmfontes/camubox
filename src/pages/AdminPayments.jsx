@@ -191,7 +191,9 @@ const AdminPayments = () => {
                         const d = String(date.getDate()).padStart(2, '0');
                         const m = String(date.getMonth() + 1).padStart(2, '0');
                         const y = date.getFullYear();
-                        return `${d}/${m}/${y}`;
+                        const hr = String(date.getHours()).padStart(2, '0');
+                        const min = String(date.getMinutes()).padStart(2, '0');
+                        return `${d}/${m}/${y} às ${hr}:${min}`;
                     };
 
                     combinedData = dbTransactions.map((tx) => {
@@ -221,7 +223,9 @@ const AdminPayments = () => {
                         const d = String(date.getDate()).padStart(2, '0');
                         const m = String(date.getMonth() + 1).padStart(2, '0');
                         const y = date.getFullYear();
-                        return `${d}/${m}/${y}`;
+                        const hr = String(date.getHours()).padStart(2, '0');
+                        const min = String(date.getMinutes()).padStart(2, '0');
+                        return `${d}/${m}/${y} às ${hr}:${min}`;
                     };
 
                     combinedData = mockCharges.map((charge, idx) => {
@@ -563,7 +567,7 @@ const AdminPayments = () => {
                             <thead>
                                 <tr>
                                     <th>Armário</th>
-                                    <th>Aluno / Pagador</th>
+                                    <th>Pagador</th>
                                     <th>Operação</th>
                                     <th>Valor Pago</th>
                                     <th>Data do Pix</th>
@@ -595,7 +599,6 @@ const AdminPayments = () => {
                                                     <UserIcon size={14} className="icon-sub" />
                                                     <div className="user-stack">
                                                         <span className="txt-main">{t.studentName}</span>
-                                                        <span className="txt-sub small">{t.studentEmail}</span>
                                                     </div>
                                                 </div>
                                             </td>
