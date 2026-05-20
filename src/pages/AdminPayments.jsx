@@ -626,7 +626,7 @@ const AdminPayments = () => {
                                                 </div>
                                             </td>
 
-                                            <td className="col-type">
+                                            <td className="col-value">
                                                 <div className="info-item">
                                                     <span className="txt-main" style={{ color: '#166534', fontWeight: 800 }}>
                                                         {formatCurrency(t.value)}
