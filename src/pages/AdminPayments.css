@@ -1,5 +1,7 @@
 .admin-payments.premium-theme {
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     padding: 1rem;
 }
 
@@ -136,10 +138,14 @@
 /* Data Container & List */
 .admin-payments .data-container {
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .admin-payments .inspection-container {
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .admin-payments .inspection-table-simple {
@@ -199,6 +205,9 @@
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
     margin-bottom: 0.75rem;
     transition: box-shadow 0.2s ease, transform 0.15s ease;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .admin-payments .inspection-table-simple tbody tr:active {
@@ -283,10 +292,11 @@
     display: none; /* Hidden on mobile, shown on desktop */
     font-size: 0.72rem;
     color: #64748b;
-    white-space: nowrap;
     font-weight: 500;
     letter-spacing: 0.1px;
     line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .admin-payments .value-fee-pct {
@@ -300,8 +310,9 @@
     font-size: 0.75rem;
     color: #0369a1;
     font-weight: 700;
-    white-space: nowrap;
     line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .admin-payments .col-user {
@@ -645,6 +656,7 @@
 @media (max-width: 768px) {
     .admin-payments {
         padding: 1rem;
+        overflow-x: hidden; /* Prevent horizontal scroll from any child overflow */
     }
     
     .admin-payments .page-header {
@@ -662,11 +674,14 @@
         gap: 0.75rem;
     }
     
+    /* Override global min-width from CustomSelect.css for mobile */
     .admin-payments .search-group,
     .admin-payments .custom-select-wrapper,
     .admin-payments .finance-date-filter-wrapper {
-        min-width: 100%;
+        min-width: 0 !important;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 }
 
