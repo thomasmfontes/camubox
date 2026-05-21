@@ -1,13 +1,13 @@
 /* Page Layout */
 .locker-inspection-page.premium-theme {
-    padding: 1rem;
+    padding: 0;
     width: 100%;
     min-height: 100vh;
 }
 
 @media (min-width: 1024px) {
     .locker-inspection-page.premium-theme {
-        padding: 2rem;
+        padding: 0;
     }
 }
 

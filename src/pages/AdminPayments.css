@@ -2,12 +2,12 @@
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
-    padding: 1rem;
+    padding: 0;
 }
 
 @media (min-width: 768px) {
     .admin-payments.premium-theme {
-        padding: 2rem;
+        padding: 0;
     }
 }
 

@@ -8,7 +8,7 @@
 }
 
 .user-selection.premium-theme {
-    padding: 1rem;
+    padding: 0;
     width: 100%;
     min-height: 100vh;
     display: flex;
@@ -229,7 +229,7 @@
 /* Desktop Enhancements */
 @media (min-width: 768px) {
     .user-selection.premium-theme {
-        padding: 2rem;
+        padding: 0;
     }
 
     .filter-bar-premium {

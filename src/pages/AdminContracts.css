@@ -1,6 +1,6 @@
 .admin-contracts.premium-theme {
     width: 100%;
-    padding: 1rem;
+    padding: 0;
 }
 
 /* Page Header */
@@ -279,7 +279,7 @@
 }
 
 @media (min-width: 768px) {
-    .admin-contracts.premium-theme { padding: 2rem; }
+    .admin-contracts.premium-theme { padding: 0; }
     .admin-contracts .page-header { flex-direction: row; justify-content: space-between; align-items: flex-start; }
     .secondary-btn { width: auto; }
     .filter-bar-premium { flex-direction: row; align-items: stretch; }
@@ -604,7 +604,7 @@
 
 
 @media (max-width: 768px) {
-    .admin-contracts.premium-theme { padding: 1rem; }
+    .admin-contracts.premium-theme { padding: 0; }
     .filter-bar-premium { flex-direction: column; }
     .filter-group.search { min-width: 100%; }
     .details-panel { max-width: 100%; }
