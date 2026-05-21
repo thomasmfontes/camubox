@@ -1,6 +1,9 @@
 .main-layout {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .content-area {
@@ -10,6 +13,8 @@
     display: flex;
     flex-direction: column;
     padding-top: 70px; /* Space for fixed Topbar */
+    min-width: 0;
+    max-width: calc(100% - 260px);
 }
 
 .page-content {
@@ -21,10 +26,18 @@
 @media (max-width: 768px) {
     .content-area {
         margin-left: 0;
+        max-width: 100%;
+        width: 100%;
+        min-width: 0;
+        overflow: visible;
     }
 
     .page-content {
         padding: 1rem;
+        max-width: 100%;
+        width: 100%;
+        min-width: 0;
+        overflow: visible;
     }
 
     .content-area.background-locked {

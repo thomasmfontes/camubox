@@ -1,13 +1,14 @@
 .admin-payments.premium-theme {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
     padding: 0;
+    overflow: visible !important;
 }
 
 @media (min-width: 768px) {
     .admin-payments.premium-theme {
         padding: 0;
+        overflow: visible !important;
     }
 }
 
@@ -79,6 +80,8 @@
     border: 1.5px solid var(--border, #e2e8f0);
     border-radius: 20px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    width: 100%;
 }
 
 .admin-payments .mini-stat-card:hover {
@@ -109,6 +112,7 @@
 
 .admin-payments .mini-stat-content {
     flex: 1;
+    min-width: 0;
 }
 
 .admin-payments .mini-stat-label {
@@ -152,6 +156,14 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 0.75rem;
+}
+
+@media (max-width: 1023px) {
+    .admin-payments .inspection-table-simple,
+    .admin-payments .inspection-table-simple tbody {
+        display: block;
+        width: 100%;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -660,8 +672,15 @@
 /* Responsive Overrides */
 @media (max-width: 768px) {
     .admin-payments {
-        padding: 1rem;
-        overflow-x: hidden; /* Prevent horizontal scroll from any child overflow */
+        padding: 0;
+        overflow: visible !important;
+    }
+
+    /* Disable hover scaling on mobile to prevent clipping the card borders/shadows */
+    .admin-payments .mini-stat-card:hover {
+        transform: none !important;
+        border-color: var(--border, #e2e8f0) !important;
+        box-shadow: var(--shadow) !important;
     }
     
     .admin-payments .page-header {
@@ -752,6 +771,7 @@
     font-weight: 500;
     color: #334155;
     width: 100%;
+    min-width: 0;
     font-family: inherit;
     padding: 0;
     margin: 0;

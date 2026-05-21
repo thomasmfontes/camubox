@@ -274,7 +274,7 @@ const UserLockerSelection = ({ user }) => {
             </header>
 
             <section className="filter-bar-premium">
-                <div className="filter-group search">
+                <div className="search-group">
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"

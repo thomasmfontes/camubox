@@ -200,7 +200,7 @@ function App() {
 function DashboardLayout({ user, handleLogout, location }) {
   return (
     <MainLayout user={user} onLogout={handleLogout}>
-      <div style={{ width: '100%', height: '100%' }}>
+      <div style={{ width: '100%', height: '100%', overflow: 'visible' }}>
           <Routes location={location}>
             <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
             <Route path="/admin" element={<AdminHome />} />

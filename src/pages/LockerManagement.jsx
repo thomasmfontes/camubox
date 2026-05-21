@@ -386,7 +386,7 @@ const LockerManagement = () => {
                 </button>
             </header>
 
-            <section className="admin-filters">
+            <section className="admin-filters filter-bar-premium">
                 <div className="search-group">
                     <Search className="search-icon" size={20} />
                     <input

@@ -514,7 +514,7 @@ const AdminPayments = () => {
                     <Search className="search-icon" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar por aluno, e-mail, armário ou operação..."
+                        placeholder="Buscar por nome, armário ou operação..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />

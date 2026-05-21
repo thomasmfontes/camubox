@@ -1,6 +1,7 @@
 .admin-contracts.premium-theme {
     width: 100%;
     padding: 0;
+    overflow: visible !important;
 }
 
 /* Page Header */
@@ -25,48 +26,12 @@
 }
 
 /* Filter Bar */
-.filter-bar-premium {
+.admin-contracts .admin-filters {
     display: flex;
-    flex-direction: column;
     gap: 12px;
     margin-bottom: 2rem;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    background: white;
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    height: 52px;
-    box-shadow: var(--shadow);
+    flex-wrap: wrap;
     width: 100%;
-}
-
-.filter-group:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(0, 61, 43, 0.08);
-}
-
-.filter-icon {
-    color: var(--primary);
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    opacity: 0.7;
-}
-
-.filter-group input,
-.filter-group select {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 0.9rem;
-    font-weight: 600;
-    outline: none;
-    height: 100%;
-    color: var(--text-main);
 }
 
 /* Data Container & List */
@@ -82,6 +47,14 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 0.75rem;
+}
+
+@media (max-width: 1023px) {
+    .inspection-table-simple,
+    .inspection-table-simple tbody {
+        display: block;
+        width: 100%;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -282,9 +255,9 @@
     .admin-contracts.premium-theme { padding: 0; }
     .admin-contracts .page-header { flex-direction: row; justify-content: space-between; align-items: flex-start; }
     .secondary-btn { width: auto; }
-    .filter-bar-premium { flex-direction: row; align-items: stretch; }
-    .filter-group.search { flex: 2; }
-    .filter-group { width: auto; flex: 1; }
+    .admin-contracts .admin-filters { flex-direction: row; align-items: stretch; }
+    .admin-contracts .search-group { flex: 2; }
+    .admin-contracts .custom-select-wrapper { flex: 1; }
 }
 
 /* Status Badges */
@@ -605,8 +578,17 @@
 
 @media (max-width: 768px) {
     .admin-contracts.premium-theme { padding: 0; }
-    .filter-bar-premium { flex-direction: column; }
-    .filter-group.search { min-width: 100%; }
+    .admin-contracts .admin-filters {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .admin-contracts .search-group,
+    .admin-contracts .custom-select-wrapper {
+        min-width: 0 !important;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
     .details-panel { max-width: 100%; }
 }
 
