@@ -1,0 +1,308 @@
+/* Premium Soft Push Notification Prompt Styles */
+.push-prompt-container {
+  position: relative;
+  width: 100%;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 43, 31, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideInDownPrompt 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInDownPrompt {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.push-prompt-glass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: -1;
+}
+
+/* Card Types */
+.push-prompt-container.opt-in-card {
+  border-left: 5px solid #0284c7; /* Sky blue */
+}
+
+.push-prompt-container.success-card {
+  border-left: 5px solid #10b981; /* Emerald green */
+}
+
+.push-prompt-container.blocked-card {
+  border-left: 5px solid #f59e0b; /* Amber warning */
+}
+
+.push-prompt-container.ios-helper-card {
+  border-left: 5px solid #4f46e5; /* Indigo */
+}
+
+/* Content layout */
+.push-prompt-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  width: 100%;
+}
+
+.push-icon-circle {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Icon Variants */
+.push-icon-circle.alert {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+}
+
+.push-icon-circle.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.push-icon-circle.blocked {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.push-icon-circle.info-ios {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+/* Pulse Ring Animations */
+.push-icon-circle.animate-pulse-accent::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #0284c7;
+  opacity: 0.6;
+  animation: pulsePromptRing 2.2s infinite ease-in-out;
+}
+
+.push-icon-circle.animate-pulse-green::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  opacity: 0.6;
+  animation: pulsePromptRing 2.2s infinite ease-in-out;
+}
+
+@keyframes pulsePromptRing {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Details and Typography */
+.push-text-details {
+  flex: 1;
+}
+
+.push-text-details h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0c1a17; /* Dark deep Slate */
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
+}
+
+.push-text-details p {
+  font-size: 0.88rem;
+  color: #4b5563; /* Slate muted */
+  margin: 0;
+  line-height: 1.45;
+}
+
+.push-settings-guide {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  line-height: 1.35;
+  display: inline-block;
+  border-left: 3px solid #f59e0b;
+}
+
+.ios-badge-indicator {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4f46e5;
+  background: rgba(79, 70, 229, 0.08);
+  padding: 4px 10px;
+  border-radius: 100px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.registration-error-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+/* Close button style */
+.btn-dismiss-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-dismiss-x:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #4b5563;
+}
+
+/* Action controls */
+.push-prompt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-push-later {
+  background: transparent;
+  border: 1px solid rgba(0, 61, 43, 0.15);
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-push-later:hover {
+  background: rgba(0, 61, 43, 0.05);
+}
+
+.btn-push-enable {
+  background: #0284c7;
+  border: none;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 20px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s;
+}
+
+.btn-push-enable:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+  background: #0369a1;
+}
+
+.btn-push-enable:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.spinner-loader {
+  animation: promptSpinnerRotation 1s linear infinite;
+}
+
+@keyframes promptSpinnerRotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Development Mode Warning Card styles */
+.push-prompt-container.dev-warning-card {
+  border-left: 5px solid #eab308; /* Yellow/Amber warning */
+}
+
+.push-icon-circle.dev-warning {
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+
+.push-prompt-container.dev-warning-card .push-settings-guide {
+  color: #a16207;
+  background: rgba(234, 179, 8, 0.08);
+  border-left: 3px solid #eab308;
+}
+
+/* Premium Dark/Medical Palette adjustments inside app */
+.premium-theme .push-prompt-glass {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+/* Responsive adjustment */
+@media (min-width: 768px) {
+  .push-prompt-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    gap: 32px;
+  }
+  
+  .push-prompt-actions {
+    width: auto;
+    flex-shrink: 0;
+  }
+}

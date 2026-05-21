@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Download, X, Smartphone } from 'lucide-react';
+import { Download, Smartphone, Share, Plus } from 'lucide-react';
 import './InstallPWA.css';
 
 const InstallPWA = () => {
   const [promptInstall, setPromptInstall] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -17,6 +19,14 @@ const InstallPWA = () => {
   };
 
   useEffect(() => {
+    // Detect environment
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    
+    setIsIOS(isIOSDevice);
+    setIsStandalone(isStandaloneMode);
+
+    // Standard Android/Chrome PWA prompt listener
     const handler = (e) => {
       e.preventDefault();
       setPromptInstall(e);
@@ -24,7 +34,7 @@ const InstallPWA = () => {
       // Show after a small delay to not annoy immediately
       setTimeout(() => {
         const dismissed = sessionStorage.getItem('pwa_banner_dismissed');
-        if (!dismissed) {
+        if (!dismissed && !isStandaloneMode) {
           setIsVisible(true);
         }
       }, 3000);
@@ -36,6 +46,16 @@ const InstallPWA = () => {
     window.addEventListener('appinstalled', () => {
       handleClose();
     });
+
+    // For iOS, show the banner since beforeinstallprompt is not supported
+    if (isIOSDevice && !isStandaloneMode) {
+      setTimeout(() => {
+        const dismissed = sessionStorage.getItem('pwa_banner_dismissed');
+        if (!dismissed) {
+          setIsVisible(true);
+        }
+      }, 3000);
+    }
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -56,8 +76,36 @@ const InstallPWA = () => {
     handleClose();
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isStandalone) return null;
 
+  // Render iOS PWA instructions
+  if (isIOS) {
+    return (
+      <div className={`pwa-install-banner ios ${isClosing ? 'closing' : ''}`}>
+        <div className="pwa-content">
+          <div className="pwa-icon-box">
+            <Smartphone size={24} className="pwa-icon" />
+            <div className="pwa-pulse" />
+          </div>
+          <div className="pwa-text">
+            <h3>Instalar CAMUBOX</h3>
+            <p>
+              Para ativar notificações no iPhone, toque em{' '}
+              <strong>Compartilhar</strong> <Share size={15} style={{ display: 'inline', verticalAlign: 'middle', color: '#0066cc' }} />{' '}
+              e depois em <strong>Adicionar à Tela de Início</strong> <Plus size={15} style={{ display: 'inline', verticalAlign: 'middle', border: '1px solid #94a3b8', borderRadius: '4px', padding: '1px', background: '#f8fafc' }} />.
+            </p>
+          </div>
+        </div>
+        <div className="pwa-actions ios-actions">
+          <button className="btn-pwa-dismiss" onClick={onDismiss}>
+            Entendi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render standard PWA installation banner
   return (
     <div className={`pwa-install-banner ${isClosing ? 'closing' : ''}`}>
       <div className="pwa-content">

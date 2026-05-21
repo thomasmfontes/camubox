@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, User, Menu, X, Trash2, Check } from 'lucide-react';
+import { Bell, User, Menu, X, Trash2, Check, AlertTriangle, Loader2 } from 'lucide-react';
 import './Topbar.css';
 import { dbService } from '../services/supabaseClient';
+import { requestFirebaseToken } from '../services/firebase';
 
 const Topbar = ({ user, onMenuToggle }) => {
     const [showNotifications, setShowNotifications] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    
+    // Notification permission & token registration states
+    const [permission, setPermission] = useState('default');
+    const [hasSupport, setHasSupport] = useState(true);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [registrationError, setRegistrationError] = useState(null);
+    
     const dropdownRef = useRef(null);
 
     const toggleNotifications = () => {
@@ -70,6 +78,47 @@ const Topbar = ({ user, onMenuToggle }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showNotifications]);
 
+    useEffect(() => {
+        const hasNotificationSupport = typeof window !== 'undefined' && 'Notification' in window;
+        setHasSupport(hasNotificationSupport);
+        
+        if (hasNotificationSupport) {
+            setPermission(Notification.permission);
+        } else {
+            setPermission('denied');
+        }
+    }, [showNotifications]);
+
+    const handleEnableNotifications = async () => {
+        if (!hasSupport) return;
+        setIsRegistering(true);
+        setRegistrationError(null);
+
+        try {
+            const permissionResult = await Notification.requestPermission();
+            setPermission(permissionResult);
+
+            if (permissionResult === 'granted') {
+                const token = await requestFirebaseToken();
+                if (token && user?.email) {
+                    const res = await dbService.fcmTokens.upsert(user.email, token);
+                    if (res.error) {
+                        console.error('[Topbar Push] Error syncing token with DB:', res.error);
+                    } else {
+                        console.log('[Topbar Push] Token successfully synced via Topbar.');
+                    }
+                }
+            } else if (permissionResult === 'denied') {
+                setRegistrationError('Permissão recusada.');
+            }
+        } catch (err) {
+            console.error('[Topbar Push] Registration error:', err);
+            setRegistrationError('Erro ao solicitar permissão.');
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
     const handleMarkAsRead = async (id) => {
         const { error } = await dbService.notifications.markAsRead(id);
         if (!error) {
@@ -119,6 +168,30 @@ const Topbar = ({ user, onMenuToggle }) => {
                                     <X size={18} />
                                 </button>
                             </div>
+                            
+                            {hasSupport && permission !== 'granted' && (
+                                <div className="topbar-push-alert">
+                                    <div className="topbar-push-alert-content">
+                                        <Bell className="pulse-accent-bell" size={16} />
+                                        <div className="topbar-push-alert-text">
+                                            <span>Ativar alertas no navegador para avisos urgentes dos armários.</span>
+                                            {registrationError && <span className="topbar-push-error">{registrationError}</span>}
+                                        </div>
+                                    </div>
+                                    <button 
+                                        className="topbar-push-btn" 
+                                        onClick={handleEnableNotifications}
+                                        disabled={isRegistering}
+                                    >
+                                        {isRegistering ? (
+                                            <Loader2 className="spinner-loader" size={12} style={{ animation: 'promptSpinnerRotation 1s linear infinite' }} />
+                                        ) : (
+                                            'Ativar'
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="dropdown-content">
                                 {notifications.length === 0 ? (
                                     <p className="no-notifications">Nenhuma notificação por enquanto.</p>

@@ -4,6 +4,7 @@ import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertC
 import { GrUpgrade } from "react-icons/gr";
 import { dbService } from '../services/supabaseClient';
 import './UserMyLockers.css';
+import PushNotificationPrompt from '../components/PushNotificationPrompt';
 
 const UserMyLockers = ({ user }) => {
     const navigate = useNavigate();
@@ -245,7 +246,7 @@ const UserMyLockers = ({ user }) => {
                 </div>
             </header>
 
-
+            <PushNotificationPrompt user={user} />
 
             <div className="lockers-section">
                     {/* Seção de contratos em carência para renovação */}

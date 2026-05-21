@@ -349,3 +349,82 @@
         gap: 0.75rem;
     }
 }
+
+/* Topbar Push Alert inside Notification Dropdown */
+.topbar-push-alert {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 165, 233, 0.04) 100%);
+    border-bottom: 1px solid rgba(2, 132, 199, 0.12);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.topbar-push-alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+}
+
+.pulse-accent-bell {
+    color: #0284c7;
+    flex-shrink: 0;
+    margin-top: 2px;
+    animation: topbarBellSwing 2.5s ease-in-out infinite;
+}
+
+@keyframes topbarBellSwing {
+    0%, 100% { transform: rotate(0); }
+    10% { transform: rotate(15deg); }
+    20% { transform: rotate(-10deg); }
+    30% { transform: rotate(5deg); }
+    40% { transform: rotate(-5deg); }
+    50% { transform: rotate(0); }
+}
+
+.topbar-push-alert-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.topbar-push-alert-text span {
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.4;
+    font-weight: 500;
+    text-align: left;
+}
+
+.topbar-push-error {
+    font-size: 10px;
+    color: #ef4444 !important;
+    font-weight: 600;
+}
+
+.topbar-push-btn {
+    background: #0284c7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15);
+}
+
+.topbar-push-btn:hover:not(:disabled) {
+    background: #0369a1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(2, 132, 199, 0.25);
+}
+
+.topbar-push-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

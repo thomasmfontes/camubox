@@ -387,10 +387,26 @@ export const dbService = {
             }
 
             // In local development, /api routes usually don't exist unless using 'vercel dev'
-            // We skip the sync to avoid 404 errors in the console during development
+            // To allow testing on localhost, we attempt to upsert directly via client-side Supabase.
             if (window.location.hostname === 'localhost') {
-                console.log('[FCM Setup] Skipping token sync on localhost (API not available)');
-                return { data: null, error: null };
+                console.log('[FCM Setup] Localhost detected. Attempting direct Supabase upsert...');
+                try {
+                    const { data, error } = await supabase
+                        .from('t_fcm_tokens')
+                        .upsert(
+                            { dc_email: email, token: token },
+                            { onConflict: 'dc_email' }
+                        )
+                        .select();
+                    
+                    if (error) throw error;
+                    console.log('[FCM Setup] Direct client-side upsert successful:', data);
+                    return { data, error: null };
+                } catch (dbErr) {
+                    console.warn('[FCM Setup] Direct client-side upsert failed (checking backend/RLS):', dbErr);
+                    // Fallback to normal mock behavior so local development isn't blocked by RLS policies
+                    return { data: null, error: dbErr };
+                }
             }
 
             try {

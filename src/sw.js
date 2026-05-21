@@ -6,15 +6,21 @@ precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
 // --- INÍCIO LÓGICA FIREBASE ---
-importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
+if (typeof importScripts === 'function') {
+  try {
+    importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
+    importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  messagingSenderId: "399118885219",
-  apiKey: "AIzaSyBFH3kTferNsJQTmn6LQIAm87SwYlRxpAM",
-  projectId: "camubox-f19b4",
-  appId: "1:399118885219:web:d5b8c6c09e384d5668b356"
-});
+    firebase.initializeApp({
+      messagingSenderId: "399118885219",
+      apiKey: "AIzaSyBFH3kTferNsJQTmn6LQIAm87SwYlRxpAM",
+      projectId: "camubox-f19b4",
+      appId: "1:399118885219:web:d5b8c6c09e384d5668b356"
+    });
+  } catch (err) {
+    console.warn('[SW] Failed to load firebase scripts:', err);
+  }
+}
 
 // const messaging = firebase.messaging();
 
