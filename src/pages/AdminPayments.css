@@ -190,7 +190,7 @@
 /* Row Styling (Cards on Mobile, Rows on Desktop) */
 .admin-payments .inspection-table-simple tr {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, auto);
     grid-template-areas:
         "armario date"
         "user    user"
@@ -310,9 +310,8 @@
     font-size: 0.75rem;
     color: #0369a1;
     font-weight: 700;
+    white-space: nowrap; /* single line — card has overflow:hidden so no page overflow */
     line-height: 1.1;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .admin-payments .col-user {
@@ -328,6 +327,8 @@
     grid-area: type;
     display: flex;
     align-items: center;
+    min-width: 0; /* allow shrinking so badge doesn't squeeze value column */
+    overflow: hidden;
 }
 
 .admin-payments .col-date {
@@ -360,7 +361,8 @@
     .admin-payments .col-value .value-fee { display: block; }
     .admin-payments .col-value .value-fee-pct { display: none; }
     .admin-payments .col-user { display: table-cell; padding: 0; border-top: none; border-bottom: none; }
-    .admin-payments .col-type { width: 180px; display: table-cell; }
+    .admin-payments .col-type { width: 180px; display: table-cell; min-width: unset; overflow: visible; }
+    .admin-payments .col-type .transaction-type-badge { font-size: 0.7rem; padding: 4px 10px; display: inline-flex; align-items: center; white-space: normal; }
     .admin-payments .col-date { width: 140px; display: table-cell; justify-content: unset; }
     .admin-payments .col-date .icon-sub { display: flex; } /* restore calendar icon on desktop */
     .admin-payments .text-right { text-align: right !important; }
@@ -467,15 +469,18 @@
 
 /* Transaction Type Badges */
 .admin-payments .transaction-type-badge {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
     border: 1px solid transparent;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .admin-payments .transaction-type-badge.locacao {

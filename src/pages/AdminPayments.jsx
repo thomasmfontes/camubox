@@ -422,7 +422,7 @@ const AdminPayments = () => {
         });
         ws['!cols'] = Object.keys(maxLens).map(key => ({ wch: maxLens[key] }));
 
-        XLSX.writeFile(wb, `extrato_woovi_camubox_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(wb, `extrato_camubox_${new Date().toISOString().split('T')[0]}.xlsx`);
     };
 
     const getTypeClass = (type) => {
@@ -503,18 +503,6 @@ const AdminPayments = () => {
                         <p className="mini-stat-label">Total de Recebimentos</p>
                         <h3 className="mini-stat-value">
                             {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : metrics.totalSalesCount}
-                        </h3>
-                    </div>
-                </div>
-
-                <div className="mini-stat-card card">
-                    <div className="mini-stat-icon" style={{ backgroundColor: '#faf5ff', color: '#6b21a8', borderColor: '#e9d5ff' }}>
-                        <TrendingUp size={28} />
-                    </div>
-                    <div className="mini-stat-content">
-                        <p className="mini-stat-label">Plano Preferido</p>
-                        <h3 className="mini-stat-value">
-                            {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : metrics.preferredPlan}
                         </h3>
                     </div>
                 </div>
