@@ -431,6 +431,16 @@ const AdminPayments = () => {
         }
     };
 
+    // Display names in proper title case (DB stores them in uppercase)
+    const toTitleCase = (str) => {
+        if (!str) return '';
+        const skipWords = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'na', 'no', 'nas', 'nos', 'a', 'o']);
+        return str.toLowerCase().split(' ').map((word, i) => {
+            if (i > 0 && skipWords.has(word)) return word;
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
+    };
+
     return (
         <div className="admin-payments premium-theme">
             <header className="page-header">
@@ -590,7 +600,7 @@ const AdminPayments = () => {
                             </thead>
                             <tbody>
                                     {paginatedTransactions.map((t) => (
-                                        <tr key={t.id}>
+                                        <tr key={t.id} className={`row-type-${getTypeClass(t.transactionType)}`}>
                                             <td className="col-armario">
                                                 {t.lockerNumber ? (
                                                     <div className="unified-locker-badge">
@@ -613,7 +623,7 @@ const AdminPayments = () => {
                                                 <div className="info-item">
                                                     <UserIcon size={14} className="icon-sub" />
                                                     <div className="user-stack">
-                                                        <span className="txt-main">{t.studentName}</span>
+                                                        <span className="txt-main">{toTitleCase(t.studentName)}</span>
                                                     </div>
                                                 </div>
                                             </td>

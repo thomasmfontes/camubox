@@ -189,21 +189,28 @@
         "armario value"
         "user    user"
         "type    date";
-    gap: 0.65rem 1rem;
+    gap: 0.6rem 0.75rem;
     align-items: center;
     background: white;
-    padding: 1.1rem 1.1rem 1rem;
-    border-radius: 18px;
+    padding: 1rem 1rem 0.85rem 1.1rem;
+    border-radius: 16px;
     border: 1.5px solid var(--border, #e2e8f0);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-    margin-bottom: 0.85rem;
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    border-left-width: 4px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
-.inspection-table-simple tbody tr:hover {
-    border-color: var(--primary, #003d2b);
-    box-shadow: 0 4px 18px rgba(0, 61, 43, 0.09);
+.inspection-table-simple tbody tr:active {
+    transform: scale(0.99);
 }
+
+/* Type-colored left accent borders */
+.inspection-table-simple tbody tr.row-type-locacao    { border-left-color: #0ca678; }
+.inspection-table-simple tbody tr.row-type-renovacao  { border-left-color: #228be6; }
+.inspection-table-simple tbody tr.row-type-troca      { border-left-color: #fd7e14; }
+.inspection-table-simple tbody tr.row-type-upgrade    { border-left-color: #7950f2; }
+.inspection-table-simple tbody tr.row-type-outros     { border-left-color: #94a3b8; }
 
 @media (min-width: 1024px) {
     .inspection-table-simple tr {
@@ -256,15 +263,16 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: 0.65rem;
+    padding-bottom: 0.55rem;
     border-bottom: 1px solid #f1f5f9;
 }
 
 .col-value .txt-main {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #166534;
-    letter-spacing: -0.02em;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #15803d;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
 }
 
 .col-user {
@@ -287,6 +295,16 @@
 }
 
 @media (min-width: 1024px) {
+    /* Reset mobile card borders back to table rows */
+    .inspection-table-simple tr,
+    .inspection-table-simple tbody tr.row-type-locacao,
+    .inspection-table-simple tbody tr.row-type-renovacao,
+    .inspection-table-simple tbody tr.row-type-troca,
+    .inspection-table-simple tbody tr.row-type-upgrade,
+    .inspection-table-simple tbody tr.row-type-outros {
+        border-left-width: 0;
+    }
+
     .col-armario {
         width: 160px;
         display: table-cell;
@@ -294,10 +312,11 @@
         border-bottom: none;
     }
     .col-value { display: table-cell; justify-content: unset; padding-bottom: 0; border-bottom: none; }
-    .col-value .txt-main { font-size: 0.95rem; }
+    .col-value .txt-main { font-size: 0.95rem; font-weight: 800; }
     .col-user { display: table-cell; }
     .col-type { width: 180px; display: table-cell; }
     .col-date { width: 140px; display: table-cell; justify-content: unset; }
+    .col-date .icon-sub { display: flex; } /* restore calendar icon on desktop */
     .text-right { text-align: right !important; }
 }
 
@@ -363,37 +382,51 @@
 .txt-sub { font-size: 0.85rem; font-weight: 600; color: var(--text-muted, #64748b); }
 .txt-sub.small { font-size: 0.75rem; letter-spacing: 0.5px; }
 
-/* Mobile: name wraps nicely */
+/* Mobile: name in proper case, comfortable reading */
 .col-user .txt-main {
-    font-size: 0.9rem;
-    font-weight: 700;
-    line-height: 1.3;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #1e293b;
     white-space: normal;
     word-break: break-word;
 }
 
-/* Mobile: date info compact */
+/* Mobile: date compact, right-aligned */
 .col-date .user-stack {
     text-align: right;
+    gap: 1px;
+}
+
+.col-date .info-item {
+    justify-content: flex-end;
 }
 
 .col-date .txt-main {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
 }
 
 .col-date .txt-sub.small {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
+    font-weight: 500;
     color: #94a3b8;
+    letter-spacing: 0;
+}
+
+.col-date .icon-sub {
+    display: none; /* hide calendar icon on mobile, date is self-explanatory */
 }
 
 /* Transaction Type Badges */
 .transaction-type-badge {
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 6px 12px;
-    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     display: inline-flex;
     align-items: center;
     border: 1px solid transparent;
