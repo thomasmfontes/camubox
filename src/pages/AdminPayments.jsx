@@ -364,10 +364,12 @@ const AdminPayments = () => {
             if (t.contractType === 'ANUAL') anualCount++;
         });
 
+        const totalNet = totalPaid * 0.992; // 0.8% Woovi discount
         const preferredPlan = semestralCount >= anualCount ? 'Semestral' : 'Anual';
 
         return {
             totalPaid,
+            totalNet,
             totalSalesCount,
             preferredPlan
         };
@@ -398,7 +400,9 @@ const AdminPayments = () => {
                 'Aluno': t.studentName,
                 'E-mail': t.studentEmail,
                 'Operação': t.transactionType,
-                'Valor Pago': formatCurrency(t.value),
+                'Valor Bruto': formatCurrency(t.value),
+                'Tarifa Woovi (0.8%)': formatCurrency(t.value * 0.008),
+                'Valor Líquido': formatCurrency(t.value * 0.992),
                 'Data do Pagamento': fullDate,
                 'Status': 'Confirmado (Pago)'
             };
@@ -445,7 +449,7 @@ const AdminPayments = () => {
         <div className="admin-payments premium-theme">
             <header className="page-header">
                 <div className="header-text">
-                    <h1>Extrato Financeiro Woovi</h1>
+                    <h1>Extrato Financeiro</h1>
                     <p>Controle real de entradas Pix, taxas de trocas de armários e upgrades de planos.</p>
                 </div>
                 <button className="export-btn-premium" onClick={handleExport} disabled={filteredTransactions.length === 0}>
@@ -472,9 +476,21 @@ const AdminPayments = () => {
                         <DollarSign size={28} />
                     </div>
                     <div className="mini-stat-content">
-                        <p className="mini-stat-label">Faturamento Confirmado</p>
+                        <p className="mini-stat-label">Faturamento Bruto</p>
                         <h3 className="mini-stat-value">
                             {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : formatCurrency(metrics.totalPaid)}
+                        </h3>
+                    </div>
+                </div>
+
+                <div className="mini-stat-card card">
+                    <div className="mini-stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}>
+                        <TrendingUp size={28} />
+                    </div>
+                    <div className="mini-stat-content">
+                        <p className="mini-stat-label">Faturamento Líquido</p>
+                        <h3 className="mini-stat-value" style={{ color: '#047857' }}>
+                            {isLoading ? <Loader2 className="spinner animate-spin" size={20} /> : formatCurrency(metrics.totalNet)}
                         </h3>
                     </div>
                 </div>
@@ -638,9 +654,14 @@ const AdminPayments = () => {
 
                                             <td className="col-value">
                                                 <div className="info-item">
-                                                    <span className="txt-main" style={{ color: '#166534', fontWeight: 800 }}>
-                                                        {formatCurrency(t.value)}
-                                                    </span>
+                                                    <div className="value-stack">
+                                                        <span className="value-gross">{formatCurrency(t.value)}</span>
+                                                        <span className="value-fee">Tarifa (0.8%): -{formatCurrency(t.value * 0.008)}</span>
+                                                        <span className="value-net">
+                                                            Líq: {formatCurrency(t.value * 0.992)}
+                                                            <span className="value-fee-pct"> (-0.8%)</span>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </td>
 

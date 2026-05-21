@@ -186,13 +186,13 @@
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
-        "armario value"
+        "armario date"
         "user    user"
-        "type    date";
-    gap: 0.6rem 0.75rem;
+        "type    value";
+    gap: 0.45rem 0.75rem;
     align-items: center;
     background: white;
-    padding: 1rem 1rem 0.85rem 1.1rem;
+    padding: 1rem 1rem 0.9rem 1.1rem;
     border-radius: 16px;
     border: 1.5px solid var(--border, #e2e8f0);
     border-left-width: 4px;
@@ -254,8 +254,6 @@
     grid-area: armario;
     display: flex;
     align-items: center;
-    padding-bottom: 0.65rem;
-    border-bottom: 1px solid #f1f5f9;
 }
 
 .admin-payments .col-value {
@@ -263,22 +261,56 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: 0.55rem;
-    border-bottom: 1px solid #f1f5f9;
 }
 
-.admin-payments .col-value .txt-main {
-    font-size: 1.1rem;
-    font-weight: 900;
+.admin-payments .value-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.admin-payments .value-gross {
+    font-size: 1rem;
+    font-weight: 800;
     color: #15803d;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.admin-payments .value-fee {
+    display: none; /* Hidden on mobile, shown on desktop */
+    font-size: 0.72rem;
+    color: #64748b;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    line-height: 1.1;
+}
+
+.admin-payments .value-fee-pct {
+    display: inline;
+    font-size: 0.68rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.admin-payments .value-net {
+    font-size: 0.75rem;
+    color: #0369a1;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.1;
 }
 
 .admin-payments .col-user {
     grid-area: user;
     display: flex;
     align-items: center;
+    padding: 0.1rem 0;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .admin-payments .col-type {
@@ -312,8 +344,11 @@
         border-bottom: none;
     }
     .admin-payments .col-value { display: table-cell; justify-content: unset; padding-bottom: 0; border-bottom: none; }
-    .admin-payments .col-value .txt-main { font-size: 0.95rem; font-weight: 800; }
-    .admin-payments .col-user { display: table-cell; }
+    .admin-payments .col-value .value-stack { align-items: flex-start; gap: 3px; }
+    .admin-payments .col-value .value-gross { font-size: 0.95rem; font-weight: 800; }
+    .admin-payments .col-value .value-fee { display: block; }
+    .admin-payments .col-value .value-fee-pct { display: none; }
+    .admin-payments .col-user { display: table-cell; padding: 0; border-top: none; border-bottom: none; }
     .admin-payments .col-type { width: 180px; display: table-cell; }
     .admin-payments .col-date { width: 140px; display: table-cell; justify-content: unset; }
     .admin-payments .col-date .icon-sub { display: flex; } /* restore calendar icon on desktop */
