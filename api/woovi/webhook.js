@@ -272,16 +272,48 @@ export default async function handler(req, res) {
           let rentalDetails = null;
 
           if (targetRentalId) {
-            const { data: rental } = await supabase
+            const { data: rental, error: rentalErr } = await supabase
               .from('t_locacao')
-              .select('*, t_usuario(*), t_armario(*)')
+              .select('*')
               .eq('id_locacao', targetRentalId)
               .maybeSingle();
 
+            if (rentalErr) {
+              console.error('⚠️ Erro ao buscar t_locacao:', rentalErr.message);
+            }
+
             if (rental) {
               rentalDetails = rental;
-              userDetails = rental.t_usuario;
-              lockerDetails = rental.t_armario;
+              
+              // Query t_usuario separately to bypass PostgREST cache issues
+              if (rental.id_usuario) {
+                const { data: user, error: userErr } = await supabase
+                  .from('t_usuario')
+                  .select('*')
+                  .eq('id_usuario', rental.id_usuario)
+                  .maybeSingle();
+                
+                if (userErr) {
+                  console.error('⚠️ Erro ao buscar t_usuario:', userErr.message);
+                } else if (user) {
+                  userDetails = user;
+                }
+              }
+
+              // Query locker details from v_armario view to get pre-resolved location and size
+              if (rental.id_armario) {
+                const { data: locker, error: lockerErr } = await supabase
+                  .from('v_armario')
+                  .select('*')
+                  .eq('id_armario', rental.id_armario)
+                  .maybeSingle();
+                
+                if (lockerErr) {
+                  console.error('⚠️ Erro ao buscar v_armario:', lockerErr.message);
+                } else if (locker) {
+                  lockerDetails = locker;
+                }
+              }
             }
           }
 
@@ -306,15 +338,15 @@ export default async function handler(req, res) {
           const finalLockerSize = lockerDetails?.nm_tamanho || (val >= 100 ? 'Grande' : 'Pequeno');
           
           let finalLockerFloor = 'Térreo';
-          if (lockerDetails?.id_local) {
+          if (lockerDetails?.nm_local) {
+            finalLockerFloor = lockerDetails.nm_local;
+          } else if (lockerDetails?.id_local) {
             const { data: localData } = await supabase
               .from('t_local')
               .select('nm_local')
               .eq('id_local', lockerDetails.id_local)
               .maybeSingle();
             finalLockerFloor = localData?.nm_local || 'Térreo';
-          } else if (lockerDetails?.nm_local) {
-            finalLockerFloor = lockerDetails.nm_local;
           }
 
           const insertData = {
