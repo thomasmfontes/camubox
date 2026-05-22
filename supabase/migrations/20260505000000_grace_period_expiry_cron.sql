@@ -42,7 +42,7 @@ BEGIN
             AND (dt_termino + INTERVAL '15 days') < CURRENT_DATE
     LOOP
         -- 0. Get locker display number
-        SELECT LPAD(COALESCE(cd_armario, id_armario::text), 3, '0') 
+        SELECT LPAD(COALESCE(cd_armario::text, id_armario::text), 3, '0') 
         INTO v_locker_display 
         FROM t_armario 
         WHERE id_armario = v_rental.id_armario;
@@ -58,13 +58,15 @@ BEGIN
         WHERE id_armario = v_rental.id_armario;
 
         -- 3. Criar notificação para o usuário informando que o prazo expirou
-        INSERT INTO t_notificacao (id_usuario, dc_titulo, dc_mensagem, is_lida, dt_criacao)
+        INSERT INTO t_notificacao (id_usuario, dc_titulo, dc_mensagem, is_lida, dt_criacao, id_entidade, tp_entidade)
         VALUES (
             v_rental.id_usuario,
             'Prazo de carência encerrado ⏰',
-            'O prazo de renovação prioritária do seu armário #' || v_locker_display || ' expirou após 15 dias. O armário foi liberado e está disponível para outros alunos.',
+            'O prazo de renovação prioritária do seu armário #' || v_locker_display || ' expirou após 15 dias.',
             false,
-            NOW()
+            NOW(),
+            v_rental.id_armario::text,
+            'armario'
         )
         ON CONFLICT DO NOTHING;
 

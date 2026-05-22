@@ -120,7 +120,9 @@ export default async function handler(req, res) {
 
     // 2. Send Email via Resend
     let emailResult = null;
-    if (resend) {
+    const isPasswordChange = notificationTitle === 'Senha Alterada 🔐';
+    
+    if (resend && !isPasswordChange) {
       try {
         emailResult = await resend.emails.send({
           from: 'CAMUBOX <naoresponda@camubox.com>',
@@ -132,6 +134,8 @@ export default async function handler(req, res) {
         console.error('[RESEND ERROR]', err);
         emailResult = { error: err.message };
       }
+    } else if (isPasswordChange) {
+      emailResult = { status: 'skipped', message: 'Email bypassed for password change (push notification only)' };
     }
 
     // 3. Get FCM tokens
