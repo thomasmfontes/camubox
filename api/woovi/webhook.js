@@ -41,6 +41,31 @@ export default async function handler(req, res) {
           process.env.SUPABASE_SERVICE_ROLE_KEY
         );
 
+        // 0. Evitar processamento duplicado (Idempotência / Blindagem contra Webhooks duplicados)
+        const chargeId = charge?.globalID || charge?.id || charge?.transactionId || charge?.id_woovi_charge || null;
+        
+        let query = supabase
+          .from('t_transacao')
+          .select('id_transacao')
+          .eq('dc_status', 'CONCLUIDO');
+          
+        if (chargeId) {
+          query = query.or(`id_woovi_charge.eq.${chargeId},dc_correlation_id.eq.${correlationID}`);
+        } else {
+          query = query.eq('dc_correlation_id', correlationID);
+        }
+        
+        const { data: existingTx, error: checkErr } = await query.maybeSingle();
+        
+        if (checkErr) {
+          console.error('⚠️ Erro ao verificar transação existente:', checkErr.message);
+        }
+        
+        if (existingTx) {
+          console.log(`⚠️ Webhook já processado para correlationID=${correlationID} / chargeId=${chargeId}. Ignorando duplicata.`);
+          return res.status(200).json({ received: true, duplicate: true });
+        }
+
         if (correlationID.startsWith('EXC_')) {
           const parts = correlationID.split('_');
           const rentalId = parts[1];
@@ -219,7 +244,7 @@ export default async function handler(req, res) {
           const valueCents = charge?.value || charge?.valor || 0;
           const val = valueCents / 100;
           const paymentDate = charge?.paymentDate || charge?.dt_pagamento || new Date().toISOString();
-          const chargeId = charge?.id || charge?.transactionId || charge?.id_woovi_charge || null;
+          const chargeId = charge?.globalID || charge?.id || charge?.transactionId || charge?.id_woovi_charge || null;
 
           let parsedLockerNumber = null;
           let parsedType = null;
