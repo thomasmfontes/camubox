@@ -103,6 +103,7 @@ const LockerManagement = () => {
                     // Only set or overwrite if the current one is active, or if we don't have one yet
                     if (isCurrentlyActive || !acc[r.id_armario]) {
                         acc[r.id_armario] = {
+                            id_locacao: r.id_locacao,
                             name: r.nm_aluno,
                             expiry: r.dt_termino || r.dt_vencimento,
                             type: 'rental',
@@ -170,6 +171,7 @@ const LockerManagement = () => {
                             nm_presidente: l.nm_presidente || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nm_usuario : leagueData.t_usuario?.nm_usuario) : null),
                             tel_presidente: leagueData?.nr_telefone || (leagueData?.t_usuario ? (Array.isArray(leagueData.t_usuario) ? leagueData.t_usuario[0]?.nr_celular : leagueData.t_usuario?.nr_celular) : l.nr_celular_presidente),
                             isReservation,
+                            id_locacao: activeData?.type === 'rental' ? activeData.id_locacao : null,
                             graceInfo: graceMap[l.id_armario] || null,
                             description: l.ds_observacao,
                             expiry: (activeData && activeData.expiry) ? (function (dt) {
@@ -330,7 +332,14 @@ const LockerManagement = () => {
             const descToSave = (newStatus === 'bloqueado' || newStatus === 'manutencao' || newStatus === 'edit_description') ? lockerDescription : 
                                (newStatus === 'disponivel') ? '' : null;
 
-            await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus, selectedLeagueId, descToSave);
+            if (newStatus === 'vistoria' && selectedLocker.id_locacao) {
+                await dbService.rentals.terminate(selectedLocker.id_locacao, selectedLocker.dbId);
+            } else if (newStatus === 'disponivel' && selectedLocker.id_locacao) {
+                await dbService.rentals.terminate(selectedLocker.id_locacao, selectedLocker.dbId);
+                await dbService.lockers.updateStatus(selectedLocker.dbId, 'DISPONIVEL', null, '');
+            } else {
+                await dbService.lockers.updateStatus(selectedLocker.dbId, dbStatus, selectedLeagueId, descToSave);
+            }
 
             await fetchData();
             setSelectedLocker(null);

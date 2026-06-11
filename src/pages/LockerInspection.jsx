@@ -63,6 +63,7 @@ const LockerInspection = () => {
                     return {
                         id: (l.cd_armario || '').toString().padStart(3, '0'),
                         dbId: l.id_armario,
+                        rentalId: lastRental?.id_status === 1 ? lastRental.id_locacao : null,
                         floor: l.nm_local || l.dc_andar || 'Térreo',
                         category,
                         prevUser: lastRental ? (userMap[lastRental.id_usuario] || `ID: ${lastRental.id_usuario}`) : 'Sem locação prévia',
@@ -105,13 +106,16 @@ const LockerInspection = () => {
         currentPage * itemsPerPage
     );
 
-    const handleAction = async (dbId, action) => {
+    const handleAction = async (item, action) => {
         try {
             if (action === 'confirm') {
-                await dbService.lockers.updateStatus(dbId, 'DISPONIVEL');
+                if (item.rentalId) {
+                    await dbService.rentals.terminate(item.rentalId, item.dbId);
+                }
+                await dbService.lockers.updateStatus(item.dbId, 'DISPONIVEL');
                 await fetchData();
             } else {
-                await dbService.lockers.updateStatus(dbId, 'MANUTENCAO');
+                await dbService.lockers.updateStatus(item.dbId, 'MANUTENCAO');
                 await fetchData();
             }
         } catch (error) {
@@ -248,14 +252,14 @@ const LockerInspection = () => {
                                             <div className="action-row-compact">
                                                 <button
                                                     className="btn-compact-success"
-                                                    onClick={() => handleAction(item.dbId, 'confirm')}
+                                                    onClick={() => handleAction(item, 'confirm')}
                                                 >
                                                     <CheckCircle2 size={16} />
                                                     <span>Liberar</span>
                                                 </button>
                                                 <button
                                                     className="btn-compact-warning"
-                                                    onClick={() => handleAction(item.dbId, 'problem')}
+                                                    onClick={() => handleAction(item, 'problem')}
                                                 >
                                                     <Wrench size={16} />
                                                     <span className="hide-on-mobile">Manutenção</span>
@@ -265,7 +269,7 @@ const LockerInspection = () => {
                                             <div className="action-row-compact">
                                                 <button
                                                     className="btn-compact-success"
-                                                    onClick={() => handleAction(item.dbId, 'confirm')}
+                                                    onClick={() => handleAction(item, 'confirm')}
                                                 >
                                                     <CheckCircle2 size={16} />
                                                     <span>Reparo Concluído</span>
