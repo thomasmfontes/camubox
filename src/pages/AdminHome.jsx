@@ -9,9 +9,14 @@ import {
     ClipboardCheck,
     Users,
     ShieldOff,
-    Lock
+    Lock,
+    Fingerprint,
+    Loader2,
+    Info,
+    X
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
+import { biometricService } from '../services/biometricService';
 import './AdminHome.css';
 
 const CountUp = ({ end, duration = 1500 }) => {
@@ -46,6 +51,14 @@ const CountUp = ({ end, duration = 1500 }) => {
 const AdminHome = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
+
+    const userStr = localStorage.getItem('camubox_user');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    const [isBiometricRegistering, setIsBiometricRegistering] = useState(false);
+
+
+
     const [stats, setStats] = useState([
         { label: 'Total de armários', value: 0, icon: <div className="locker-icon-standard" />, color: '#003d2b', bgColor: '#f4f7f6', borderColor: '#d1dad7', key: 'total' },
         { label: 'Disponíveis', value: 0, icon: <CheckCircle />, color: '#166534', bgColor: '#f0fdf4', borderColor: '#bbf7d0', key: 'disponivel' },
@@ -132,6 +145,8 @@ const AdminHome = () => {
                 </div>
             </header>
 
+
+
             {/* Stats Cards Row */}
             <div className="stats-grid-6">
                 {stats.map((stat, i) => (
@@ -170,6 +185,8 @@ const AdminHome = () => {
                     ))}
                 </div>
             </section>
+
+
         </div>
     );
 };

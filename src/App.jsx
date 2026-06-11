@@ -19,6 +19,8 @@ import InstallPWA from './components/InstallPWA';
 import { requestFirebaseToken, setupForegroundListener } from './services/firebase';
 import ScrollToTop from './components/ScrollToTop';
 import ReloadPrompt from './components/ReloadPrompt';
+import { biometricService } from './services/biometricService';
+import { Fingerprint, CheckCircle, X } from 'lucide-react';
 
 // User Mock Pages
 // User Home is now replaced by direct redirection to lockers
@@ -198,6 +200,40 @@ function App() {
 
 // Separate component to help ESLint and clean up App
 function DashboardLayout({ user, handleLogout, location }) {
+  const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
+  const [biometricStatus, setBiometricStatus] = useState(null);
+
+  useEffect(() => {
+    const justLoggedIn = sessionStorage.getItem('camubox_just_logged_in') === 'true';
+    if (justLoggedIn && user?.email) {
+      const isSupported = biometricService.isSupported();
+      const hasRegistered = biometricService.hasRegistered(user.email);
+      const dismissed = localStorage.getItem(`camubox_biometric_prompt_dismissed_${user.email}`);
+
+      console.log('[Biometrics Prompt Diagnostic]', {
+        justLoggedIn,
+        email: user.email,
+        isSupported,
+        hasRegistered,
+        dismissed
+      });
+
+      if (isSupported && !hasRegistered && !dismissed) {
+        const timer = setTimeout(() => {
+          console.log('[Biometrics Prompt] Showing modal...');
+          sessionStorage.removeItem('camubox_just_logged_in');
+          setShowBiometricPrompt(true);
+        }, 1200); // Pequeno delay de 1.2s para esperar o carregamento da página/efeitos de entrada
+        return () => clearTimeout(timer);
+      }
+    } else {
+      console.log('[Biometrics Prompt Diagnostic] Conditions not met:', {
+        justLoggedIn,
+        email: user?.email
+      });
+    }
+  }, [user?.email]);
+
   return (
     <MainLayout user={user} onLogout={handleLogout}>
       <div style={{ width: '100%', height: '100%', overflow: 'visible' }}>
@@ -216,6 +252,87 @@ function DashboardLayout({ user, handleLogout, location }) {
             <Route path="*" element={<div>Página em construção...</div>} />
           </Routes>
       </div>
+
+      {showBiometricPrompt && (
+        <div className="modal-overlay" onClick={() => {
+          localStorage.setItem(`camubox_biometric_prompt_dismissed_${user?.email}`, 'true');
+          setShowBiometricPrompt(false);
+        }}>
+          <div className="password-modal" onClick={e => e.stopPropagation()}>
+            <button 
+              className="btn-modal-close-x"
+              onClick={() => {
+                localStorage.setItem(`camubox_biometric_prompt_dismissed_${user?.email}`, 'true');
+                setShowBiometricPrompt(false);
+              }}
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="modal-header">
+              <div className="alert-icon-container" style={{ background: '#f0fdf4', color: 'var(--primary)', display: 'inline-flex' }}>
+                <Fingerprint size={48} style={{ animation: 'pulse-ring 2s infinite ease-in-out' }} />
+              </div>
+              <h2>Ativar Login Digital?</h2>
+              <p>
+                Deseja cadastrar a digital deste dispositivo para entrar de forma rápida e segura nas próximas vezes?
+              </p>
+            </div>
+
+            <div className="modal-footer-vertical">
+              <button 
+                className="btn-modal-confirm-primary" 
+                onClick={async () => {
+                  try {
+                    await biometricService.register(user.email, user.name);
+                    setShowBiometricPrompt(false);
+                    setBiometricStatus({ message: 'Biometria ativada com sucesso!', type: 'success' });
+                    setTimeout(() => setBiometricStatus(null), 5000);
+                  } catch (err) {
+                    console.error(err);
+                    if (err.name !== 'NotAllowedError') {
+                      alert(err.message || 'Erro ao registrar biometria.');
+                    }
+                  }
+                }}
+              >
+                Ativar Digital
+              </button>
+              <button 
+                className="btn-modal-cancel" 
+                onClick={() => {
+                  localStorage.setItem(`camubox_biometric_prompt_dismissed_${user?.email}`, 'true');
+                  setShowBiometricPrompt(false);
+                }}
+              >
+                Agora não
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {biometricStatus && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          background: biometricStatus.type === 'success' ? '#dcfce7' : '#fee2e2',
+          border: `1px solid ${biometricStatus.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+          color: biometricStatus.type === 'success' ? '#15803d' : '#b91c1c',
+          padding: '16px 24px',
+          borderRadius: '12px',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          zIndex: 4000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontWeight: '600'
+        }}>
+          <CheckCircle size={20} />
+          <span>{biometricStatus.message}</span>
+        </div>
+      )}
     </MainLayout>
   );
 }

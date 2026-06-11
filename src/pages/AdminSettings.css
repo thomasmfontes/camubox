@@ -675,7 +675,13 @@
     transition: all 0.2s;
 }
 
-.modal-btn-confirm:hover { background: #002d1f; transform: translateY(-2px); }
+.modal-btn-confirm:hover { background: #002d1f; }
+
+.modal-btn-confirm:active,
+.modal-btn-cancel:active,
+.modal-btn-primary:active {
+    transform: scale(0.97) !important;
+}
 
 .modal-btn-primary {
     width: 100%;

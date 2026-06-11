@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3, Users, RotateCcw, Zap } from 'lucide-react';
+import { Eye, EyeOff, Clock, RefreshCcw, Loader2, Sparkles, ChevronRight, AlertCircle, Info, Maximize2, Lock, ArrowLeftRight, Save, Edit3, Users, RotateCcw, Zap, Fingerprint, X } from 'lucide-react';
 import { GrUpgrade } from "react-icons/gr";
 import { dbService } from '../services/supabaseClient';
+import { biometricService } from '../services/biometricService';
 import './UserMyLockers.css';
 import PushNotificationPrompt from '../components/PushNotificationPrompt';
 
@@ -21,6 +22,8 @@ const UserMyLockers = ({ user }) => {
     const [confirmTerminate, setConfirmTerminate] = useState(null);
     const [isTerminating, setIsTerminating] = useState(false);
     const [settings, setSettings] = useState(null);
+    const [isBiometricRegistering, setIsBiometricRegistering] = useState(false);
+    const [biometricStatus, setBiometricStatus] = useState(null); // { message, type }
 
     const fetchData = useCallback(async () => {
         if (!user?.id_usuario) return;
@@ -121,6 +124,8 @@ const UserMyLockers = ({ user }) => {
         fetchData();
     }, [fetchData]);
 
+
+
     const handleOpenPass = (locker) => {
         setViewPassword(locker);
         setNewPassValue(locker.password);
@@ -218,6 +223,25 @@ const UserMyLockers = ({ user }) => {
         }
     };
 
+    const handleRegisterBiometrics = async () => {
+        if (!user?.email) return;
+        setIsBiometricRegistering(true);
+        setBiometricStatus(null);
+        try {
+            await biometricService.register(user.email, user.name);
+            setBiometricStatus({ message: 'Biometria cadastrada com sucesso neste dispositivo!', type: 'success' });
+            setTimeout(() => setBiometricStatus(null), 5000);
+        } catch (err) {
+            console.error('[BIOMETRIC REGISTER ERROR]', err);
+            if (err.name !== 'NotAllowedError') {
+                setBiometricStatus({ message: err.message || 'Erro ao registrar biometria.', type: 'error' });
+                setTimeout(() => setBiometricStatus(null), 5000);
+            }
+        } finally {
+            setIsBiometricRegistering(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="my-lockers-premium">
@@ -245,6 +269,25 @@ const UserMyLockers = ({ user }) => {
                     </div>
                 </div>
             </header>
+
+            {biometricStatus && (
+                <div style={{
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    background: biometricStatus.type === 'success' ? '#dcfce7' : '#fee2e2',
+                    border: `1px solid ${biometricStatus.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                    color: biometricStatus.type === 'success' ? '#15803d' : '#b91c1c',
+                    fontSize: '0.9rem',
+                    fontWeight: '500',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <Info size={16} />
+                    <span>{biometricStatus.message}</span>
+                </div>
+            )}
 
             <PushNotificationPrompt user={user} />
 
@@ -592,6 +635,7 @@ const UserMyLockers = ({ user }) => {
                         </div>
                     </div>
                 )}
+
         </div>
     );
 };

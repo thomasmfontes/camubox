@@ -244,3 +244,166 @@ button:active,
   background: rgba(255, 255, 255, 0.9);
   border-color: var(--primary);
 }
+
+/* ==========================================
+   GLOBAL SYSTEM MODALS (Consistency Standard)
+   ========================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 43, 31, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: modal-fade-in 0.3s ease-out forwards;
+}
+
+.password-modal {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 28px;
+  padding: 2.5rem;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  animation: modal-scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modal-header {
+  margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  font-weight: 850;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.015em;
+}
+
+.modal-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.alert-icon-container {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.modal-footer-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Modal Actions Buttons */
+.btn-modal-confirm-primary {
+  background: var(--primary);
+  color: white;
+  height: 52px;
+  border-radius: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 8px 16px rgba(0, 61, 43, 0.15);
+  font-size: 0.9rem;
+}
+
+.btn-modal-confirm-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 12px 24px rgba(0, 61, 43, 0.3);
+}
+
+.btn-modal-confirm-primary:active,
+.password-modal .btn-modal-confirm-primary:active {
+  transform: scale(0.97) !important;
+}
+
+.btn-modal-cancel {
+  background: #f1f5f9;
+  color: #475569;
+  height: 52px;
+  border-radius: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.btn-modal-cancel:hover {
+  background: #e2e8f0;
+  color: var(--primary);
+}
+
+.btn-modal-cancel:active,
+.password-modal .btn-modal-cancel:active {
+  transform: scale(0.97) !important;
+}
+
+.btn-modal-close-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  padding: 4px;
+}
+
+.btn-modal-close-x:hover {
+  color: var(--text-main);
+}
+
+/* Modal Animations */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    background: rgba(0, 43, 31, 0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    background: rgba(0, 43, 31, 0.4);
+  }
+}
+
+@keyframes modal-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogIn, Shield, Lock, Users, UserPlus, Apple } from 'lucide-react';
+import { LogIn, Shield, Lock, Users, UserPlus, Apple, Fingerprint } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { dbService, authService } from '../services/supabaseClient';
+import { biometricService } from '../services/biometricService';
 import './LoginPage.css';
 
 const LoginPage = ({ onLogin }) => {
     const navigate = useNavigate();
     const [error, setError] = useState('');
-
-    // Passo 1 → Google auth
+    const [isBiometricLoading, setIsBiometricLoading] = useState(false);
     const [googleStep, setGoogleStep] = useState(null); // { email, name }
 
     // Passo 2 → celular
@@ -33,6 +33,7 @@ const LoginPage = ({ onLogin }) => {
                 const { data: existingUser } = await dbService.users.getByEmail(user.email);
                 if (existingUser) {
                     const isAdmin = !!existingUser.is_adm;
+                    sessionStorage.setItem('camubox_just_logged_in', 'true');
                     onLogin({ 
                         uid: user.id,
                         id_usuario: existingUser.id_usuario, 
@@ -80,6 +81,7 @@ const LoginPage = ({ onLogin }) => {
                     // Try to get supabase user id if available
                     const { data: { user: sbUser } } = await authService.getSession();
                     const isAdmin = !!existingUser.is_adm;
+                    sessionStorage.setItem('camubox_just_logged_in', 'true');
                     onLogin({ 
                         uid: sbUser?.id,
                         id_usuario: existingUser.id_usuario, 
@@ -114,6 +116,37 @@ const LoginPage = ({ onLogin }) => {
             console.error('[APPLE LOGIN ERROR]', err);
             setError('Erro ao iniciar login com Apple. Tente novamente.');
             setIsAppleLoading(false);
+        }
+    };
+
+    const handleBiometricLogin = async () => {
+        setError('');
+        setIsBiometricLoading(true);
+        try {
+            const credData = await biometricService.authenticate();
+            const { data: existingUser, error: fetchError } = await dbService.users.getByEmail(credData.email);
+            if (fetchError) throw fetchError;
+            if (!existingUser) {
+                throw new Error('Usuário correspondente à biometria não encontrado no sistema.');
+            }
+            
+            const isAdmin = !!existingUser.is_adm;
+            sessionStorage.setItem('camubox_just_logged_in', 'true');
+            onLogin({
+                uid: 'biometric-session',
+                id_usuario: existingUser.id_usuario,
+                name: existingUser.nm_usuario,
+                email: existingUser.dc_email,
+                isAdmin
+            });
+            navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
+        } catch (err) {
+            console.error('[BIOMETRIC LOGIN ERROR]', err);
+            if (err.name !== 'NotAllowedError') {
+                setError(err.message || 'Erro ao realizar login por biometria.');
+            }
+        } finally {
+            setIsBiometricLoading(false);
         }
     };
 
@@ -152,6 +185,7 @@ const LoginPage = ({ onLogin }) => {
             const { data: { user: sbUser } } = await authService.getSession();
             const isAdmin = !!user.is_adm;
             
+            sessionStorage.setItem('camubox_just_logged_in', 'true');
             onLogin({ 
                 uid: sbUser?.id,
                 id_usuario: user.id_usuario, 
@@ -195,6 +229,7 @@ const LoginPage = ({ onLogin }) => {
             const { data: { user: sbUser } } = await authService.getSession();
             const isAdmin = !!newUser.is_adm;
             
+            sessionStorage.setItem('camubox_just_logged_in', 'true');
             onLogin({ 
                 uid: sbUser?.id,
                 id_usuario: newUser.id_usuario, 
@@ -362,6 +397,43 @@ const LoginPage = ({ onLogin }) => {
                                     )}
                                     <span>Entrar com Apple</span>
                                 </button>
+
+                                {biometricService.isSupported() && biometricService.hasRegistered() && (
+                                    <>
+                                        <div className="divider-premium">
+                                            <span>ou usar biometria</span>
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            className="biometric-login-btn" 
+                                            onClick={handleBiometricLogin}
+                                            disabled={isBiometricLoading}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '10px',
+                                                width: '100%',
+                                                padding: '12px',
+                                                borderRadius: '12px',
+                                                border: '1.5px solid var(--primary)',
+                                                background: 'transparent',
+                                                color: 'var(--primary)',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                marginTop: '8px'
+                                            }}
+                                        >
+                                            {isBiometricLoading ? (
+                                                <span className="loader-mini dark"></span>
+                                            ) : (
+                                                <Fingerprint size={18} />
+                                            )}
+                                            <span>Entrar com Digital / PIN</span>
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </>
                     )}

@@ -481,9 +481,17 @@
     color: #475569;
 }
 
-/* Remover efeito de clique (scale) especificamente para os botões do modal */
+/* Remover efeito de clique (scale) especificamente para os botões do modal, exceto os de ação principais */
 .password-modal button:active {
-    transform: none !important;
+    transform: none;
+}
+.password-modal .btn-confirm-terminate:active,
+.password-modal .btn-cancel-terminate:active,
+.password-modal .btn-save:active,
+.password-modal .btn-cancel:active,
+.password-modal .btn-close-modal:active,
+.password-modal .btn-toggle-eye:active {
+    transform: scale(0.97) !important;
 }
 
 @keyframes spin {
@@ -1074,8 +1082,7 @@
 
 .btn-confirm-terminate:hover {
     background: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+    box-shadow: 0 12px 20px -3px rgba(239, 68, 68, 0.35);
 }
 
 .btn-cancel-terminate {
