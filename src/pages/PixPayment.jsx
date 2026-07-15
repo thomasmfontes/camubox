@@ -12,7 +12,8 @@ import {
     ArrowRight,
     Shield,
     CreditCard,
-    ChevronRight
+    ChevronRight,
+    AlertCircle
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import './PixPayment.css';
