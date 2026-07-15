@@ -24,8 +24,8 @@ const PixPayment = ({ user }) => {
     const { state } = location;
     
     const queryParams = new URLSearchParams(location.search);
-    const urlPaymentStatus = queryParams.get('payment_status');
-    const urlCorrelationID = queryParams.get('correlationID');
+    const urlPaymentStatus = queryParams.get('payment_status') || queryParams.get('status');
+    const urlCorrelationID = queryParams.get('correlationID') || queryParams.get('external_reference');
 
     // Status can be: 'selecting' -> 'generating' -> 'pending' -> 'verifying' -> 'confirmed' -> 'error'
     const [status, setStatus] = useState(urlPaymentStatus ? 'verifying' : 'selecting');
@@ -135,36 +135,43 @@ const PixPayment = ({ user }) => {
                     if (!isNaN(rentalId)) {
                         const { data: rental } = await supabase
                             .from('t_locacao')
-                            .select('*, v_armario(*)')
+                            .select('*')
                             .eq('id_locacao', rentalId)
                             .maybeSingle();
                             
-                        if (rental && rental.v_armario) {
-                            const locker = rental.v_armario;
-                            const isSem = Number(rental.id_tipo) === 1;
-                            
-                            const { data: configData } = await dbService.settings.get();
-                            let calculatedPrice = 0;
-                            const sizeKey = (locker.nm_tamanho || '').toLowerCase() === 'pequeno' ? 'Pq' : 'Gr';
-                            
-                            if (configData) {
-                                calculatedPrice = isSem 
-                                    ? (sizeKey === 'Pq' ? configData.vl_pequeno_semestral : configData.vl_grande_semestral)
-                                    : (sizeKey === 'Pq' ? configData.vl_pequeno_anual : configData.vl_grande_anual);
+                        if (rental) {
+                            const { data: locker } = await supabase
+                                .from('v_armario')
+                                .select('*')
+                                .eq('id_armario', rental.id_armario)
+                                .maybeSingle();
+                                
+                            if (locker) {
+                                const isSem = Number(rental.id_tipo) === 1;
+                                
+                                const { data: configData } = await dbService.settings.get();
+                                let calculatedPrice = 0;
+                                const sizeKey = (locker.nm_tamanho || '').toLowerCase() === 'pequeno' ? 'Pq' : 'Gr';
+                                
+                                if (configData) {
+                                    calculatedPrice = isSem 
+                                        ? (sizeKey === 'Pq' ? configData.vl_pequeno_semestral : configData.vl_grande_semestral)
+                                        : (sizeKey === 'Pq' ? configData.vl_pequeno_anual : configData.vl_grande_anual);
+                                }
+                                
+                                const isRen = rental.dc_correlation_id?.startsWith('REN_') || false;
+                                setIsRenewal(isRen);
+                                
+                                setSelectedLocker({
+                                    id: String(locker.cd_armario).padStart(3, '0'),
+                                    size: locker.nm_tamanho,
+                                    plan: isSem ? 'semestral' : 'anual',
+                                    floor: locker.nm_local,
+                                    dbId: locker.id_armario,
+                                    isRenewal: isRen
+                                });
+                                setPrice(calculatedPrice);
                             }
-                            
-                            const isRen = rental.dc_correlation_id?.startsWith('REN_') || false;
-                            setIsRenewal(isRen);
-                            
-                            setSelectedLocker({
-                                id: String(locker.cd_armario).padStart(3, '0'),
-                                size: locker.nm_tamanho,
-                                plan: isSem ? 'semestral' : 'anual',
-                                floor: locker.nm_local,
-                                dbId: locker.id_armario,
-                                isRenewal: isRen
-                            });
-                            setPrice(calculatedPrice);
                         }
                     }
                 }
@@ -181,9 +188,10 @@ const PixPayment = ({ user }) => {
     // Handle return status from Mercado Pago checkout redirect
     useEffect(() => {
         if (urlPaymentStatus) {
-            if (urlPaymentStatus === 'success') {
+            const statusLower = urlPaymentStatus.toLowerCase();
+            if (statusLower === 'success' || statusLower === 'approved') {
                 setStatus('confirmed');
-            } else if (urlPaymentStatus === 'pending') {
+            } else if (statusLower === 'pending' || statusLower === 'in_process') {
                 setStatus('pending');
             } else {
                 setStatus('error');
