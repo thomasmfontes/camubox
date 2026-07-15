@@ -256,6 +256,7 @@ const PixPayment = ({ user }) => {
     };
 
     const handleSelectMethod = (method) => {
+        setErrorMsg(''); // Clear any previous error banner
         setPaymentMethod(method);
         if (method === 'card_boleto') {
             setStatus('redirecting');
@@ -431,6 +432,7 @@ const PixPayment = ({ user }) => {
             hasGenerated.current = false;
             setPaymentMethod(null);
             setStatus('selecting');
+            setErrorMsg(''); // Clear error messages when returning to selection
         } else {
             // Avoid navigation loops returning to external Mercado Pago checkouts in browser history
             if (urlCorrelationID || urlPaymentStatus) {
