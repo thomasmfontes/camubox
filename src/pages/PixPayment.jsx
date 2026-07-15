@@ -447,7 +447,7 @@ const PixPayment = ({ user }) => {
 
     if (isFetchingContext) {
         return (
-            <div className="pix-payment-page premium-theme redirect-overlay-wrapper">
+            <div className="redirect-overlay-wrapper premium-theme">
                 <main className="payment-main-content single-card-center">
                     <section className="card redirecting-card animate-pop-in">
                         <div className="redirect-loader-container">
@@ -467,7 +467,7 @@ const PixPayment = ({ user }) => {
     if (status === 'redirecting') {
         const methodLabel = paymentMethod === 'credit_card' ? 'Cartão de Crédito' : (paymentMethod === 'boleto' ? 'Boleto Bancário' : 'Cartão ou Boleto');
         return (
-            <div className="pix-payment-page premium-theme redirect-overlay-wrapper">
+            <div className="redirect-overlay-wrapper premium-theme">
                 <main className="payment-main-content single-card-center">
                     <section className="card redirecting-card animate-pop-in">
                         <div className="redirect-loader-container">
