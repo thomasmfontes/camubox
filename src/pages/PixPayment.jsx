@@ -432,7 +432,12 @@ const PixPayment = ({ user }) => {
             setPaymentMethod(null);
             setStatus('selecting');
         } else {
-            navigate(-1);
+            // Avoid navigation loops returning to external Mercado Pago checkouts in browser history
+            if (urlCorrelationID || urlPaymentStatus) {
+                navigate('/dashboard/lockers');
+            } else {
+                navigate(-1);
+            }
         }
     };
 
