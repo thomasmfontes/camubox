@@ -13,7 +13,8 @@ import {
     Shield,
     CreditCard,
     ChevronRight,
-    AlertCircle
+    AlertCircle,
+    Barcode
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import './PixPayment.css';
@@ -258,15 +259,15 @@ const PixPayment = ({ user }) => {
     const handleSelectMethod = (method) => {
         setErrorMsg(''); // Clear any previous error banner
         setPaymentMethod(method);
-        if (method === 'card_boleto') {
+        if (method === 'credit_card' || method === 'boleto') {
             setStatus('redirecting');
-            generatePreference();
+            generatePreference(method);
         } else {
             setStatus('generating');
         }
     };
 
-    const generatePreference = async () => {
+    const generatePreference = async (selectedMethod) => {
         try {
             const correlationID = await getOrCreateRentalCorrelationID();
             if (!correlationID) return;
@@ -281,7 +282,8 @@ const PixPayment = ({ user }) => {
                     customer: {
                         name: user.nm_usuario || user.name || user.email,
                         email: user.email
-                    }
+                    },
+                    paymentMethod: selectedMethod
                 })
             });
 
@@ -296,7 +298,7 @@ const PixPayment = ({ user }) => {
         } catch (err) {
             console.error('Erro ao gerar preferência Mercado Pago:', err);
             setErrorMsg('Erro ao redirecionar para o Mercado Pago. Tente novamente.');
-            setStatus('error');
+            setStatus('selecting'); // Fallback to selecting state so they can try another method
         }
     };
 
@@ -450,7 +452,8 @@ const PixPayment = ({ user }) => {
                     <section className="card redirecting-card animate-pop-in">
                         <div className="redirect-loader-container">
                             <div className="dual-loader-ring">
-                                <RefreshCcw size={72} className="animate-spin ring-spinner" />
+                                <div className="ring-spinner-outer"></div>
+                                <div className="ring-spinner-inner"></div>
                             </div>
                             <h2>Carregando dados da locação</h2>
                             <p>Recuperando informações do armário e plano contratado no banco de dados...</p>
@@ -462,17 +465,19 @@ const PixPayment = ({ user }) => {
     }
 
     if (status === 'redirecting') {
+        const methodLabel = paymentMethod === 'credit_card' ? 'Cartão de Crédito' : (paymentMethod === 'boleto' ? 'Boleto Bancário' : 'Cartão ou Boleto');
         return (
             <div className="pix-payment-page premium-theme redirect-overlay-wrapper">
                 <main className="payment-main-content single-card-center">
                     <section className="card redirecting-card animate-pop-in">
                         <div className="redirect-loader-container">
                             <div className="dual-loader-ring">
-                                <Shield size={36} className="center-shield-icon" />
-                                <RefreshCcw size={72} className="animate-spin ring-spinner" />
+                                <div className="ring-spinner-outer"></div>
+                                <div className="ring-spinner-inner"></div>
+                                <Shield size={32} className="center-shield-icon" />
                             </div>
                             <h2>Redirecionamento Seguro</h2>
-                            <p>Conectando ao Mercado Pago para processar o seu pagamento via Cartão ou Boleto...</p>
+                            <p>Conectando ao Mercado Pago para processar o seu pagamento via {methodLabel}...</p>
                             <div className="mp-badge-footer">
                                 <span>Mercado Pago</span>
                             </div>
@@ -570,13 +575,24 @@ const PixPayment = ({ user }) => {
                                         <ChevronRight size={18} className="arrow-icon" />
                                     </button>
 
-                                    <button className="method-card-btn" onClick={() => handleSelectMethod('card_boleto')}>
+                                    <button className="method-card-btn" onClick={() => handleSelectMethod('credit_card')}>
                                         <div className="method-card-icon card-icon-bg">
                                             <CreditCard size={24} />
                                         </div>
                                         <div className="method-card-info">
-                                            <h4>Cartão ou Boleto</h4>
-                                            <p>Pague em até 12x ou via boleto</p>
+                                            <h4>Cartão de Crédito</h4>
+                                            <p>Pague em até 12x (liberação em minutos)</p>
+                                        </div>
+                                        <ChevronRight size={18} className="arrow-icon" />
+                                    </button>
+
+                                    <button className="method-card-btn" onClick={() => handleSelectMethod('boleto')}>
+                                        <div className="method-card-icon boleto-icon-bg">
+                                            <Barcode size={24} />
+                                        </div>
+                                        <div className="method-card-info">
+                                            <h4>Boleto Bancário</h4>
+                                            <p>Liberação em até 3 dias úteis</p>
                                         </div>
                                         <ChevronRight size={18} className="arrow-icon" />
                                     </button>

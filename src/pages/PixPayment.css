@@ -703,83 +703,125 @@
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 120px);
+    background: radial-gradient(circle at center, rgba(16, 185, 129, 0.04) 0%, rgba(59, 130, 246, 0.04) 50%, transparent 100%);
 }
 
 .single-card-center {
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     margin: 0 auto;
+    padding: 1rem;
 }
 
 .redirecting-card {
-    background: white;
-    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 3.5rem 2rem;
     border-radius: 28px;
-    border: 1.5px solid #f1f5f9;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
     text-align: center;
     width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .redirect-loader-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.75rem;
 }
 
 .dual-loader-ring {
     position: relative;
-    width: 90px;
-    height: 90px;
+    width: 100px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 0.5rem;
 }
 
-.center-shield-icon {
+.ring-spinner-outer {
     position: absolute;
-    color: #3b82f6; /* Blue for security */
+    width: 90px;
+    height: 90px;
+    border: 3.5px solid transparent;
+    border-top-color: var(--primary); /* Camubox brand green */
+    border-right-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1.4s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
 }
 
-.ring-spinner {
+.ring-spinner-inner {
     position: absolute;
-    color: #e2e8f0;
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
+    border: 3.5px solid transparent;
+    border-bottom-color: #10b981; /* Green of dropdowns */
+    border-left-color: #10b981;
+    border-radius: 50%;
+    animation: spin-reverse 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+}
+
+.center-shield-icon {
+    position: absolute;
+    color: var(--primary); /* Camubox brand green */
+    filter: drop-shadow(0 4px 10px rgba(0, 61, 43, 0.15));
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
 }
 
 .redirecting-card h2 {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    color: #1e293b;
+    color: var(--text-main);
     margin: 0;
+    letter-spacing: -0.02em;
 }
 
 .redirecting-card p {
-    font-size: 0.9rem;
-    color: #64748b;
+    font-size: 0.925rem;
+    color: var(--text-muted);
     line-height: 1.6;
     margin: 0;
     max-width: 320px;
 }
 
 .mp-badge-footer {
-    font-size: 0.75rem;
+    font-size: 0.725rem;
     font-weight: 800;
-    color: #94a3b8;
+    color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     margin-top: 1rem;
-    padding: 6px 14px;
-    background: #f8fafc;
+    padding: 6px 18px;
+    background: rgba(0, 61, 43, 0.04);
     border-radius: 100px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 43, 31, 0.03);
 }
 
 .animate-pop-in {
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.boleto-icon-bg {
+    background: #fff7ed;
+    color: #ea580c;
 }
 
 

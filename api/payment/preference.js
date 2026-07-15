@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { correlationID, value, comment, customer } = req.body;
+  const { correlationID, value, comment, customer, paymentMethod } = req.body;
   const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
   if (!accessToken) {
@@ -16,6 +16,26 @@ export default async function handler(req, res) {
     const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
     const hasPublicWebhook = process.env.MERCADO_PAGO_WEBHOOK_URL || (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1'));
+
+    // Configure exclusions based on user's selection
+    const paymentMethodsConfig = {};
+    if (paymentMethod === 'credit_card') {
+      paymentMethodsConfig.excluded_payment_types = [
+        { id: 'ticket' },
+        { id: 'bank_transfer' },
+        { id: 'consumer_credits' }
+      ];
+    } else if (paymentMethod === 'boleto') {
+      paymentMethodsConfig.excluded_payment_types = [
+        { id: 'credit_card' },
+        { id: 'debit_card' },
+        { id: 'prepaid_card' },
+        { id: 'consumer_credits' },
+        { id: 'bank_transfer' },
+        { id: 'digital_currency' },
+        { id: 'digital_wallet' }
+      ];
+    }
 
     const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
@@ -38,6 +58,7 @@ export default async function handler(req, res) {
           email: customer?.email || 'sem-email@camubox.com'
         },
         external_reference: correlationID,
+        payment_methods: paymentMethodsConfig,
         back_urls: {
           success: `${baseUrl}/dashboard/checkout/payment?payment_status=success&correlationID=${correlationID}`,
           pending: `${baseUrl}/dashboard/checkout/payment?payment_status=pending&correlationID=${correlationID}`,
