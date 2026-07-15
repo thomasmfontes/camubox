@@ -33,21 +33,37 @@ const PixPayment = ({ user }) => {
     const [copied, setCopied] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
-    const isExchange = state?.type === 'exchange';
-    const isUpgrade = state?.type === 'upgrade';
-    const isRenewal = state?.locker?.isRenewal === true;
+    // Self-healing database lookups when returning from checkout redirect with empty state
+    const [fetchedLocker, setFetchedLocker] = useState(null);
+    const [fetchedType, setFetchedType] = useState(null);
+    const [fetchedPrice, setFetchedPrice] = useState(null);
+    const [isFetchingContext, setIsFetchingContext] = useState(false);
+
+    const [isExchange, setIsExchange] = useState(state?.type === 'exchange');
+    const [isUpgrade, setIsUpgrade] = useState(state?.type === 'upgrade');
+    const [isRenewal, setIsRenewal] = useState(state?.locker?.isRenewal === true);
+    
     const exchangeInfo = state?.exchangeInfo;
     const upgradeInfo = state?.upgradeInfo;
-    const selectedLocker = state?.locker || {
+    
+    const [selectedLocker, setSelectedLocker] = useState(state?.locker || {
         id: '000',
         size: 'N/A',
         plan: 'semestral',
         priceSem: 0,
         priceAnn: 0
-    };
+    });
 
-    const isSemestral = selectedLocker.plan?.toLowerCase() === 'semestral';
-    const price = isUpgrade ? (upgradeInfo?.fee ?? 50) : (isExchange ? (exchangeInfo?.fee ?? 20) : (isSemestral ? selectedLocker.priceSem : selectedLocker.priceAnn));
+    const isSemestral = (selectedLocker?.plan || '').toLowerCase() === 'semestral';
+    
+    const getInitialPrice = () => {
+        if (!state) return 0;
+        const isEx = state.type === 'exchange';
+        const isUp = state.type === 'upgrade';
+        const isSem = (state.locker?.plan || '').toLowerCase() === 'semestral';
+        return isUp ? (state.upgradeInfo?.fee ?? 50) : (isEx ? (state.exchangeInfo?.fee ?? 20) : (isSem ? state.locker?.priceSem : state.locker?.priceAnn));
+    };
+    const [price, setPrice] = useState(getInitialPrice);
 
     const rentalDetails = {
         id: selectedLocker.id,
@@ -56,6 +72,111 @@ const PixPayment = ({ user }) => {
     };
 
     const [qrCodeData, setQrCodeData] = useState(null);
+
+    // Context Recovery Effect
+    useEffect(() => {
+        const fetchContextFromCorrelation = async () => {
+            // Only fetch if state is missing but we have correlationID in URL
+            if (state || !urlCorrelationID) return;
+            
+            setIsFetchingContext(true);
+            try {
+                if (urlCorrelationID.startsWith('UPG_')) {
+                    const [_, rentalId, newTypeId] = urlCorrelationID.split('_');
+                    setIsUpgrade(true);
+                    
+                    const { data: rental } = await supabase
+                        .from('t_locacao')
+                        .select('id_armario')
+                        .eq('id_locacao', rentalId)
+                        .maybeSingle();
+                        
+                    if (rental) {
+                        const { data: locker } = await supabase
+                            .from('v_armario')
+                            .select('*')
+                            .eq('id_armario', rental.id_armario)
+                            .maybeSingle();
+                            
+                        if (locker) {
+                            setSelectedLocker({
+                                id: String(locker.cd_armario).padStart(3, '0'),
+                                size: locker.nm_tamanho,
+                                plan: 'Anual',
+                                floor: locker.nm_local,
+                                dbId: locker.id_armario
+                            });
+                        }
+                    }
+                    setPrice(50);
+                } else if (urlCorrelationID.startsWith('EXC_')) {
+                    const [_, rentalId, oldLockerId, newLockerId] = urlCorrelationID.split('_');
+                    setIsExchange(true);
+                    
+                    const { data: locker } = await supabase
+                        .from('v_armario')
+                        .select('*')
+                        .eq('id_armario', newLockerId)
+                        .maybeSingle();
+                        
+                    if (locker) {
+                        setSelectedLocker({
+                            id: String(locker.cd_armario).padStart(3, '0'),
+                            size: locker.nm_tamanho,
+                            plan: 'Troca',
+                            floor: locker.nm_local,
+                            dbId: locker.id_armario
+                        });
+                    }
+                    setPrice(20);
+                } else {
+                    // Regular rental or renewal
+                    const rentalId = parseInt(urlCorrelationID, 10);
+                    if (!isNaN(rentalId)) {
+                        const { data: rental } = await supabase
+                            .from('t_locacao')
+                            .select('*, v_armario(*)')
+                            .eq('id_locacao', rentalId)
+                            .maybeSingle();
+                            
+                        if (rental && rental.v_armario) {
+                            const locker = rental.v_armario;
+                            const isSem = Number(rental.id_tipo) === 1;
+                            
+                            const { data: configData } = await dbService.settings.get();
+                            let calculatedPrice = 0;
+                            const sizeKey = (locker.nm_tamanho || '').toLowerCase() === 'pequeno' ? 'Pq' : 'Gr';
+                            
+                            if (configData) {
+                                calculatedPrice = isSem 
+                                    ? (sizeKey === 'Pq' ? configData.vl_pequeno_semestral : configData.vl_grande_semestral)
+                                    : (sizeKey === 'Pq' ? configData.vl_pequeno_anual : configData.vl_grande_anual);
+                            }
+                            
+                            const isRen = rental.dc_correlation_id?.startsWith('REN_') || false;
+                            setIsRenewal(isRen);
+                            
+                            setSelectedLocker({
+                                id: String(locker.cd_armario).padStart(3, '0'),
+                                size: locker.nm_tamanho,
+                                plan: isSem ? 'semestral' : 'anual',
+                                floor: locker.nm_local,
+                                dbId: locker.id_armario,
+                                isRenewal: isRen
+                            });
+                            setPrice(calculatedPrice);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching correlation context:', err);
+            } finally {
+                setIsFetchingContext(false);
+            }
+        };
+
+        fetchContextFromCorrelation();
+    }, [urlCorrelationID, state]);
 
     // Handle return status from Mercado Pago checkout redirect
     useEffect(() => {
@@ -304,6 +425,24 @@ const PixPayment = ({ user }) => {
             navigate(-1);
         }
     };
+
+    if (isFetchingContext) {
+        return (
+            <div className="pix-payment-page premium-theme redirect-overlay-wrapper">
+                <main className="payment-main-content single-card-center">
+                    <section className="card redirecting-card animate-pop-in">
+                        <div className="redirect-loader-container">
+                            <div className="dual-loader-ring">
+                                <RefreshCcw size={72} className="animate-spin ring-spinner" />
+                            </div>
+                            <h2>Carregando dados da locação</h2>
+                            <p>Recuperando informações do armário e plano contratado no banco de dados...</p>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        );
+    }
 
     if (status === 'redirecting') {
         return (
