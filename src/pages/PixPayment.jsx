@@ -83,16 +83,28 @@ const PixPayment = ({ user }) => {
             
             setIsFetchingContext(true);
             try {
-                if (urlCorrelationID.startsWith('UPG_')) {
-                    const [_, rentalId, newTypeId] = urlCorrelationID.split('_');
+                let cleanUrlCorrelationID = urlCorrelationID;
+                if (urlCorrelationID.includes('_')) {
+                    const parts = urlCorrelationID.split('_');
+                    const lastPart = parts[parts.length - 1];
+                    if (!isNaN(Number(lastPart)) && lastPart.length >= 10) {
+                        cleanUrlCorrelationID = parts.slice(0, -1).join('_');
+                    }
+                }
+                if (cleanUrlCorrelationID.startsWith('REG_')) {
+                    cleanUrlCorrelationID = cleanUrlCorrelationID.substring(4);
+                }
+
+                if (cleanUrlCorrelationID.startsWith('UPG_')) {
+                    const [_, rentalId, newTypeId] = cleanUrlCorrelationID.split('_');
                     setIsUpgrade(true);
                     
                     const { data: rental } = await supabase
-                        .from('t_locacao')
-                        .select('id_armario')
-                        .eq('id_locacao', rentalId)
-                        .maybeSingle();
-                        
+                         .from('t_locacao')
+                         .select('id_armario')
+                         .eq('id_locacao', rentalId)
+                         .maybeSingle();
+                         
                     if (rental) {
                         const { data: locker } = await supabase
                             .from('v_armario')
@@ -111,8 +123,8 @@ const PixPayment = ({ user }) => {
                         }
                     }
                     setPrice(50);
-                } else if (urlCorrelationID.startsWith('EXC_')) {
-                    const [_, rentalId, oldLockerId, newLockerId] = urlCorrelationID.split('_');
+                } else if (cleanUrlCorrelationID.startsWith('EXC_')) {
+                    const [_, rentalId, oldLockerId, newLockerId] = cleanUrlCorrelationID.split('_');
                     setIsExchange(true);
                     
                     const { data: locker } = await supabase
@@ -133,7 +145,7 @@ const PixPayment = ({ user }) => {
                     setPrice(20);
                 } else {
                     // Regular rental or renewal
-                    const rentalId = parseInt(urlCorrelationID, 10);
+                    const rentalId = parseInt(cleanUrlCorrelationID, 10);
                     if (!isNaN(rentalId)) {
                         const { data: rental } = await supabase
                             .from('t_locacao')
@@ -272,11 +284,14 @@ const PixPayment = ({ user }) => {
             const correlationID = await getOrCreateRentalCorrelationID();
             if (!correlationID) return;
 
+            const isPrefixed = correlationID.startsWith('EXC_') || correlationID.startsWith('UPG_') || correlationID.startsWith('REN_');
+            const uniqueCorrelationID = isPrefixed ? `${correlationID}_${Date.now()}` : `REG_${correlationID}_${Date.now()}`;
+
             const response = await fetch('/api/payment/preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    correlationID,
+                    correlationID: uniqueCorrelationID,
                     value: price * 100, // em centavos
                     comment: `CAMUBOX: ${isUpgrade ? 'Upgrade' : isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
                     customer: {
@@ -315,12 +330,15 @@ const PixPayment = ({ user }) => {
                 const correlationID = await getOrCreateRentalCorrelationID();
                 if (!correlationID) return;
 
+                const isPrefixed = correlationID.startsWith('EXC_') || correlationID.startsWith('UPG_') || correlationID.startsWith('REN_');
+                const uniqueCorrelationID = isPrefixed ? `${correlationID}_${Date.now()}` : `REG_${correlationID}_${Date.now()}`;
+
                 // Chamar nossa API de backend para criar a cobrança Pix no Mercado Pago
                 const response = await fetch('/api/payment/charge', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        correlationID,
+                        correlationID: uniqueCorrelationID,
                         value: price * 100,
                         comment: `CAMUBOX: ${isUpgrade ? 'Upgrade' : isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
                         customer: {

@@ -63,10 +63,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ received: true, status });
     }
 
-    const correlationID = paymentData.external_reference;
+    let correlationID = paymentData.external_reference;
     if (!correlationID) {
       console.error(`❌ Webhook error: No external_reference (correlationID) found in payment ${paymentId}`);
       return res.status(200).json({ received: true, error: 'No external_reference' });
+    }
+
+    // Clean correlation ID: strip out trailing Unix timestamp and REG_ prefix if present
+    if (correlationID.includes('_')) {
+      const parts = correlationID.split('_');
+      const lastPart = parts[parts.length - 1];
+      if (!isNaN(Number(lastPart)) && lastPart.length >= 10) {
+        correlationID = parts.slice(0, -1).join('_');
+      }
+    }
+    if (correlationID.startsWith('REG_')) {
+      correlationID = correlationID.substring(4);
     }
 
     if (process.env.SUPABASE_URL) {
