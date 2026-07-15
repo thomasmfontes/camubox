@@ -194,8 +194,9 @@ const PixPayment = ({ user }) => {
             } else if (statusLower === 'pending' || statusLower === 'in_process') {
                 setStatus('pending');
             } else {
-                setStatus('error');
-                setErrorMsg('O pagamento não foi aprovado pelo Mercado Pago. Tente novamente.');
+                // If payment failed, aborted, or cancelled, return to payment selection page
+                setStatus('selecting');
+                setErrorMsg('O pagamento anterior não foi concluído. Selecione uma das opções abaixo para tentar novamente.');
             }
         }
     }, [urlPaymentStatus]);
@@ -528,6 +529,24 @@ const PixPayment = ({ user }) => {
 
                         {status === 'selecting' ? (
                             <div className="payment-method-selector">
+                                {errorMsg && (
+                                    <div className="error-banner" style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '10px', 
+                                        padding: '12px 16px', 
+                                        background: '#fff5f5', 
+                                        border: '1px solid #ffe3e3', 
+                                        borderRadius: '12px', 
+                                        color: '#e53e3e', 
+                                        marginBottom: '1.5rem', 
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500'
+                                    }}>
+                                        <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                                        <span>{errorMsg}</span>
+                                    </div>
+                                )}
                                 <h3 className="selector-title">Escolha como deseja pagar</h3>
                                 <p className="selector-subtitle">Selecione uma das opções abaixo para prosseguir com a locação.</p>
                                 
