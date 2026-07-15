@@ -539,3 +539,37 @@
         to { opacity: 1; transform: translateX(0); }
     }
 }
+
+/* Biometric Login Button */
+.biometric-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px solid #10b981;
+    background: rgba(16, 185, 129, 0.05);
+    color: #34d399;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.biometric-login-btn:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #34d399;
+    color: #6ee7b7;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.biometric-login-btn:active {
+    transform: scale(0.98);
+}
+
+.loader-mini.green {
+    border-color: rgba(52, 211, 153, 0.2);
+    border-top-color: #34d399;
+}

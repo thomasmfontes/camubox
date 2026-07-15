@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { dbService } from '../services/supabaseClient';
 import {
     Save,
@@ -13,10 +13,18 @@ import {
     CheckCircle2,
     XCircle,
     Users,
-    ChevronRight
+    ChevronRight,
+    ChevronDown,
+    ChevronUp,
+    Calculator,
+    QrCode,
+    CreditCard,
+    Clock,
+    Info
 } from 'lucide-react';
 import Toast from '../components/Toast';
 import LockerGuideModal from '../components/LockerGuideModal';
+import CustomSelect from '../components/CustomSelect';
 
 import './AdminSettings.css';
 
@@ -53,6 +61,11 @@ const AdminSettings = () => {
     });
 
     const [toast, setToast] = useState(null);
+
+    const [simValue, setSimValue] = useState(80);
+    const [simInstallments, setSimInstallments] = useState(1);
+    const [simPaymentMethod, setSimPaymentMethod] = useState('credit_card');
+    const [simMode, setSimMode] = useState('receber');
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
@@ -118,6 +131,8 @@ const AdminSettings = () => {
         fetchAdmins();
         fetchLeagues();
     }, []);
+
+
 
     const handleAddAdmin = async () => {
         const email = newAdminEmail.trim();
@@ -316,7 +331,7 @@ const AdminSettings = () => {
                                     <input type="number" value={config.vl_taxa_troca} onChange={e => updateConfig('vl_taxa_troca', e.target.value)} />
                                 </div>
                             </div>
-                            <button className="integrated-add-btn" style={{ width: '100%', height: '48px', marginTop: '1rem', borderRadius: '12px' }} onClick={() => handleSave('Valores')}>
+                            <button className="premium-save-btn" style={{ width: '100%', height: '48px', marginTop: '1rem', borderRadius: '12px' }} onClick={() => handleSave('Valores')}>
                                 <Save size={18} />
                                 <span>Salvar Valores</span>
                             </button>

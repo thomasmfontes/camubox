@@ -157,6 +157,7 @@ button:focus {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
+  padding-top: 0.75rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
   width: 100%;
@@ -324,63 +325,67 @@ button:active,
   align-items: center;
   justify-content: center;
   gap: 12px;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 8px 16px rgba(0, 61, 43, 0.15);
-  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 43, 31, 0.12);
+  font-size: 0.95rem;
 }
 
 .btn-modal-confirm-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 12px 24px rgba(0, 61, 43, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 43, 31, 0.2);
 }
 
 .btn-modal-confirm-primary:active,
 .password-modal .btn-modal-confirm-primary:active {
-  transform: scale(0.97) !important;
+  transform: scale(0.98) !important;
 }
 
 .btn-modal-cancel {
-  background: #f1f5f9;
-  color: #475569;
+  background: #f8fafc;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
   height: 52px;
   border-radius: 16px;
-  font-weight: 600;
-  border: none;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .btn-modal-cancel:hover {
-  background: #e2e8f0;
-  color: var(--primary);
+  background: #f1f5f9;
+  color: var(--text-main);
+  border-color: var(--border);
 }
 
 .btn-modal-cancel:active,
 .password-modal .btn-modal-cancel:active {
-  transform: scale(0.97) !important;
+  transform: scale(0.98) !important;
 }
 
 .btn-modal-close-x {
   position: absolute;
   top: 16px;
   right: 16px;
+  width: 32px;
+  height: 32px;
   background: transparent;
+  border-radius: 50%;
   border: none;
   cursor: pointer;
   color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
-  padding: 4px;
+  transition: all 0.2s ease;
 }
 
 .btn-modal-close-x:hover {
-  color: var(--text-main);
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 /* Modal Animations */

@@ -408,25 +408,9 @@ const LoginPage = ({ onLogin }) => {
                                             className="biometric-login-btn" 
                                             onClick={handleBiometricLogin}
                                             disabled={isBiometricLoading}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '10px',
-                                                width: '100%',
-                                                padding: '12px',
-                                                borderRadius: '12px',
-                                                border: '1.5px solid var(--primary)',
-                                                background: 'transparent',
-                                                color: 'var(--primary)',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                marginTop: '8px'
-                                            }}
                                         >
                                             {isBiometricLoading ? (
-                                                <span className="loader-mini dark"></span>
+                                                <span className="loader-mini green"></span>
                                             ) : (
                                                 <Fingerprint size={18} />
                                             )}

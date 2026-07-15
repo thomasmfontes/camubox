@@ -1,10 +1,9 @@
 .pix-payment-page.premium-theme {
-    padding: 0;
+    padding: 1rem 0 0 0;
     max-width: 900px;
     margin: 0 auto;
     min-height: calc(100vh - 80px);
     width: 100%;
-    overflow-x: hidden; /* Preventive */
 }
 
 /* Animações Premium */
@@ -96,7 +95,7 @@
 
 @media (max-width: 768px) {
     .pix-payment-page.premium-theme {
-        padding: 0; /* MainLayout already provides 1rem padding */
+        padding: 8px 0 0 0; /* Add safety top padding to prevent button clipping */
     }
 }
 
@@ -597,3 +596,190 @@
 :root {
     --red-500: #ef4444;
 }
+
+/* Payment Method Selector Styles */
+.payment-method-selector {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.selector-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.selector-subtitle {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 2rem;
+    text-align: center;
+    max-width: 400px;
+}
+
+.method-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 450px;
+}
+
+.method-card-btn {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    width: 100%;
+}
+
+.method-card-btn:hover {
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(16, 185, 129, 0.08);
+}
+
+.method-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pix-icon-bg {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+.card-icon-bg {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.method-card-info {
+    flex: 1;
+}
+
+.method-card-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.method-card-info p {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.arrow-icon {
+    color: #94a3b8;
+    transition: transform 0.2s;
+}
+
+.method-card-btn:hover .arrow-icon {
+    color: #10b981;
+    transform: translateX(4px);
+}
+
+/* Redirection Screen Styles */
+.redirect-overlay-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+}
+
+.single-card-center {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.redirecting-card {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: 28px;
+    border: 1.5px solid #f1f5f9;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    width: 100%;
+}
+
+.redirect-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.dual-loader-ring {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.center-shield-icon {
+    position: absolute;
+    color: #3b82f6; /* Blue for security */
+}
+
+.ring-spinner {
+    position: absolute;
+    color: #e2e8f0;
+    width: 80px;
+    height: 80px;
+}
+
+.redirecting-card h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+}
+
+.redirecting-card p {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 320px;
+}
+
+.mp-badge-footer {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 1rem;
+    padding: 6px 14px;
+    background: #f8fafc;
+    border-radius: 100px;
+    border: 1px solid #e2e8f0;
+}
+
+.animate-pop-in {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+

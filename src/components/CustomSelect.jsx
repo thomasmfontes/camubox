@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import './CustomSelect.css';
 
-const CustomSelect = ({ icon, value, options, onChange, label, className = '' }) => {
+const CustomSelect = ({ icon, value, options, onChange, label, className = '', disabled = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     
     // Close on click outside
@@ -16,18 +16,19 @@ const CustomSelect = ({ icon, value, options, onChange, label, className = '' })
     const selectedLabel = options[value] || label;
 
     return (
-        <div className={`custom-select-wrapper ${className}`} onClick={e => e.stopPropagation()}>
+        <div className={`custom-select-wrapper ${className} ${disabled ? 'disabled' : ''}`} onClick={e => e.stopPropagation()}>
             <button 
                 type="button"
                 className={`custom-select-trigger ${isOpen ? 'open' : ''}`}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
             >
-                <span className="trigger-icon">{icon}</span>
+                {icon && <span className="trigger-icon">{icon}</span>}
                 <span className="trigger-text">{selectedLabel}</span>
                 <ChevronDown className={`chevron ${isOpen ? 'rotate' : ''}`} size={16} />
             </button>
             
-            {isOpen && (
+            {!disabled && isOpen && (
                 <div className="custom-select-options">
                     {Object.entries(options).map(([val, text]) => (
                         <div 

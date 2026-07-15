@@ -9,7 +9,8 @@ import {
     Settings,
     LogOut,
     ChevronRight,
-    X
+    X,
+    Percent
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -34,6 +35,7 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
         { label: 'Armários', icon: <div className="nav-mask-icon icon-lockers" />, path: '/dashboard/admin/lockers' },
         { label: 'Vistorias', icon: <div className="nav-mask-icon icon-check" />, path: '/dashboard/admin/inspections' },
         { label: 'Financeiro', icon: <CreditCard size={20} />, path: '/dashboard/admin/payments' },
+        { label: 'Taxas', icon: <Percent size={20} />, path: '/dashboard/admin/fees' },
         { label: 'Configurações', icon: <div className="nav-mask-icon icon-config" />, path: '/dashboard/admin/settings' },
     ];
 

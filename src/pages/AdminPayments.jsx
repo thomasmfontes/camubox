@@ -215,6 +215,7 @@ const AdminPayments = () => {
                             lockerFloor: tx.nm_local || 'Térreo',
                             contractType: tx.tp_plano || 'SEMESTRAL',
                             transactionType: tx.tp_operacao || 'Locação',
+                            payloadWebhook: tx.payload_webhook || null,
                             paymentDateFormatted: formatIsoDate(tx.dt_pagamento || tx.dt_criacao),
                             paymentTimeFormatted: formatIsoTime(tx.dt_pagamento || tx.dt_criacao),
                         };
@@ -289,6 +290,7 @@ const AdminPayments = () => {
                             lockerFloor: 'Térreo',
                             contractType: contractType,
                             transactionType: transactionType,
+                            payloadWebhook: null,
                             paymentDateFormatted: formatIsoDate(charge.paymentDate || charge.createdAt),
                             paymentTimeFormatted: formatIsoTime(charge.paymentDate || charge.createdAt),
                         };
@@ -349,22 +351,82 @@ const AdminPayments = () => {
         });
     }, [transactions, searchTerm, filters, startDate, endDate]);
 
+    // Mercado Pago Fee Config from DB
+    const feeConfig = useMemo(() => {
+        const pixFee = (config && config.mp_pix_fee !== undefined && config.mp_pix_fee !== null)
+            ? parseFloat(config.mp_pix_fee) : 0.99;
+        const boletoFee = (config && config.mp_boleto_fee !== undefined && config.mp_boleto_fee !== null)
+            ? parseFloat(config.mp_boleto_fee) : 3.49;
+        const cardFee = (config && config.mp_card_fee !== undefined && config.mp_card_fee !== null)
+            ? parseFloat(config.mp_card_fee) : 4.98;
+        return { pixFee, boletoFee, cardFee };
+    }, [config]);
+
+    // Detect payment method from payload and return fee info for a single transaction
+    const getTransactionFee = (t) => {
+        const payload = t.payloadWebhook;
+        let paymentMethod = null;
+
+        if (payload) {
+            // Mercado Pago API response format
+            if (payload.payment_method_id) {
+                paymentMethod = payload.payment_method_id;
+            }
+            // Woovi/OpenPix format (legacy)
+            else if (payload.pix) {
+                paymentMethod = 'pix';
+            }
+        }
+
+        // Classify the payment method
+        if (paymentMethod) {
+            const pm = paymentMethod.toLowerCase();
+            if (['bolbradesco', 'ticket', 'pec', 'boleto'].includes(pm)) {
+                return {
+                    label: 'Boleto',
+                    feeAmount: feeConfig.boletoFee,
+                    feeDescription: `Tarifa MP (Boleto): -${formatCurrency(feeConfig.boletoFee)}`,
+                    netValue: Math.max(0, t.value - feeConfig.boletoFee)
+                };
+            }
+            if (['credit_card', 'debit_card', 'account_money'].includes(pm)) {
+                const feeAmount = t.value * (feeConfig.cardFee / 100);
+                return {
+                    label: `Cartão ${feeConfig.cardFee.toFixed(2)}%`,
+                    feeAmount,
+                    feeDescription: `Tarifa MP (Cartão ${feeConfig.cardFee.toFixed(2)}%): -${formatCurrency(feeAmount)}`,
+                    netValue: t.value - feeAmount
+                };
+            }
+        }
+
+        // Default: Pix fee (covers Woovi, OpenPix, and legacy transactions)
+        const feeAmount = t.value * (feeConfig.pixFee / 100);
+        return {
+            label: `Pix ${feeConfig.pixFee.toFixed(2)}%`,
+            feeAmount,
+            feeDescription: `Tarifa MP (Pix ${feeConfig.pixFee.toFixed(2)}%): -${formatCurrency(feeAmount)}`,
+            netValue: t.value - feeAmount
+        };
+    };
+
     // Financial KPI Metrics
     const metrics = useMemo(() => {
         let totalPaid = 0;
+        let totalNet = 0;
         let totalSalesCount = 0;
         let semestralCount = 0;
         let anualCount = 0;
 
         transactions.forEach(t => {
             totalPaid += t.value;
+            totalNet += getTransactionFee(t).netValue;
             totalSalesCount++;
 
             if (t.contractType === 'SEMESTRAL') semestralCount++;
             if (t.contractType === 'ANUAL') anualCount++;
         });
 
-        const totalNet = totalPaid * 0.992; // 0.8% Woovi discount
         const preferredPlan = semestralCount >= anualCount ? 'Semestral' : 'Anual';
 
         return {
@@ -373,7 +435,7 @@ const AdminPayments = () => {
             totalSalesCount,
             preferredPlan
         };
-    }, [transactions]);
+    }, [transactions, feeConfig]);
 
     // Pagination Logic
     const paginatedTransactions = useMemo(() => {
@@ -392,6 +454,7 @@ const AdminPayments = () => {
     const handleExport = () => {
         const rows = filteredTransactions.map(t => {
             const fullDate = t.paymentTimeFormatted ? `${t.paymentDateFormatted} às ${t.paymentTimeFormatted}` : t.paymentDateFormatted;
+            const fee = getTransactionFee(t);
             return {
                 'ID Transação': t.id,
                 'Armário': t.lockerNumber || 'N/A',
@@ -401,8 +464,9 @@ const AdminPayments = () => {
                 'E-mail': t.studentEmail,
                 'Operação': t.transactionType,
                 'Valor Bruto': formatCurrency(t.value),
-                'Tarifa Woovi (0.8%)': formatCurrency(t.value * 0.008),
-                'Valor Líquido': formatCurrency(t.value * 0.992),
+                'Método': fee.label,
+                'Tarifa Mercado Pago': formatCurrency(fee.feeAmount),
+                'Valor Líquido': formatCurrency(fee.netValue),
                 'Data do Pagamento': fullDate,
                 'Status': 'Confirmado (Pago)'
             };
@@ -589,7 +653,7 @@ const AdminPayments = () => {
                     {isLoading ? (
                         <div className="loading-state" style={{ padding: '40px', textAlign: 'center' }}>
                             <Loader2 className="spinner animate-spin" size={40} />
-                            <p style={{ marginTop: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Consultando extrato Woovi...</p>
+                            <p style={{ marginTop: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Carregando transações...</p>
                         </div>
                     ) : (
                         <table className="inspection-table-simple">
@@ -599,7 +663,7 @@ const AdminPayments = () => {
                                     <th>Pagador</th>
                                     <th>Operação</th>
                                     <th>Valor Pago</th>
-                                    <th>Data do Pix</th>
+                                    <th>Data do Pagamento</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -644,10 +708,9 @@ const AdminPayments = () => {
                                                 <div className="info-item">
                                                     <div className="value-stack">
                                                         <span className="value-gross">{formatCurrency(t.value)}</span>
-                                                        <span className="value-fee">Tarifa (0.8%): -{formatCurrency(t.value * 0.008)}</span>
+                                                        <span className="value-fee">{getTransactionFee(t).feeDescription}</span>
                                                         <span className="value-net">
-                                                            Líq: {formatCurrency(t.value * 0.992)}
-                                                            <span className="value-fee-pct"> (-0.8%)</span>
+                                                            Líq: {formatCurrency(getTransactionFee(t).netValue)}
                                                         </span>
                                                     </div>
                                                 </div>

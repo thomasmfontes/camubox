@@ -1,0 +1,103 @@
+.ios-picker-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 100px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+/* Gradient fade masks at top and bottom to mimic iOS cylinder rotation */
+.ios-picker-wrapper::before,
+.ios-picker-wrapper::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 32px;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.ios-picker-wrapper::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.ios-picker-wrapper::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.ios-picker-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ios-picker-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari/Webkit */
+}
+
+.ios-picker-spacer {
+    height: 32px; /* (container height 100px - item height 36px) / 2 */
+    flex-shrink: 0;
+}
+
+.ios-picker-item {
+    height: 36px;
+    line-height: 36px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #94a3b8;
+    scroll-snap-align: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transform-origin: center center;
+    backface-visibility: hidden;
+}
+
+.ios-picker-item.active {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+/* Premium central indicator pill (translucent background, rounded) */
+.ios-picker-selection-indicator {
+    position: absolute;
+    top: 32px; /* (container height 100px - indicator height 36px) / 2 */
+    left: 8px;
+    right: 8px;
+    height: 36px;
+    background: rgba(0, 61, 43, 0.04);
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Hover effects for desktop cursor reactivity */
+.ios-picker-item:hover {
+    color: #475569;
+    opacity: 0.65 !important;
+}
+
+.ios-picker-item.active:hover {
+    color: var(--primary);
+    opacity: 1.0 !important;
+}

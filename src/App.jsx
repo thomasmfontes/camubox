@@ -11,6 +11,7 @@ import LockerInspection from './pages/LockerInspection';
 import AdminSettings from './pages/AdminSettings';
 import AdminContracts from './pages/AdminContracts';
 import AdminPayments from './pages/AdminPayments';
+import AdminFees from './pages/AdminFees';
 import UserMyLockers from './pages/UserMyLockers';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -245,6 +246,7 @@ function DashboardLayout({ user, handleLogout, location }) {
             <Route path="/admin/inspections" element={<LockerInspection />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/fees" element={<AdminFees />} />
             <Route path="/lockers" element={<UserLockerSelection user={user} />} />
             <Route path="/checkout/contract" element={<DigitalContract />} />
             <Route path="/checkout/payment" element={<PixPayment user={user} />} />

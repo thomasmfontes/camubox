@@ -31,7 +31,10 @@ export const dbService = {
                         nm_texto_contrato: 'Termos de uso padrão...',
                         nm_woovi_api_key: 'sk_mock_123',
                         nm_woovi_webhook_url: 'https://camubox.com/api/webhook',
-                        dc_woovi_ambiente: 'SANDBOX'
+                        dc_woovi_ambiente: 'SANDBOX',
+                        mp_pix_fee: 0.99,
+                        mp_boleto_fee: 3.49,
+                        mp_card_vista_d0_fee: 4.98
                     },
                     error: null
                 };

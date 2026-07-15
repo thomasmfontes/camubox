@@ -2,7 +2,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|node_modules/|@vite|@react-refresh|src/|.*\\..*).*)", "destination": "/index.html" }
   ],
   "crons": [
     {
