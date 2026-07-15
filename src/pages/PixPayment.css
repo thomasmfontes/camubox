@@ -703,7 +703,6 @@
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 120px);
-    background: radial-gradient(circle at center, rgba(16, 185, 129, 0.04) 0%, rgba(59, 130, 246, 0.04) 50%, transparent 100%);
 }
 
 .single-card-center {
