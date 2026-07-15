@@ -615,11 +615,6 @@ const PixPayment = ({ user }) => {
                                 </div>
                             </>
                         )}
-                        {status === 'selecting' && errorMsg && (
-                            <div className="pix-copy-area" style={{ width: '100%', textAlign: 'center' }}>
-                                <p className="error-message p-sm" style={{color: 'var(--red-500)', marginTop: 8}}>{errorMsg}</p>
-                            </div>
-                        )}
                     </section>
                 </main>
 
