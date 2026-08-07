@@ -284,6 +284,16 @@ const PixPayment = ({ user }) => {
             const correlationID = await getOrCreateRentalCorrelationID();
             if (!correlationID) return;
 
+            // Reuse the checkout for the same order. Creating several nearly identical
+            // preferences in sequence can look like duplicate payment attempts to antifraud.
+            const preferenceCacheKey = `camubox_mp_preference_${correlationID}_${selectedMethod}`;
+            const cachedPreference = JSON.parse(sessionStorage.getItem(preferenceCacheKey) || 'null');
+            const cacheLifetimeMs = 30 * 60 * 1000;
+            if (cachedPreference?.initPoint && Date.now() - cachedPreference.createdAt < cacheLifetimeMs) {
+                window.location.href = cachedPreference.initPoint;
+                return;
+            }
+
             const isPrefixed = correlationID.startsWith('EXC_') || correlationID.startsWith('UPG_') || correlationID.startsWith('REN_');
             const uniqueCorrelationID = isPrefixed ? `${correlationID}_${Date.now()}` : `REG_${correlationID}_${Date.now()}`;
 
@@ -296,7 +306,8 @@ const PixPayment = ({ user }) => {
                     comment: `CAMUBOX: ${isUpgrade ? 'Upgrade' : isExchange ? 'Troca' : isRenewal ? 'Renovação' : 'Locação'} Armário ${selectedLocker.id} (${user.name || user.email})`,
                     customer: {
                         name: user.nm_usuario || user.name || user.email,
-                        email: user.email
+                        email: user.email,
+                        phone: user.nr_celular || user.phone || ''
                     },
                     paymentMethod: selectedMethod
                 })
@@ -308,6 +319,10 @@ const PixPayment = ({ user }) => {
             }
 
             const data = await response.json();
+            sessionStorage.setItem(preferenceCacheKey, JSON.stringify({
+                initPoint: data.initPoint,
+                createdAt: Date.now()
+            }));
             // Redirect to Mercado Pago checkout
             window.location.href = data.initPoint;
         } catch (err) {
@@ -344,6 +359,7 @@ const PixPayment = ({ user }) => {
                         customer: {
                             name: user.nm_usuario || user.name || user.email,
                             email: user.email,
+                            phone: user.nr_celular || user.phone || '',
                         }
                     })
                 });

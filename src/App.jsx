@@ -58,6 +58,7 @@ function App() {
         id_usuario: dbUser?.id_usuario || supabaseUser.id,
         name: dbUser?.nm_usuario || supabaseUser.user_metadata?.full_name || supabaseUser.email,
         email: dbUser?.dc_email || supabaseUser.email,
+        phone: dbUser?.nr_celular || '',
         isAdmin: !!dbUser?.is_adm, // Real admin check from DB
         isOAuth: true
       };

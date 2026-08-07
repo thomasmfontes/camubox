@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const nameParts = (customer?.name || 'Cliente Camubox').trim().split(' ');
     const firstName = nameParts[0] || 'Cliente';
     const lastName = nameParts.slice(1).join(' ') || 'Camubox';
+    const phoneDigits = String(customer?.phone || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
 
     const host = req.headers.host || 'camubox.com';
     const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
@@ -38,7 +39,13 @@ export default async function handler(req, res) {
         payer: {
           email: customer?.email || 'sem-email@camubox.com',
           first_name: firstName,
-          last_name: lastName
+          last_name: lastName,
+          ...(phoneDigits.length >= 10 ? {
+            phone: {
+              area_code: phoneDigits.slice(0, 2),
+              number: phoneDigits.slice(2)
+            }
+          } : {})
         },
         external_reference: correlationID,
         ...(hasPublicWebhook ? { notification_url: process.env.MERCADO_PAGO_WEBHOOK_URL || `${baseUrl}/api/payment/webhook` } : {})

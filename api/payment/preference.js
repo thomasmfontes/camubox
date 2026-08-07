@@ -12,6 +12,25 @@ export default async function handler(req, res) {
 
   try {
     const valueBRL = Number(value) / 100;
+    if (!correlationID || !Number.isFinite(valueBRL) || valueBRL <= 0) {
+      return res.status(400).json({ error: 'Invalid payment data' });
+    }
+
+    const fullName = String(customer?.name || '').trim();
+    const [firstName = '', ...surnameParts] = fullName.split(/\s+/);
+    const email = String(customer?.email || '').trim().toLowerCase();
+    const phoneDigits = String(customer?.phone || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+    const payer = {
+      ...(firstName ? { name: firstName } : {}),
+      ...(surnameParts.length ? { surname: surnameParts.join(' ') } : {}),
+      ...(email ? { email } : {}),
+      ...(phoneDigits.length >= 10 ? {
+        phone: {
+          area_code: phoneDigits.slice(0, 2),
+          number: phoneDigits.slice(2)
+        }
+      } : {})
+    };
     const host = req.headers.host || 'camubox.com';
     const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
@@ -48,16 +67,19 @@ export default async function handler(req, res) {
           {
             id: correlationID,
             title: comment || 'Pagamento Camubox',
+            description: comment || 'Locação de armário Camubox',
+            category_id: 'services',
             quantity: 1,
             unit_price: valueBRL,
             currency_id: 'BRL'
           }
         ],
-        payer: {
-          name: customer?.name || 'Cliente Camubox',
-          email: customer?.email || 'sem-email@camubox.com'
-        },
+        payer,
         external_reference: correlationID,
+        metadata: {
+          order_reference: correlationID,
+          integration: 'camubox'
+        },
         payment_methods: paymentMethodsConfig,
         back_urls: {
           success: `${baseUrl}/dashboard/checkout/payment?payment_status=success&correlationID=${correlationID}`,

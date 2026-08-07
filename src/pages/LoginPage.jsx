@@ -39,6 +39,7 @@ const LoginPage = ({ onLogin }) => {
                         id_usuario: existingUser.id_usuario, 
                         name: existingUser.nm_usuario, 
                         email: existingUser.dc_email, 
+                        phone: existingUser.nr_celular || '',
                         isAdmin 
                     });
                     navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
@@ -87,6 +88,7 @@ const LoginPage = ({ onLogin }) => {
                         id_usuario: existingUser.id_usuario, 
                         name: existingUser.nm_usuario, 
                         email: existingUser.dc_email, 
+                        phone: existingUser.nr_celular || '',
                         isAdmin 
                     });
                     navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
@@ -137,6 +139,7 @@ const LoginPage = ({ onLogin }) => {
                 id_usuario: existingUser.id_usuario,
                 name: existingUser.nm_usuario,
                 email: existingUser.dc_email,
+                phone: existingUser.nr_celular || '',
                 isAdmin
             });
             navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
@@ -191,6 +194,7 @@ const LoginPage = ({ onLogin }) => {
                 id_usuario: user.id_usuario, 
                 name: user.nm_usuario, 
                 email: googleStep.email, 
+                phone: user.nr_celular || phone,
                 isAdmin 
             });
             navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
@@ -235,6 +239,7 @@ const LoginPage = ({ onLogin }) => {
                 id_usuario: newUser.id_usuario, 
                 name: newUser.nm_usuario, 
                 email: newUser.dc_email, 
+                phone: newUser.nr_celular || phone,
                 isAdmin 
             });
             navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
