@@ -725,7 +725,7 @@ export const dbService = {
                 .select('*')
                 .eq('id_usuario', numericUserId)
                 .eq('id_status', 1)
-                .lt('dt_termino', todayStr)
+                .lte('dt_termino', todayStr)
                 .gte('dt_termino', cutoffStr)
                 .order('dt_termino', { ascending: false });
 

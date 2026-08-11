@@ -211,6 +211,9 @@ export default async function handler(req, res) {
         if (error) throw error;
 
         if (rental) {
+          // Garantir que o armário saia de manutenção/vistoria e fique Em Uso (1)
+          await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', rental.id_armario);
+
           const { data: lockerInfo } = await supabase.from('t_armario').select('cd_armario').eq('id_armario', rental.id_armario).maybeSingle();
           const lockerDisplay = (lockerInfo?.cd_armario || rental.id_armario).toString().padStart(3, '0');
 
