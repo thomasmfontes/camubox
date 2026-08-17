@@ -41,7 +41,7 @@ const UserMyLockers = ({ user }) => {
             // 1. Locações ativas
             if (!rentalsRes.error && rentalsRes.data) {
                 const formatted = rentalsRes.data
-                    .filter(r => r.id_status_locacao !== 3)
+                    .filter(r => r.id_status_locacao === 1)
                     .map(r => {
                         const [sY, sM, sD] = r.dt_inicio.split('-').map(Number);
                         const start = new Date(sY, sM - 1, sD);

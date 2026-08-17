@@ -556,6 +556,13 @@ export const dbService = {
             const combined = (rentals || []).map(r => {
                 const locker = lockers?.find(l => l.id_armario === r.id_armario);
                 const user = users?.find(u => u.id_usuario === r.id_usuario);
+                const rentalStatusNames = {
+                    1: 'ATIVA',
+                    2: 'VENCIDA',
+                    3: 'CANCELADA',
+                    4: 'ENCERRADA',
+                    5: 'AGUARDANDO_PAGAMENTO'
+                };
 
                 return {
                     ...r,
@@ -565,7 +572,7 @@ export const dbService = {
                     cd_armario: locker?.cd_armario,
                     nm_aluno: user?.nm_usuario,
                     dt_vencimento: r.dt_termino,
-                    dc_status_locacao: (r.dc_status_locacao || (r.id_status === 1 ? 'ATIVA' : 'ENCERRADA')).toUpperCase(),
+                    dc_status_locacao: (r.dc_status_locacao || rentalStatusNames[r.id_status] || 'ENCERRADA').toUpperCase(),
                     dc_tipo_contrato: (function() {
                         if (r.dt_inicio && r.dt_termino) {
                             const [sy, sm, sd] = r.dt_inicio.split('-').map(Number);
@@ -612,37 +619,16 @@ export const dbService = {
                 return { data: null, error: null };
             }
 
-            // 0. Fetch existing rental to keep history
-            const { data: oldRental, error: fetchError } = await supabase
-                .from('t_locacao')
-                .select('*')
-                .eq('id_locacao', rentalId)
-                .maybeSingle();
+            // The database function locks both lockers, validates availability,
+            // writes an ENCERRADA history row (status 4), and only sends the old
+            // locker to inspection when no other active rental still references it.
+            const { data, error } = await supabase.rpc('move_rental_safely', {
+                p_rental_id: Number(rentalId),
+                p_old_locker_id: Number(oldLockerId),
+                p_new_locker_id: Number(newLockerId)
+            });
 
-            if (!fetchError && oldRental) {
-                // Remove primary key to insert as new history record
-                const { id_locacao: _, ...historyRecord } = oldRental;
-                // Set to 'ENCERRADA' (2) for history and update dt_termino to today
-                historyRecord.id_status = 2;
-                historyRecord.dt_termino = new Date().toISOString().split('T')[0];
-                await supabase.from('t_locacao').insert([historyRecord]);
-            }
-
-            // 1. Update rental with new locker
-            const { error: rentalError } = await supabase
-                .from('t_locacao')
-                .update({ id_armario: newLockerId })
-                .eq('id_locacao', rentalId);
-
-            if (rentalError) return { error: rentalError };
-
-            // 2. Free old locker (Status 2 = Vistoria)
-            await dbService.lockers.updateStatus(oldLockerId, 2);
-
-            // 3. Occupy new locker (Status 1 = OK/Em Uso)
-            await dbService.lockers.updateStatus(newLockerId, 1);
-
-            return { data: null, error: null };
+            return { data, error };
         },
         updatePassword: async (rentalId, newPassword, lockerNumber = null) => {
             if (isMockMode) {

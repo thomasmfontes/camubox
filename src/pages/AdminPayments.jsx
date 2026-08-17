@@ -177,7 +177,7 @@ const AdminPayments = () => {
                 const { data: dbTransactions, error: txErr } = await supabase
                     .from('t_transacao')
                     .select('*')
-                    .eq('dc_status', 'CONCLUIDO')
+                    .in('dc_status', ['CONCLUIDO', 'CONFLITO'])
                     .order('dt_pagamento', { ascending: false });
                 
                 if (txErr) throw txErr;
@@ -215,6 +215,7 @@ const AdminPayments = () => {
                             lockerFloor: tx.nm_local || 'Térreo',
                             contractType: tx.tp_plano || 'SEMESTRAL',
                             transactionType: tx.tp_operacao || 'Locação',
+                            financialStatus: tx.dc_status || 'CONCLUIDO',
                             payloadWebhook: tx.payload_webhook || null,
                             paymentDateFormatted: formatIsoDate(tx.dt_pagamento || tx.dt_criacao),
                             paymentTimeFormatted: formatIsoTime(tx.dt_pagamento || tx.dt_criacao),
@@ -419,6 +420,7 @@ const AdminPayments = () => {
         let anualCount = 0;
 
         transactions.forEach(t => {
+            if (t.financialStatus === 'CONFLITO') return;
             totalPaid += t.value;
             totalNet += getTransactionFee(t).netValue;
             totalSalesCount++;
@@ -468,7 +470,7 @@ const AdminPayments = () => {
                 'Tarifa Mercado Pago': formatCurrency(fee.feeAmount),
                 'Valor Líquido': formatCurrency(fee.netValue),
                 'Data do Pagamento': fullDate,
-                'Status': 'Confirmado (Pago)'
+                'Status': t.financialStatus === 'CONFLITO' ? 'Pago — requer reconciliação' : 'Confirmado (Pago)'
             };
         });
 
@@ -701,6 +703,9 @@ const AdminPayments = () => {
                                                     <span className={`transaction-type-badge ${getTypeClass(t.transactionType)}`}>
                                                         {t.transactionType}
                                                     </span>
+                                                    {t.financialStatus === 'CONFLITO' && (
+                                                        <span className="reconciliation-badge">Requer reconciliação</span>
+                                                    )}
                                                 </div>
                                             </td>
 

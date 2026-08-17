@@ -215,26 +215,8 @@ const PixPayment = ({ user }) => {
         }
     }, [urlPaymentStatus]);
 
-    const getOrCreateRentalCorrelationID = async () => {
+    const getOrCreateRentalCorrelationID = async (selectedPaymentMethod) => {
         let correlationID;
-
-        if (!isExchange) {
-            const { data: existingRental } = await supabase
-                .from('t_locacao')
-                .select('id_locacao, id_status')
-                .eq('id_usuario', user.id_usuario)
-                .eq('id_armario', selectedLocker.dbId)
-                .eq('id_status', 3) // Pendente
-                .maybeSingle();
-
-            if (existingRental) {
-                if (existingRental.id_status === 1) {
-                    navigate('/dashboard/my-locker');
-                    return null;
-                }
-                correlationID = existingRental.id_locacao.toString();
-            }
-        }
 
         if (!correlationID) {
             if (isUpgrade) {
@@ -242,26 +224,32 @@ const PixPayment = ({ user }) => {
             } else if (isExchange) {
                 correlationID = `EXC_${exchangeInfo.rentalId}_${exchangeInfo.oldLockerId}_${selectedLocker.dbId}`;
             } else {
-                if (isRenewal && selectedLocker.previousContractId) {
-                    await supabase
-                        .from('t_locacao')
-                        .update({ id_status: 4 })
-                        .eq('id_locacao', selectedLocker.previousContractId);
+                const { data: sessionData } = await supabase.auth.getSession();
+                const accessToken = sessionData?.session?.access_token;
+                if (!accessToken) {
+                    throw new Error('Sua sessão expirou. Entre novamente para continuar.');
                 }
 
-                const { data: newRental, error: rentalError } = await supabase.from('t_locacao').insert({
-                    id_armario: selectedLocker.dbId,
-                    id_usuario: user.id_usuario,
-                    id_tipo: isSemestral ? 1 : 2,
-                    id_status: 3,
-                    dt_inicio: new Date().toISOString(),
-                    dt_termino: isSemestral 
-                       ? new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString()
-                       : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
-                }).select().single();
+                const response = await fetch('/api/payment/reserve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        lockerId: selectedLocker.dbId,
+                        typeId: isSemestral ? 1 : 2,
+                        previousRentalId: isRenewal ? selectedLocker.previousContractId : null,
+                        paymentMethod: selectedPaymentMethod
+                    })
+                });
 
-                if (rentalError) throw rentalError;
-                correlationID = newRental.id_locacao.toString();
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || 'Não foi possível reservar este armário.');
+                }
+
+                correlationID = String(result.reservation.id_locacao);
             }
         }
 
@@ -281,7 +269,7 @@ const PixPayment = ({ user }) => {
 
     const generatePreference = async (selectedMethod) => {
         try {
-            const correlationID = await getOrCreateRentalCorrelationID();
+            const correlationID = await getOrCreateRentalCorrelationID(selectedMethod);
             if (!correlationID) return;
 
             // Reuse the checkout for the same order. Creating several nearly identical
@@ -327,7 +315,7 @@ const PixPayment = ({ user }) => {
             window.location.href = data.initPoint;
         } catch (err) {
             console.error('Erro ao gerar preferência Mercado Pago:', err);
-            setErrorMsg('Erro ao redirecionar para o Mercado Pago. Tente novamente.');
+            setErrorMsg(err.message || 'Erro ao redirecionar para o Mercado Pago. Tente novamente.');
             setStatus('selecting'); // Fallback to selecting state so they can try another method
         }
     };
@@ -342,7 +330,7 @@ const PixPayment = ({ user }) => {
             hasGenerated.current = true;
             
             try {
-                const correlationID = await getOrCreateRentalCorrelationID();
+                const correlationID = await getOrCreateRentalCorrelationID(paymentMethod);
                 if (!correlationID) return;
 
                 const isPrefixed = correlationID.startsWith('EXC_') || correlationID.startsWith('UPG_') || correlationID.startsWith('REN_');
@@ -442,7 +430,7 @@ const PixPayment = ({ user }) => {
 
             } catch (err) {
                 console.error('Erro Mercado Pago:', err);
-                setErrorMsg('Erro ao gerar PIX. Verifique sua conexão ou tente mais tarde.');
+                setErrorMsg(err.message || 'Erro ao gerar PIX. Verifique sua conexão ou tente mais tarde.');
                 setStatus('error');
             }
         };

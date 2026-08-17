@@ -196,6 +196,10 @@ const AdminContracts = () => {
                 return <span className="status-badge grace"><RotateCcw size={12} /> Carência</span>;
             case 'AGUARDANDO_VISTORIA':
                 return <span className="status-badge pending"><Clock size={12} /> Vistoria</span>;
+            case 'AGUARDANDO_PAGAMENTO':
+                return <span className="status-badge pending"><Clock size={12} /> Aguardando pagamento</span>;
+            case 'VENCIDA':
+                return <span className="status-badge cancelled"><XCircle size={12} /> Vencido</span>;
             case 'CANCELADA':
             case 'ENCERRADA':
                 return <span className="status-badge cancelled"><XCircle size={12} /> {status === 'ENCERRADA' ? 'Encerrado' : 'Cancelado'}</span>;
@@ -384,6 +388,9 @@ const AdminContracts = () => {
                         'All': 'Todos os Status',
                         'ATIVA': 'Ativos',
                         'EM_RENOVACAO': 'Em Carência',
+                        'AGUARDANDO_PAGAMENTO': 'Aguardando Pagamento',
+                        'VENCIDA': 'Vencidos',
+                        'CANCELADA': 'Cancelados',
                         'ENCERRADA': 'Encerrados'
                     }}
                     onChange={(val) => setFilters({ ...filters, status: val })}

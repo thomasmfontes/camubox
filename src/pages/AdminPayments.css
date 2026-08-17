@@ -519,6 +519,21 @@
     border-color: #d0ebff;
 }
 
+.admin-payments .reconciliation-badge {
+    display: block;
+    width: fit-content;
+    margin-top: 5px;
+    padding: 3px 7px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
 /* Empty State */
 .admin-payments .finance-empty-state {
     padding: 4rem 2rem;

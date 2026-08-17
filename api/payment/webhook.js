@@ -88,11 +88,12 @@ export default async function handler(req, res) {
       );
 
       const chargeId = String(paymentData.id);
+      let paymentConflict = null;
       
       let query = supabase
         .from('t_transacao')
-        .select('id_transacao')
-        .eq('dc_status', 'CONCLUIDO');
+        .select('id_transacao, dc_status')
+        .limit(1);
         
       query = query.or(`id_woovi_charge.eq.${chargeId},dc_correlation_id.eq.${correlationID}`);
       
@@ -113,30 +114,43 @@ export default async function handler(req, res) {
         const oldLockerId = parts[2];
         const newLockerId = parts[3];
 
-        const { data: oldRental } = await supabase.from('t_locacao').select('*').eq('id_locacao', rentalId).single();
-        if (oldRental) {
-          const { id_locacao: _, ...historyRecord } = oldRental;
-          historyRecord.id_status = 2; // ENCERRADA
-          historyRecord.dt_termino = new Date().toISOString().split('T')[0];
-          await supabase.from('t_locacao').insert([historyRecord]);
+        const { data: oldRental, error: oldRentalError } = await supabase
+          .from('t_locacao')
+          .select('*')
+          .eq('id_locacao', rentalId)
+          .single();
+        if (oldRentalError) throw oldRentalError;
+
+        const { error: moveError } = await supabase.rpc('move_rental_safely', {
+          p_rental_id: Number(rentalId),
+          p_old_locker_id: Number(oldLockerId),
+          p_new_locker_id: Number(newLockerId)
+        });
+        if (moveError) {
+          paymentConflict = { reason: 'EXCHANGE_LOCKER_UNAVAILABLE', details: moveError.message };
+          console.error(`🚨 Approved exchange payment requires reconciliation: ${correlationID}`, moveError.message);
+
+          await supabase.from('t_notificacao').insert([{
+            id_usuario: oldRental.id_usuario,
+            dc_titulo: 'Pagamento recebido — troca em análise',
+            dc_mensagem: 'Recebemos o pagamento da troca, mas o novo armário não pôde ser liberado automaticamente. A equipe CAMUBOX fará a conferência.',
+            tp_entidade: 'armario',
+            id_entidade: newLockerId
+          }]);
+        } else {
+          const { data: lockerInfo } = await supabase.from('t_armario').select('cd_armario').eq('id_armario', newLockerId).maybeSingle();
+          const lockerDisplay = (lockerInfo?.cd_armario || newLockerId).toString().padStart(3, '0');
+
+          await supabase.from('t_notificacao').insert([{
+            id_usuario: oldRental.id_usuario,
+            dc_titulo: 'Troca de Armário Confirmada! 🔄',
+            dc_mensagem: `Sua troca para o armário #${lockerDisplay} foi processada com sucesso.`,
+            tp_entidade: 'armario',
+            id_entidade: newLockerId
+          }]);
+
+          console.log(`✅ Exchange confirmed: ${correlationID}`);
         }
-
-        await supabase.from('t_locacao').update({ id_armario: newLockerId }).eq('id_locacao', rentalId);
-        await supabase.from('t_armario').update({ id_status: 2 }).eq('id_armario', oldLockerId);
-        await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', newLockerId);
-
-        const { data: lockerInfo } = await supabase.from('t_armario').select('cd_armario').eq('id_armario', newLockerId).maybeSingle();
-        const lockerDisplay = (lockerInfo?.cd_armario || newLockerId).toString().padStart(3, '0');
-
-        await supabase.from('t_notificacao').insert([{
-          id_usuario: oldRental.id_usuario,
-          dc_titulo: 'Troca de Armário Confirmada! 🔄',
-          dc_mensagem: `Sua troca para o armário #${lockerDisplay} foi processada com sucesso.`,
-          tp_entidade: 'armario',
-          id_entidade: newLockerId
-        }]);
-
-        console.log(`✅ Exchange confirmed: ${correlationID}`);
       } else if (correlationID.startsWith('UPG_')) {
         const parts = correlationID.split('_');
         const rentalId = parts[1];
@@ -205,14 +219,33 @@ export default async function handler(req, res) {
           console.log(`✅ Renewal confirmed: ${correlationID}`);
         }
       } else {
-        const { data: rental } = await supabase.from('t_locacao').select('id_usuario, id_armario').eq('id_locacao', correlationID).single();
-        
-        const { error } = await supabase.from('t_locacao').update({ id_status: 1 }).eq('id_locacao', correlationID);
-        if (error) throw error;
+        const rentalId = Number(correlationID);
+        const { data: rental } = await supabase
+          .from('t_locacao')
+          .select('id_usuario, id_armario')
+          .eq('id_locacao', rentalId)
+          .single();
 
-        if (rental) {
-          // Garantir que o armário saia de manutenção/vistoria e fique Em Uso (1)
-          await supabase.from('t_armario').update({ id_status: 1 }).eq('id_armario', rental.id_armario);
+        const { data: confirmation, error: confirmationError } = await supabase.rpc(
+          'confirm_regular_rental_payment',
+          { p_rental_id: rentalId }
+        );
+        if (confirmationError) throw confirmationError;
+
+        if (!confirmation?.confirmed) {
+          paymentConflict = confirmation || { reason: 'UNKNOWN_CONFIRMATION_CONFLICT' };
+          console.error(`🚨 Approved payment requires reconciliation: ${correlationID}`, paymentConflict);
+
+          if (rental) {
+            await supabase.from('t_notificacao').insert([{
+              id_usuario: rental.id_usuario,
+              dc_titulo: 'Pagamento recebido — análise necessária',
+              dc_mensagem: 'Recebemos seu pagamento, mas o armário não pôde ser liberado automaticamente. A equipe CAMUBOX fará a conferência e entrará em contato.',
+              tp_entidade: 'armario',
+              id_entidade: rental.id_armario
+            }]);
+          }
+        } else if (rental) {
 
           const { data: lockerInfo } = await supabase.from('t_armario').select('cd_armario').eq('id_armario', rental.id_armario).maybeSingle();
           const lockerDisplay = (lockerInfo?.cd_armario || rental.id_armario).toString().padStart(3, '0');
@@ -226,7 +259,9 @@ export default async function handler(req, res) {
           }]);
         }
 
-        console.log(`✅ Rental payment confirmed: ${correlationID}`);
+        if (!paymentConflict) {
+          console.log(`✅ Rental payment confirmed: ${correlationID}`);
+        }
       }
 
       // --- autonomous ledger (t_transacao) ---
@@ -364,7 +399,7 @@ export default async function handler(req, res) {
           id_locacao: targetRentalId || null,
           id_woovi_charge: chargeId || `ch_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
           vl_transacao: val,
-          dc_status: 'CONCLUIDO',
+          dc_status: paymentConflict ? 'CONFLITO' : 'CONCLUIDO',
           dt_pagamento: paymentDate,
           payload_webhook: paymentData,
           dc_correlation_id: correlationID,
