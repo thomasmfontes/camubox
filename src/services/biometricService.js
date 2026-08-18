@@ -1,4 +1,25 @@
 export const biometricService = {
+    // The current WebAuthn flow only validates the local device and does not
+    // establish a server-authenticated Supabase session. Keep it disabled until
+    // registration and assertion verification are implemented on the backend.
+    isLoginEnabled: () => false,
+
+    clearLegacyRegistrations: () => {
+        const keysToRemove = [];
+
+        for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key?.startsWith('camubox_biometric_')) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        localStorage.removeItem('camubox_last_biometric_email');
+
+        return keysToRemove.length;
+    },
+
     isSupported: () => {
         return window.PublicKeyCredential !== undefined;
     },

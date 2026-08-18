@@ -37,6 +37,10 @@ function App() {
 
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
+  useEffect(() => {
+    biometricService.clearLegacyRegistrations();
+  }, []);
+
   const handleFCMRegistration = async (email) => {
     try {
       const token = await requestFirebaseToken();
@@ -72,37 +76,64 @@ function App() {
   };
 
   useEffect(() => {
+    const syncSessionWithTimeout = async (sessionUser) => {
+      let timeoutId;
+      const timeout = new Promise((resolve) => {
+        timeoutId = window.setTimeout(() => resolve('timeout'), 8000);
+      });
+
+      const result = await Promise.race([
+        syncUserSession(sessionUser).then(() => 'synced'),
+        timeout
+      ]);
+      window.clearTimeout(timeoutId);
+
+      if (result === 'timeout') {
+        console.warn('[App] User data sync timed out; releasing authentication loader.');
+      }
+    };
+
     // 1. Initial Session Check
     const checkSession = async () => {
-      if (!supabase) {
-        setIsLoadingAuth(false);
-        return;
-      }
+      try {
+        if (!supabase) return;
 
-      const { data: { session } } = await authService.getSession();
-      console.log('[App] Auth session check result:', session?.user ? 'Found session' : 'No session');
-      if (session?.user) {
-        await syncUserSession(session.user);
-      } else {
-        // Legacy Google/biometric logins only stored a local profile and did not
-        // create a server-authenticated session. Do not treat that cache as auth.
+        const { data: { session }, error } = await authService.getSession();
+        if (error) throw error;
+
+        console.log('[App] Auth session check result:', session?.user ? 'Found session' : 'No session');
+        if (session?.user) {
+          await syncSessionWithTimeout(session.user);
+        } else {
+          // Legacy Google/biometric logins only stored a local profile and did not
+          // create a server-authenticated session. Do not treat that cache as auth.
+          setUser(null);
+          localStorage.removeItem('camubox_user');
+        }
+      } catch (error) {
+        console.error('[App] Failed to restore authentication session:', error);
         setUser(null);
         localStorage.removeItem('camubox_user');
+      } finally {
+        setIsLoadingAuth(false);
       }
-      setIsLoadingAuth(false);
     };
 
     checkSession();
 
-    // 2. Auth State Change Listener
-    const { data: { subscription } } = supabase?.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await syncUserSession(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        // Apenas limpamos se o evento for explicitamente logout
-        setUser(null);
-        localStorage.removeItem('camubox_user');
-      }
+    // 2. Auth State Change Listener. Supabase warns against awaiting another
+    // Supabase request inside this callback because the auth lock is still held.
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((event, session) => {
+      window.setTimeout(() => {
+        if (session?.user) {
+          syncUserSession(session.user).catch((error) => {
+            console.error('[App] Failed to sync changed auth session:', error);
+          });
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('camubox_user');
+        }
+      }, 0);
     }) || { data: { subscription: null } };
 
     return () => {
@@ -211,6 +242,8 @@ function DashboardLayout({ user, handleLogout, location }) {
   const [biometricStatus, setBiometricStatus] = useState(null);
 
   useEffect(() => {
+    if (!biometricService.isLoginEnabled()) return;
+
     const justLoggedIn = sessionStorage.getItem('camubox_just_logged_in') === 'true';
     if (justLoggedIn && user?.email) {
       const isSupported = biometricService.isSupported();

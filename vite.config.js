@@ -12,7 +12,7 @@ export default defineConfig({
       filename: 'sw.js',
       registerType: 'prompt',
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module'
       },
       includeAssets: ['lockers.png', 'pwa-icon.png'],

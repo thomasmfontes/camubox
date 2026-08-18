@@ -375,7 +375,7 @@ const LoginPage = ({ onLogin }) => {
                                     <span>Entrar com Apple</span>
                                 </button>
 
-                                {biometricService.isSupported() && biometricService.hasRegistered() && (
+                                {biometricService.isLoginEnabled() && biometricService.isSupported() && biometricService.hasRegistered() && (
                                     <>
                                         <div className="divider-premium">
                                             <span>ou usar biometria</span>
