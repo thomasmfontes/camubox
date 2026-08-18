@@ -165,9 +165,12 @@ function App() {
   }, []);
 
   const handleLogout = async () => {
-    await authService.signOut();
+    const { error } = await authService.signOut();
+    if (error) throw error;
+
     setUser(null);
     localStorage.removeItem('camubox_user');
+    sessionStorage.removeItem('camubox_just_logged_in');
   };
 
   if (isLoadingAuth) {

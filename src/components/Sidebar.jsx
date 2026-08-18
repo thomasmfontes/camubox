@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home,
@@ -18,11 +19,20 @@ import './Sidebar.css';
 const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const handleLogoutClick = () => {
-        if (onLogout) onLogout();
-        navigate('/');
+    const handleLogoutClick = async () => {
+        if (isLoggingOut) return;
+
+        setIsLoggingOut(true);
+        try {
+            if (onLogout) await onLogout();
+            navigate('/', { replace: true });
+        } catch (error) {
+            console.error('[Sidebar] Logout failed:', error);
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
     const userMenu = [
@@ -76,9 +86,9 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
             </nav>
 
             <div className="sidebar-footer">
-                <button className="nav-item logout-btn" onClick={handleLogoutClick}>
+                <button className="nav-item logout-btn" onClick={handleLogoutClick} disabled={isLoggingOut}>
                     <LogOut size={20} />
-                    <span>Sair</span>
+                    <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
                 </button>
             </div>
         </aside>
