@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Fingerprint, KeyRound, Pencil, Plus, RefreshCcw, ShieldCheck, Trash2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Fingerprint, KeyRound, Pencil, Plus, RefreshCcw, Trash2, X } from 'lucide-react';
 import { biometricService } from '../services/biometricService';
 import './SecuritySettings.css';
 
@@ -16,6 +16,8 @@ const SecuritySettings = () => {
     const [busyId, setBusyId] = useState(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [activeModal, setActiveModal] = useState(null);
+    const [friendlyName, setFriendlyName] = useState('');
     const isAvailable = biometricService.isLoginEnabled() && biometricService.isSupported();
 
     const loadPasskeys = useCallback(async () => {
@@ -38,6 +40,25 @@ const SecuritySettings = () => {
         loadPasskeys();
     }, [loadPasskeys]);
 
+    useEffect(() => {
+        if (!activeModal) return undefined;
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' && busyId === null) {
+                setActiveModal(null);
+                setFriendlyName('');
+            }
+        };
+
+        document.documentElement.classList.add('no-scroll');
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.documentElement.classList.remove('no-scroll');
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [activeModal, busyId]);
+
     const handleRegister = async () => {
         setBusyId('new');
         setError('');
@@ -56,16 +77,35 @@ const SecuritySettings = () => {
         }
     };
 
-    const handleRename = async (passkey) => {
-        const friendlyName = window.prompt('Nome deste dispositivo:', passkey.friendly_name || 'Meu dispositivo');
-        if (!friendlyName?.trim()) return;
+    const openRenameModal = (passkey) => {
+        setFriendlyName(passkey.friendly_name || 'Meu dispositivo');
+        setActiveModal({ type: 'rename', passkey });
+    };
+
+    const openRemoveModal = (passkey) => {
+        setActiveModal({ type: 'remove', passkey });
+    };
+
+    const closeModal = () => {
+        if (busyId !== null) return;
+        setActiveModal(null);
+        setFriendlyName('');
+    };
+
+    const handleRename = async () => {
+        const passkey = activeModal?.passkey;
+        const nextName = friendlyName.trim();
+        if (!passkey || !nextName) return;
+
         setBusyId(passkey.id);
         setError('');
         setSuccess('');
         try {
-            await biometricService.rename(passkey.id, friendlyName.trim());
+            await biometricService.rename(passkey.id, nextName);
             await loadPasskeys();
             setSuccess('Nome da Passkey atualizado.');
+            setActiveModal(null);
+            setFriendlyName('');
         } catch (renameError) {
             console.error('[Passkey] Rename failed:', renameError);
             setError(renameError.message || 'Não foi possível renomear a Passkey.');
@@ -74,9 +114,10 @@ const SecuritySettings = () => {
         }
     };
 
-    const handleRemove = async (passkey) => {
-        const name = passkey.friendly_name || 'este dispositivo';
-        if (!window.confirm(`Remover a Passkey "${name}"? Este dispositivo deixará de entrar por biometria ou PIN.`)) return;
+    const handleRemove = async () => {
+        const passkey = activeModal?.passkey;
+        if (!passkey) return;
+
         setBusyId(passkey.id);
         setError('');
         setSuccess('');
@@ -84,6 +125,7 @@ const SecuritySettings = () => {
             await biometricService.remove(passkey.id);
             setPasskeys((current) => current.filter((item) => item.id !== passkey.id));
             setSuccess('Passkey removida com sucesso.');
+            setActiveModal(null);
         } catch (removeError) {
             console.error('[Passkey] Removal failed:', removeError);
             setError(removeError.message || 'Não foi possível remover a Passkey.');
@@ -94,11 +136,10 @@ const SecuritySettings = () => {
 
     return (
         <div className="security-settings-page">
-            <header className="security-header">
-                <div>
-                    <span className="security-eyebrow"><ShieldCheck size={16} /> Conta e acesso</span>
+            <header className="page-header security-page-header">
+                <div className="header-text">
                     <h1>Segurança</h1>
-                    <p>Gerencie os dispositivos autorizados a entrar no CAMUBOX com biometria ou PIN.</p>
+                    <p>Gerencie seus acessos por biometria ou PIN.</p>
                 </div>
                 {isAvailable && (
                     <button className="security-primary-btn" onClick={handleRegister} disabled={busyId !== null}>
@@ -113,19 +154,19 @@ const SecuritySettings = () => {
                     <AlertCircle size={20} />
                     <div>
                         <strong>Passkeys disponíveis somente no site oficial</strong>
-                        <span>Acesse https://camubox.com em um navegador compatível para cadastrar biometria ou PIN.</span>
+                        <span>Abra esta página em <strong>camubox.com</strong> usando um navegador compatível.</span>
                     </div>
                 </div>
             )}
             {error && <div className="security-notice error"><AlertCircle size={20} /><span>{error}</span></div>}
             {success && <div className="security-notice success"><CheckCircle2 size={20} /><span>{success}</span></div>}
 
-            <section className="security-card">
+            <section className="security-card glass">
                 <div className="security-card-heading">
                     <div className="security-icon"><Fingerprint size={24} /></div>
                     <div>
                         <h2>Suas Passkeys</h2>
-                        <p>As chaves privadas permanecem protegidas no dispositivo ou no seu gerenciador de senhas.</p>
+                        <p>Dispositivos autorizados para entrar sem usar Google ou Apple.</p>
                     </div>
                 </div>
 
@@ -135,7 +176,7 @@ const SecuritySettings = () => {
                     <div className="security-empty">
                         <KeyRound size={34} />
                         <strong>Nenhuma Passkey cadastrada</strong>
-                        <span>Cadastre um dispositivo para entrar sem precisar escolher outro provedor.</span>
+                        <span>Adicione uma Passkey para entrar com biometria ou PIN.</span>
                     </div>
                 ) : (
                     <div className="passkey-list">
@@ -148,8 +189,8 @@ const SecuritySettings = () => {
                                     <span>Último uso: {formatDate(passkey.last_used_at)}</span>
                                 </div>
                                 <div className="passkey-actions">
-                                    <button title="Renomear" onClick={() => handleRename(passkey)} disabled={busyId !== null}><Pencil size={17} /></button>
-                                    <button className="danger" title="Remover" onClick={() => handleRemove(passkey)} disabled={busyId !== null}>
+                                    <button title="Renomear" onClick={() => openRenameModal(passkey)} disabled={busyId !== null}><Pencil size={17} /></button>
+                                    <button className="danger" title="Remover" onClick={() => openRemoveModal(passkey)} disabled={busyId !== null}>
                                         {busyId === passkey.id ? <RefreshCcw className="spin" size={17} /> : <Trash2 size={17} />}
                                     </button>
                                 </div>
@@ -158,6 +199,68 @@ const SecuritySettings = () => {
                     </div>
                 )}
             </section>
+
+            {activeModal && (
+                <div className="security-modal-overlay" onMouseDown={closeModal}>
+                    <div
+                        className="security-modal-card"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="security-modal-title"
+                        onMouseDown={(event) => event.stopPropagation()}
+                    >
+                        <button className="security-modal-close" onClick={closeModal} disabled={busyId !== null} aria-label="Fechar modal">
+                            <X size={20} />
+                        </button>
+
+                        <div className={`security-modal-icon ${activeModal.type === 'remove' ? 'danger' : ''}`}>
+                            {activeModal.type === 'remove' ? <AlertTriangle size={30} /> : <Pencil size={28} />}
+                        </div>
+
+                        {activeModal.type === 'rename' ? (
+                            <>
+                                <h2 id="security-modal-title">Renomear dispositivo</h2>
+                                <p>Use um nome fácil de reconhecer na sua lista de Passkeys.</p>
+                                <label className="security-modal-field">
+                                    <span>Nome do dispositivo</span>
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={friendlyName}
+                                        maxLength={120}
+                                        onChange={(event) => setFriendlyName(event.target.value)}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' && friendlyName.trim()) handleRename();
+                                        }}
+                                        placeholder="Ex.: Celular pessoal"
+                                    />
+                                </label>
+                                <div className="security-modal-actions">
+                                    <button className="secondary" onClick={closeModal} disabled={busyId !== null}>Cancelar</button>
+                                    <button className="primary" onClick={handleRename} disabled={busyId !== null || !friendlyName.trim()}>
+                                        {busyId !== null && <RefreshCcw className="spin" size={17} />}
+                                        Salvar nome
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 id="security-modal-title">Remover Passkey?</h2>
+                                <p>
+                                    A Passkey <strong>{activeModal.passkey.friendly_name || 'deste dispositivo'}</strong> deixará de acessar sua conta com biometria ou PIN.
+                                </p>
+                                <div className="security-modal-actions">
+                                    <button className="secondary" onClick={closeModal} disabled={busyId !== null}>Cancelar</button>
+                                    <button className="danger" onClick={handleRemove} disabled={busyId !== null}>
+                                        {busyId !== null && <RefreshCcw className="spin" size={17} />}
+                                        Remover
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

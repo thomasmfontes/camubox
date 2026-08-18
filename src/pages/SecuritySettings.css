@@ -1,29 +1,459 @@
-.security-settings-page { width: min(980px, 100%); margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
-.security-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-.security-header h1 { margin: 8px 0 6px; color: var(--primary, #003d2b); font-size: clamp(1.8rem, 4vw, 2.5rem); }
-.security-header p, .security-card-heading p { margin: 0; color: #64748b; line-height: 1.55; }
-.security-eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #047857; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-.security-primary-btn { border: 0; border-radius: 12px; padding: 12px 18px; background: var(--primary, #003d2b); color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 750; cursor: pointer; white-space: nowrap; }
-.security-primary-btn:disabled, .passkey-actions button:disabled { cursor: not-allowed; opacity: 0.55; }
-.security-card { background: white; border: 1px solid #dbe5e1; border-radius: 20px; padding: clamp(20px, 4vw, 32px); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
-.security-card-heading { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 22px; border-bottom: 1px solid #e2e8f0; }
-.security-card-heading h2 { margin: 0 0 5px; color: #0f2f27; font-size: 1.2rem; }
-.security-icon, .passkey-symbol { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: #047857; background: #ecfdf5; flex-shrink: 0; }
-.security-notice { border-radius: 13px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; }
-.security-notice div { display: flex; flex-direction: column; gap: 3px; }
-.security-notice.warning { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
-.security-notice.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-.security-notice.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-.security-empty { min-height: 210px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #64748b; text-align: center; }
-.security-empty strong { color: #1e293b; }
-.passkey-list { display: flex; flex-direction: column; gap: 12px; padding-top: 20px; }
-.passkey-item { border: 1px solid #e2e8f0; border-radius: 15px; padding: 16px; display: flex; align-items: center; gap: 14px; }
-.passkey-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.passkey-info strong { color: #16372f; }
-.passkey-info span { color: #64748b; font-size: 0.8rem; }
-.passkey-actions { display: flex; gap: 8px; }
-.passkey-actions button { width: 38px; height: 38px; border-radius: 10px; border: 1px solid #dbe5e1; background: white; color: #475569; display: grid; place-items: center; cursor: pointer; }
-.passkey-actions button.danger { color: #dc2626; border-color: #fecaca; background: #fffafa; }
-.spin { animation: passkey-spin 0.8s linear infinite; }
-@keyframes passkey-spin { to { transform: rotate(360deg); } }
-@media (max-width: 640px) { .security-header { align-items: stretch; flex-direction: column; } .security-primary-btn { width: 100%; } .passkey-item { align-items: flex-start; flex-wrap: wrap; } .passkey-actions { width: 100%; justify-content: flex-end; } }
+.security-settings-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.security-settings-page .security-page-header {
+    margin-bottom: 0;
+}
+
+.security-primary-btn {
+    min-height: 44px;
+    padding: 0.7rem 1.15rem;
+    border: 0;
+    border-radius: 12px;
+    background: var(--primary, #003d2b);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.security-primary-btn:disabled,
+.passkey-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.security-notice {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.security-notice > svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+}
+
+.security-notice div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.security-notice.warning {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+}
+
+.security-notice.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.security-notice.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.security-card {
+    width: 100%;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+.security-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.security-card-heading h2 {
+    margin: 0 0 0.25rem;
+    color: var(--text-main, #0f2f27);
+    font-size: 1.15rem;
+}
+
+.security-card-heading p {
+    margin: 0;
+    color: var(--text-muted, #64748b);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.security-icon,
+.passkey-symbol {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #047857;
+    background: #ecfdf5;
+    flex: 0 0 auto;
+}
+
+.security-empty {
+    min-height: 180px;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    color: var(--text-muted, #64748b);
+    text-align: center;
+}
+
+.security-empty strong {
+    color: var(--text-main, #1e293b);
+}
+
+.security-empty span {
+    max-width: 390px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.passkey-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+}
+
+.passkey-item {
+    padding: 1rem;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.passkey-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.passkey-info strong {
+    color: var(--text-main, #16372f);
+    overflow-wrap: anywhere;
+}
+
+.passkey-info span {
+    color: var(--text-muted, #64748b);
+    font-size: 0.78rem;
+}
+
+.passkey-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.passkey-actions button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border, #dbe5e1);
+    background: #fff;
+    color: #475569;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.passkey-actions button.danger {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fffafa;
+}
+
+.security-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    padding: 1.5rem;
+    background: rgba(0, 43, 31, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: security-modal-fade 0.2s ease-out;
+}
+
+.security-modal-card {
+    position: relative;
+    width: min(420px, 100%);
+    padding: 2rem;
+    border: 1px solid var(--border, #dbe5e1);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(0, 43, 31, 0.24);
+    text-align: center;
+    animation: security-modal-enter 0.25s ease-out;
+}
+
+.security-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #f4f7f6;
+    color: var(--text-muted, #64748b);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.security-modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background: #ecfdf5;
+    color: #047857;
+    display: grid;
+    place-items: center;
+}
+
+.security-modal-icon.danger {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.security-modal-card h2 {
+    margin: 0 0 0.5rem;
+    color: var(--primary, #003d2b);
+    font-size: 1.3rem;
+}
+
+.security-modal-card > p {
+    margin: 0 0 1.5rem;
+    color: var(--text-muted, #64748b);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.security-modal-card > p strong {
+    color: var(--text-main, #16372f);
+}
+
+.security-modal-field {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.security-modal-field span {
+    color: var(--text-main, #16372f);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.security-modal-field input {
+    width: 100%;
+    height: 48px;
+    padding: 0 0.875rem;
+    border: 1.5px solid var(--border, #dbe5e1);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--text-main, #16372f);
+    font: inherit;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.security-modal-field input:focus {
+    border-color: var(--primary, #003d2b);
+    box-shadow: 0 0 0 4px rgba(0, 61, 43, 0.08);
+}
+
+.security-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.security-modal-actions button {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.security-modal-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.security-modal-actions .secondary {
+    flex: 1;
+    background: #f4f7f6;
+    color: var(--text-muted, #64748b);
+}
+
+.security-modal-actions .primary,
+.security-modal-actions .danger {
+    flex: 1.4;
+    color: #fff;
+}
+
+.security-modal-actions .primary {
+    background: var(--primary, #003d2b);
+}
+
+.security-modal-actions .danger {
+    background: #dc2626;
+}
+
+@keyframes security-modal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes security-modal-enter {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.spin {
+    animation: passkey-spin 0.8s linear infinite;
+}
+
+@keyframes passkey-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+    .security-settings-page {
+        gap: 1rem;
+    }
+
+    .security-settings-page .security-page-header {
+        gap: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    .security-primary-btn {
+        width: 100%;
+    }
+
+    .security-notice {
+        padding: 0.8rem 0.875rem;
+        font-size: 0.82rem;
+    }
+
+    .security-card {
+        padding: 1rem;
+        border-radius: 18px;
+    }
+
+    .security-card-heading {
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding-bottom: 1rem;
+    }
+
+    .security-card-heading h2 {
+        font-size: 1rem;
+    }
+
+    .security-card-heading p {
+        font-size: 0.82rem;
+    }
+
+    .security-icon,
+    .passkey-symbol {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .security-empty {
+        min-height: 0;
+        padding: 2.25rem 0.5rem 1.5rem;
+    }
+
+    .security-empty span {
+        font-size: 0.82rem;
+    }
+
+    .passkey-item {
+        align-items: flex-start;
+        padding: 0.875rem;
+        flex-wrap: wrap;
+    }
+
+    .passkey-actions {
+        width: 100%;
+        justify-content: flex-end;
+        padding-top: 0.25rem;
+    }
+
+    .security-modal-overlay {
+        padding: 1rem;
+        align-items: flex-end;
+    }
+
+    .security-modal-card {
+        padding: 1.5rem 1rem 1rem;
+        border-radius: 22px;
+    }
+
+    .security-modal-icon {
+        width: 54px;
+        height: 54px;
+        margin-bottom: 1rem;
+    }
+
+    .security-modal-card h2 {
+        font-size: 1.15rem;
+    }
+
+    .security-modal-card > p {
+        margin-bottom: 1.25rem;
+        font-size: 0.84rem;
+    }
+
+    .security-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .security-modal-actions button {
+        width: 100%;
+    }
+}
