@@ -10,7 +10,8 @@ import {
     LogOut,
     ChevronRight,
     X,
-    Percent
+    Percent,
+    ShieldCheck
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -27,6 +28,7 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
     const userMenu = [
         { label: 'Armários', icon: <div className="nav-mask-icon icon-lockers" />, path: '/dashboard/lockers' },
         { label: 'Meus Armários', icon: <div className="nav-mask-icon icon-my-locker" />, path: '/dashboard/my-locker' },
+        { label: 'Segurança', icon: <ShieldCheck size={20} />, path: '/dashboard/security' },
     ];
 
     const adminMenu = [
@@ -37,6 +39,7 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
         { label: 'Financeiro', icon: <CreditCard size={20} />, path: '/dashboard/admin/payments' },
         { label: 'Taxas', icon: <Percent size={20} />, path: '/dashboard/admin/fees' },
         { label: 'Configurações', icon: <div className="nav-mask-icon icon-config" />, path: '/dashboard/admin/settings' },
+        { label: 'Segurança', icon: <ShieldCheck size={20} />, path: '/dashboard/security' },
     ];
 
     const menuItems = role === 'admin' ? adminMenu : userMenu;

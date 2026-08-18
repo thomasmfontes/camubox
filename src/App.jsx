@@ -13,6 +13,7 @@ import AdminContracts from './pages/AdminContracts';
 import AdminPayments from './pages/AdminPayments';
 import AdminFees from './pages/AdminFees';
 import UserMyLockers from './pages/UserMyLockers';
+import SecuritySettings from './pages/SecuritySettings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { supabase, dbService, authService } from './services/supabaseClient';
@@ -244,34 +245,33 @@ function DashboardLayout({ user, handleLogout, location }) {
   useEffect(() => {
     if (!biometricService.isLoginEnabled()) return;
 
+    let isCancelled = false;
+    let promptTimer;
     const justLoggedIn = sessionStorage.getItem('camubox_just_logged_in') === 'true';
-    if (justLoggedIn && user?.email) {
-      const isSupported = biometricService.isSupported();
-      const hasRegistered = biometricService.hasRegistered(user.email);
-      const dismissed = localStorage.getItem(`camubox_biometric_prompt_dismissed_${user.email}`);
+    if (!justLoggedIn || !user?.email || !biometricService.isSupported()) return;
 
-      console.log('[Biometrics Prompt Diagnostic]', {
-        justLoggedIn,
-        email: user.email,
-        isSupported,
-        hasRegistered,
-        dismissed
-      });
+    const checkPasskeys = async () => {
+      try {
+        const hasRegistered = await biometricService.hasRegistered();
+        const dismissed = localStorage.getItem(`camubox_biometric_prompt_dismissed_${user.email}`);
 
-      if (isSupported && !hasRegistered && !dismissed) {
-        const timer = setTimeout(() => {
-          console.log('[Biometrics Prompt] Showing modal...');
-          sessionStorage.removeItem('camubox_just_logged_in');
-          setShowBiometricPrompt(true);
-        }, 1200); // Pequeno delay de 1.2s para esperar o carregamento da página/efeitos de entrada
-        return () => clearTimeout(timer);
+        if (!isCancelled && !hasRegistered && !dismissed) {
+          promptTimer = window.setTimeout(() => {
+            sessionStorage.removeItem('camubox_just_logged_in');
+            setShowBiometricPrompt(true);
+          }, 1200);
+        }
+      } catch (error) {
+        console.error('[Passkey] Failed to inspect registered credentials:', error);
       }
-    } else {
-      console.log('[Biometrics Prompt Diagnostic] Conditions not met:', {
-        justLoggedIn,
-        email: user?.email
-      });
-    }
+    };
+
+    checkPasskeys();
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(promptTimer);
+    };
   }, [user?.email]);
 
   return (
@@ -290,6 +290,7 @@ function DashboardLayout({ user, handleLogout, location }) {
             <Route path="/checkout/contract" element={<DigitalContract />} />
             <Route path="/checkout/payment" element={<PixPayment user={user} />} />
             <Route path="/my-locker" element={<UserMyLockers user={user} />} />
+            <Route path="/security" element={<SecuritySettings />} />
             <Route path="*" element={<div>Página em construção...</div>} />
           </Routes>
       </div>
@@ -314,9 +315,9 @@ function DashboardLayout({ user, handleLogout, location }) {
               <div className="alert-icon-container" style={{ background: '#f0fdf4', color: 'var(--primary)', display: 'inline-flex' }}>
                 <Fingerprint size={48} style={{ animation: 'pulse-ring 2s infinite ease-in-out' }} />
               </div>
-              <h2>Ativar Login Digital?</h2>
+              <h2>Ativar Biometria ou PIN?</h2>
               <p>
-                Deseja cadastrar a digital deste dispositivo para entrar de forma rápida e segura nas próximas vezes?
+                Cadastre uma Passkey protegida por biometria ou PIN para entrar com segurança nas próximas vezes.
               </p>
             </div>
 
@@ -325,19 +326,19 @@ function DashboardLayout({ user, handleLogout, location }) {
                 className="btn-modal-confirm-primary" 
                 onClick={async () => {
                   try {
-                    await biometricService.register(user.email, user.name);
+                    await biometricService.register();
                     setShowBiometricPrompt(false);
-                    setBiometricStatus({ message: 'Biometria ativada com sucesso!', type: 'success' });
+                    setBiometricStatus({ message: 'Passkey ativada com sucesso!', type: 'success' });
                     setTimeout(() => setBiometricStatus(null), 5000);
                   } catch (err) {
                     console.error(err);
                     if (err.name !== 'NotAllowedError') {
-                      alert(err.message || 'Erro ao registrar biometria.');
+                      alert(err.message || 'Erro ao registrar a Passkey.');
                     }
                   }
                 }}
               >
-                Ativar Digital
+                Ativar Passkey
               </button>
               <button 
                 className="btn-modal-cancel" 

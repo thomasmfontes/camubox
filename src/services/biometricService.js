@@ -1,15 +1,42 @@
+import { supabase } from './supabaseClient';
+
+const isProductionPasskeyOrigin = () => {
+    if (typeof window === 'undefined') return false;
+
+    const hostname = window.location.hostname.toLowerCase();
+    return hostname === 'camubox.com' || hostname.endsWith('.camubox.com');
+};
+
+const assertPasskeyAvailable = () => {
+    if (!supabase) {
+        throw new Error('Autenticação indisponível neste ambiente.');
+    }
+    if (!biometricService.isSupported()) {
+        throw new Error('Biometria ou Passkey não é suportada neste dispositivo.');
+    }
+    if (!biometricService.isLoginEnabled()) {
+        throw new Error('Passkeys estão disponíveis somente no domínio seguro do CAMUBOX.');
+    }
+};
+
 export const biometricService = {
-    // The current WebAuthn flow only validates the local device and does not
-    // establish a server-authenticated Supabase session. Keep it disabled until
-    // registration and assertion verification are implemented on the backend.
-    isLoginEnabled: () => false,
+    isLoginEnabled: () => Boolean(supabase) && isProductionPasskeyOrigin(),
+
+    isSupported: () => (
+        typeof window !== 'undefined'
+        && window.isSecureContext
+        && typeof window.PublicKeyCredential !== 'undefined'
+    ),
 
     clearLegacyRegistrations: () => {
         const keysToRemove = [];
 
         for (let index = 0; index < localStorage.length; index += 1) {
             const key = localStorage.key(index);
-            if (key?.startsWith('camubox_biometric_')) {
+            const isLegacyCredential = key?.startsWith('camubox_biometric_')
+                && !key.startsWith('camubox_biometric_prompt_dismissed_');
+
+            if (isLegacyCredential) {
                 keysToRemove.push(key);
             }
         }
@@ -20,126 +47,48 @@ export const biometricService = {
         return keysToRemove.length;
     },
 
-    isSupported: () => {
-        return window.PublicKeyCredential !== undefined;
+    list: async () => {
+        assertPasskeyAvailable();
+        const { data, error } = await supabase.auth.passkey.list();
+        if (error) throw error;
+        return data || [];
     },
 
-    hasRegistered: (email) => {
-        if (!email) {
-            const lastEmail = localStorage.getItem('camubox_last_biometric_email');
-            return !!lastEmail && !!localStorage.getItem(`camubox_biometric_${lastEmail}`);
-        }
-        return !!localStorage.getItem(`camubox_biometric_${email}`);
+    hasRegistered: async () => {
+        const passkeys = await biometricService.list();
+        return passkeys.length > 0;
     },
 
-    getLastRegisteredEmail: () => {
-        return localStorage.getItem('camubox_last_biometric_email');
-    },
-
-    register: async (userEmail, userName) => {
-        if (!window.PublicKeyCredential) {
-            throw new Error("Biometria não suportada neste navegador.");
-        }
-
-        // Challenge needs to be a cryptographically strong random ArrayBuffer
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        // User ID must be a unique ArrayBuffer
-        const userId = new TextEncoder().encode(userEmail);
-
-        const publicKeyCredentialCreationOptions = {
-            challenge: challenge,
-            rp: {
-                name: "CAMUBOX",
-                id: window.location.hostname
-            },
-            user: {
-                id: userId,
-                name: userEmail,
-                displayName: userName || userEmail
-            },
-            pubKeyCredParams: [
-                { type: "public-key", alg: -7 },   // ES256
-                { type: "public-key", alg: -257 }  // RS256
-            ],
-            authenticatorSelection: {
-                authenticatorAttachment: "platform", // Forces platform biometrics (Windows Hello, TouchID, FaceID)
-                userVerification: "required",
-                residentKey: "required"
-            },
-            timeout: 60000
-        };
-
-        const credential = await navigator.credentials.create({
-            publicKey: publicKeyCredentialCreationOptions
-        });
-
-        // Convert rawId to Base64 to store in localStorage
-        const rawIdArray = new Uint8Array(credential.rawId);
-        let binary = '';
-        const len = rawIdArray.byteLength;
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(rawIdArray[i]);
-        }
-        const base64Id = btoa(binary);
-
-        const credInfo = {
-            id: base64Id,
-            email: userEmail,
-            name: userName
-        };
-
-        localStorage.setItem(`camubox_biometric_${userEmail}`, JSON.stringify(credInfo));
-        localStorage.setItem('camubox_last_biometric_email', userEmail);
-
-        return credInfo;
+    register: async () => {
+        assertPasskeyAvailable();
+        const { data, error } = await supabase.auth.registerPasskey();
+        if (error) throw error;
+        return data;
     },
 
     authenticate: async () => {
-        if (!window.PublicKeyCredential) {
-            throw new Error("Biometria não suportada neste navegador.");
+        assertPasskeyAvailable();
+        const { data, error } = await supabase.auth.signInWithPasskey();
+        if (error) throw error;
+        if (!data?.session || !data?.user) {
+            throw new Error('A Passkey foi validada, mas a sessão não foi criada.');
         }
+        return data;
+    },
 
-        const lastEmail = localStorage.getItem('camubox_last_biometric_email');
-        if (!lastEmail) {
-            throw new Error("Nenhuma biometria cadastrada neste dispositivo.");
-        }
-
-        const credDataStr = localStorage.getItem(`camubox_biometric_${lastEmail}`);
-        if (!credDataStr) {
-            throw new Error("Nenhuma biometria cadastrada para este usuário.");
-        }
-
-        const credData = JSON.parse(credDataStr);
-        
-        // Convert Base64 back to Uint8Array
-        const binaryString = atob(credData.id);
-        const len = binaryString.length;
-        const credentialId = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            credentialId[i] = binaryString.charCodeAt(i);
-        }
-
-        const challenge = new Uint8Array(32);
-        window.crypto.getRandomValues(challenge);
-
-        const publicKeyCredentialRequestOptions = {
-            challenge: challenge,
-            allowCredentials: [{
-                id: credentialId,
-                type: 'public-key'
-            }],
-            rpId: window.location.hostname,
-            userVerification: 'required',
-            timeout: 60000
-        };
-
-        await navigator.credentials.get({
-            publicKey: publicKeyCredentialRequestOptions
+    rename: async (passkeyId, friendlyName) => {
+        assertPasskeyAvailable();
+        const { data, error } = await supabase.auth.passkey.update({
+            passkeyId,
+            friendlyName
         });
+        if (error) throw error;
+        return data;
+    },
 
-        // If credentials.get does not throw, the biometrics validation succeeded!
-        return credData;
+    remove: async (passkeyId) => {
+        assertPasskeyAvailable();
+        const { error } = await supabase.auth.passkey.delete({ passkeyId });
+        if (error) throw error;
     }
 };

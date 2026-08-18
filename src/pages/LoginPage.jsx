@@ -93,21 +93,18 @@ const LoginPage = ({ onLogin }) => {
         setError('');
         setIsBiometricLoading(true);
         try {
-            const credData = await biometricService.authenticate();
-            const { data: { session } } = await authService.getSession();
-            if (!session?.access_token) {
-                throw new Error('Sua sessÃ£o segura expirou. Entre novamente com Google ou Apple.');
-            }
-            const { data: existingUser, error: fetchError } = await dbService.users.getByEmail(credData.email);
+            const { user: passkeyUser } = await biometricService.authenticate();
+            const { data: existingUser, error: fetchError } = await dbService.users.getByEmail(passkeyUser.email);
             if (fetchError) throw fetchError;
             if (!existingUser) {
-                throw new Error('Usuário correspondente à biometria não encontrado no sistema.');
+                await authService.signOut();
+                throw new Error('Usuário correspondente à Passkey não encontrado no CAMUBOX.');
             }
             
             const isAdmin = !!existingUser.is_adm;
             sessionStorage.setItem('camubox_just_logged_in', 'true');
             onLogin({
-                uid: 'biometric-session',
+                uid: passkeyUser.id,
                 id_usuario: existingUser.id_usuario,
                 name: existingUser.nm_usuario,
                 email: existingUser.dc_email,
@@ -116,9 +113,9 @@ const LoginPage = ({ onLogin }) => {
             });
             navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
         } catch (err) {
-            console.error('[BIOMETRIC LOGIN ERROR]', err);
+            console.error('[PASSKEY LOGIN ERROR]', err);
             if (err.name !== 'NotAllowedError') {
-                setError(err.message || 'Erro ao realizar login por biometria.');
+                setError(err.message || 'Não foi possível entrar com a Passkey.');
             }
         } finally {
             setIsBiometricLoading(false);
@@ -375,7 +372,7 @@ const LoginPage = ({ onLogin }) => {
                                     <span>Entrar com Apple</span>
                                 </button>
 
-                                {biometricService.isLoginEnabled() && biometricService.isSupported() && biometricService.hasRegistered() && (
+                                {biometricService.isLoginEnabled() && biometricService.isSupported() && (
                                     <>
                                         <div className="divider-premium">
                                             <span>ou usar biometria</span>
@@ -391,7 +388,7 @@ const LoginPage = ({ onLogin }) => {
                                             ) : (
                                                 <Fingerprint size={18} />
                                             )}
-                                            <span>Entrar com Digital / PIN</span>
+                                            <span>Entrar com Biometria / PIN</span>
                                         </button>
                                     </>
                                 )}

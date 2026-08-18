@@ -6,7 +6,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Fallback to mock data if credentials are not provided
 const isMockMode = !supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('your-project-url');
 
-export const supabase = isMockMode ? null : createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = isMockMode ? null : createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+        experimental: {
+            passkey: true
+        }
+    }
+});
 
 /**
  * Service to handle data interactions with the t_* tables.
@@ -666,7 +672,7 @@ export const dbService = {
                         } else {
                             lockerFriendlyNumber = data.id_armario.toString().padStart(3, '0');
                         }
-                    } catch (e) {
+                    } catch {
                         lockerFriendlyNumber = data.id_armario;
                     }
                 }

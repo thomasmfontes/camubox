@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0",
+    "@supabase/supabase-js": "^2.112.3",
     "firebase": "^12.10.0",
     "google-auth-library": "^10.6.1",
     "jsonwebtoken": "^9.0.3",
