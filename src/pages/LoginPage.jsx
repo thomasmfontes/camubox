@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Shield, Lock, Users, UserPlus, Apple, Fingerprint } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { dbService, authService } from '../services/supabaseClient';
 import { biometricService } from '../services/biometricService';
 import './LoginPage.css';
@@ -24,8 +23,8 @@ const LoginPage = ({ onLogin }) => {
     const [isAppleLoading, setIsAppleLoading] = useState(false);
     const [isGoogleLoadingStep1, setIsGoogleLoadingStep1] = useState(false);
 
-    // Detect Supabase session (specifically for OAuth like Apple)
-    useState(() => {
+    // Detect a real Supabase OAuth session after the provider redirects back.
+    useEffect(() => {
         const checkSession = async () => {
             const { data: { session } } = await authService.getSession();
             if (session?.user) {
@@ -53,7 +52,7 @@ const LoginPage = ({ onLogin }) => {
             }
         };
         checkSession();
-    }, []);
+    }, [navigate, onLogin]);
 
     const formatPhone = (value) => {
         const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -62,50 +61,19 @@ const LoginPage = ({ onLogin }) => {
         return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`;
     };
 
-    const handleGoogleLogin = useGoogleLogin({
-        onSuccess: async (tokenResponse) => {
-            setError('');
-            setIsGoogleLoadingStep1(true);
-            try {
-                // Fetch user info from Google
-                const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                if (!userInfoRes.ok) throw new Error('Falha ao obter dados do Google');
-                
-                const userInfo = await userInfoRes.json();
-                const email = userInfo.email;
-                const name = userInfo.name;
-                
-                const { data: existingUser } = await dbService.users.getByEmail(email);
-                if (existingUser) {
-                    // Try to get supabase user id if available
-                    const { data: { user: sbUser } } = await authService.getSession();
-                    const isAdmin = !!existingUser.is_adm;
-                    sessionStorage.setItem('camubox_just_logged_in', 'true');
-                    onLogin({ 
-                        uid: sbUser?.id,
-                        id_usuario: existingUser.id_usuario, 
-                        name: existingUser.nm_usuario, 
-                        email: existingUser.dc_email, 
-                        phone: existingUser.nr_celular || '',
-                        isAdmin 
-                    });
-                    navigate(isAdmin ? '/dashboard/admin' : '/dashboard/lockers');
-                } else {
-                    setGoogleStep({ email, name });
-                }
-            } catch (err) {
-                console.error('[GOOGLE LOGIN ERROR]', err);
-                setError('Erro ao processar login com Google. Tente novamente.');
-            } finally {
-                setIsGoogleLoadingStep1(false);
-            }
-        },
-        onError: () => {
-            setError('Login com Google falhou. Tente novamente.');
+    const handleGoogleLogin = async () => {
+        setError('');
+        setIsGoogleLoadingStep1(true);
+        try {
+            const { error: loginError } = await authService.loginWithGoogle();
+            if (loginError) throw loginError;
+            // Supabase redirects to Google and then back to this page.
+        } catch (err) {
+            console.error('[GOOGLE LOGIN ERROR]', err);
+            setError('Erro ao iniciar login com Google. Tente novamente.');
+            setIsGoogleLoadingStep1(false);
         }
-    });
+    };
 
     const handleAppleLogin = async () => {
         setError('');
@@ -126,6 +94,10 @@ const LoginPage = ({ onLogin }) => {
         setIsBiometricLoading(true);
         try {
             const credData = await biometricService.authenticate();
+            const { data: { session } } = await authService.getSession();
+            if (!session?.access_token) {
+                throw new Error('Sua sessÃ£o segura expirou. Entre novamente com Google ou Apple.');
+            }
             const { data: existingUser, error: fetchError } = await dbService.users.getByEmail(credData.email);
             if (fetchError) throw fetchError;
             if (!existingUser) {
@@ -368,7 +340,7 @@ const LoginPage = ({ onLogin }) => {
                             <div className="oauth-buttons-wrapper">
                                 <button 
                                     className="google-login-btn-custom" 
-                                    onClick={() => handleGoogleLogin()}
+                                    onClick={handleGoogleLogin}
                                     disabled={isGoogleLoadingStep1}
                                 >
                                     {isGoogleLoadingStep1 ? (

@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
 import AdminHome from './pages/AdminHome';
@@ -83,6 +83,11 @@ function App() {
       console.log('[App] Auth session check result:', session?.user ? 'Found session' : 'No session');
       if (session?.user) {
         await syncUserSession(session.user);
+      } else {
+        // Legacy Google/biometric logins only stored a local profile and did not
+        // create a server-authenticated session. Do not treat that cache as auth.
+        setUser(null);
+        localStorage.removeItem('camubox_user');
       }
       setIsLoadingAuth(false);
     };
@@ -117,7 +122,7 @@ function App() {
     }
   }, [user?.email]);
 
-  const handleLogin = (userData) => {
+  const handleLogin = useCallback((userData) => {
     setUser(userData);
     localStorage.setItem('camubox_user', JSON.stringify(userData));
     
@@ -125,7 +130,7 @@ function App() {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([60, 100, 60]);
     }
-  };
+  }, []);
 
   const handleLogout = async () => {
     await authService.signOut();
