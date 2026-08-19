@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home,
@@ -14,12 +14,50 @@ import {
     Percent,
     ShieldCheck
 } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 import './Sidebar.css';
 
 const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [pendingInPersonCount, setPendingInPersonCount] = useState(0);
+
+    useEffect(() => {
+        if (role !== 'admin') return;
+
+        const fetchPendingInPerson = async () => {
+            try {
+                const { count, error } = await supabase
+                    .from('t_transacao')
+                    .select('id_transacao', { count: 'exact', head: true })
+                    .eq('tp_meio_pagamento', 'PRESENCIAL')
+                    .eq('dc_status', 'AGUARDANDO_PAGAMENTO');
+                if (!error && typeof count === 'number') {
+                    setPendingInPersonCount(count);
+                }
+            } catch (e) {
+                console.warn('[Sidebar] Error fetching pending in-person count:', e);
+            }
+        };
+
+        fetchPendingInPerson();
+
+        const channel = supabase
+            .channel('sidebar-in-person-pending-realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 't_transacao'
+            }, () => {
+                fetchPendingInPerson();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [role]);
 
     const handleLogoutClick = async () => {
         if (isLoggingOut) return;
@@ -80,6 +118,9 @@ const Sidebar = ({ role = 'user', onLogout, isOpen, onClose }) => {
                     >
                         <span className="nav-icon">{item.icon}</span>
                         <span className="nav-label">{item.label}</span>
+                        {item.path === '/dashboard/admin/payments' && pendingInPersonCount > 0 && (
+                            <span className="sidebar-pending-dot" title={`${pendingInPersonCount} pendência(s) de pagamento presencial`} />
+                        )}
                         {location.pathname === item.path && <ChevronRight size={16} className="active-indicator" />}
                     </button>
                 ))}

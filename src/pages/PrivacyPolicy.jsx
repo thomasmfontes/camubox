@@ -29,7 +29,7 @@ const PrivacyPolicy = () => {
                     <p>Coletamos informações necessárias para a prestação de nossos serviços, incluindo:</p>
                     <ul>
                         <li><strong>Dados de Identificação:</strong> Nome completo, RA (Registro Acadêmico) e e-mail.</li>
-                        <li><strong>Dados de Autenticação:</strong> Informações fornecidas por provedores externos (Google e Apple) caso opte por esses métodos de login.</li>
+                        <li><strong>Dados de Autenticação:</strong> Informações fornecidas por provedores externos (Google, Apple e Microsoft) caso opte por esses métodos de login.</li>
                         <li><strong>Dados de Uso:</strong> Informações sobre suas locações de armários, pagamentos e interações com a plataforma.</li>
                     </ul>
 

@@ -166,7 +166,7 @@ const SecuritySettings = () => {
                     <div className="security-icon"><Fingerprint size={24} /></div>
                     <div>
                         <h2>Suas Passkeys</h2>
-                        <p>Dispositivos autorizados para entrar sem usar Google ou Apple.</p>
+                        <p>Dispositivos autorizados para entrar sem usar outro provedor.</p>
                     </div>
                 </div>
 

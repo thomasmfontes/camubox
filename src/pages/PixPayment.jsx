@@ -14,7 +14,8 @@ import {
     CreditCard,
     ChevronRight,
     AlertCircle,
-    Barcode
+    Barcode,
+    HandCoins
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import './PixPayment.css';
@@ -36,9 +37,6 @@ const PixPayment = ({ user }) => {
     const [errorMsg, setErrorMsg] = useState('');
 
     // Self-healing database lookups when returning from checkout redirect with empty state
-    const [fetchedLocker, setFetchedLocker] = useState(null);
-    const [fetchedType, setFetchedType] = useState(null);
-    const [fetchedPrice, setFetchedPrice] = useState(null);
     const [isFetchingContext, setIsFetchingContext] = useState(false);
 
     const [isExchange, setIsExchange] = useState(state?.type === 'exchange');
@@ -74,6 +72,7 @@ const PixPayment = ({ user }) => {
     };
 
     const [qrCodeData, setQrCodeData] = useState(null);
+    const [inPersonPayment, setInPersonPayment] = useState(null);
 
     // Context Recovery Effect
     useEffect(() => {
@@ -96,7 +95,7 @@ const PixPayment = ({ user }) => {
                 }
 
                 if (cleanUrlCorrelationID.startsWith('UPG_')) {
-                    const [_, rentalId, newTypeId] = cleanUrlCorrelationID.split('_');
+                    const [, rentalId] = cleanUrlCorrelationID.split('_');
                     setIsUpgrade(true);
                     
                     const { data: rental } = await supabase
@@ -124,7 +123,7 @@ const PixPayment = ({ user }) => {
                     }
                     setPrice(50);
                 } else if (cleanUrlCorrelationID.startsWith('EXC_')) {
-                    const [_, rentalId, oldLockerId, newLockerId] = cleanUrlCorrelationID.split('_');
+                    const newLockerId = cleanUrlCorrelationID.split('_')[3];
                     setIsExchange(true);
                     
                     const { data: locker } = await supabase
@@ -262,8 +261,43 @@ const PixPayment = ({ user }) => {
         if (method === 'credit_card' || method === 'boleto') {
             setStatus('redirecting');
             generatePreference(method);
+        } else if (method === 'in_person') {
+            setStatus('generating');
+            requestInPersonPayment();
         } else {
             setStatus('generating');
+        }
+    };
+
+    const requestInPersonPayment = async () => {
+        try {
+            const correlationID = await getOrCreateRentalCorrelationID('in_person');
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token;
+            if (!accessToken) throw new Error('Sua sessão expirou. Entre novamente para continuar.');
+
+            const response = await fetch('/api/payment/in-person', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    correlationID,
+                    operation: isRenewal ? 'renewal' : isExchange ? 'exchange' : isUpgrade ? 'upgrade' : 'rental',
+                    previousRentalId: isRenewal ? selectedLocker.previousContractId : null
+                })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Não foi possível solicitar o pagamento presencial.');
+
+            setInPersonPayment(result.payment);
+            setStatus('in_person_pending');
+        } catch (error) {
+            console.error('[In-person payment request]', error);
+            setErrorMsg(error.message || 'Não foi possível solicitar o pagamento presencial.');
+            setPaymentMethod(null);
+            setStatus('selecting');
         }
     };
 
@@ -522,7 +556,7 @@ const PixPayment = ({ user }) => {
                     
                     <div className="bank-security-notice">
                         <Shield size={14} />
-                        <span>Atenção: A liberação do armário é automática após a aprovação do Mercado Pago. Para Pix é instantâneo. Cartão de crédito pode levar alguns minutos e Boleto até 3 dias úteis.</span>
+                        <span>Pagamentos online liberam o armário após aprovação. No presencial, a liberação ocorre somente depois da confirmação da equipe CAMUBOX.</span>
                     </div>
                 </div>
             </header>
@@ -555,6 +589,7 @@ const PixPayment = ({ user }) => {
                                 <div className={`status-pill ${status}`}>
                                     {status === 'generating' && <><RefreshCcw size={14} className="animate-spin" /> <span>Carregando...</span></>}
                                     {status === 'pending' && <><Clock size={14} /> <span>Aguardando...</span></>}
+                                    {status === 'in_person_pending' && <><Clock size={14} /> <span>Aguardando atendimento</span></>}
                                     {status === 'verifying' && <><RefreshCcw size={14} className="animate-spin" /> <span>Analisando Confirmação...</span></>}
                                     {status === 'confirmed' && <><CheckCircle2 size={14} /> <span>Pago</span></>}
                                     {status === 'error' && <><XCircle size={14} /> <span>Erro</span></>}
@@ -618,6 +653,27 @@ const PixPayment = ({ user }) => {
                                         </div>
                                         <ChevronRight size={18} className="arrow-icon" />
                                     </button>
+
+                                    <button className="method-card-btn" onClick={() => handleSelectMethod('in_person')}>
+                                        <div className="method-card-icon in-person-icon-bg">
+                                            <HandCoins size={24} />
+                                        </div>
+                                        <div className="method-card-info">
+                                            <h4>Pagamento Presencial</h4>
+                                            <p>Pague com a equipe CAMUBOX em até 3 dias</p>
+                                        </div>
+                                        <ChevronRight size={18} className="arrow-icon" />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : status === 'in_person_pending' ? (
+                            <div className="in-person-pending-card">
+                                <div className="in-person-pending-icon"><HandCoins size={38} /></div>
+                                <h3>Solicitação registrada</h3>
+                                <p>Procure a equipe CAMUBOX para realizar o pagamento. O armário será liberado somente após a confirmação do recebimento.</p>
+                                <div className="in-person-reference">
+                                    <span>Referência</span>
+                                    <strong>{inPersonPayment?.id_woovi_charge || 'Pagamento presencial'}</strong>
                                 </div>
                             </div>
                         ) : (
@@ -643,7 +699,7 @@ const PixPayment = ({ user }) => {
                             </div>
                         )}
 
-                        {status !== 'confirmed' && status !== 'selecting' && status !== 'generating' && (
+                        {paymentMethod === 'pix' && status !== 'confirmed' && status !== 'selecting' && status !== 'generating' && (
                             <>
                                 <p className="qr-instruction">Aponte a câmera do seu aplicativo de banco para o QR Code acima</p>
 
@@ -685,14 +741,20 @@ const PixPayment = ({ user }) => {
                     <div className="action-stack">
                         {status !== 'confirmed' ? (
                             <>
-                                {status !== 'selecting' && (
+                                {status !== 'selecting' && status !== 'in_person_pending' && (
                                     <div className="auto-verify-badge">
                                         <RefreshCcw size={16} className="animate-spin" />
                                         <span>Aguardando confirmação automática...</span>
                                     </div>
                                 )}
+                                {status === 'in_person_pending' && (
+                                    <div className="in-person-waiting-badge">
+                                        <Clock size={17} />
+                                        <span>Aguardando confirmação da equipe</span>
+                                    </div>
+                                )}
                                 <button className="cancel-order-btn" onClick={() => navigate('/dashboard/lockers')}>
-                                    Cancelar locação
+                                    {status === 'in_person_pending' ? 'Voltar aos armários' : 'Cancelar locação'}
                                 </button>
                             </>
                         ) : (

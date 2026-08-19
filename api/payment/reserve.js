@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const RESERVATION_MINUTES = {
   pix: 30,
   credit_card: 60,
-  boleto: 4 * 24 * 60
+  boleto: 4 * 24 * 60,
+  in_person: 3 * 24 * 60
 };
 
 export default async function handler(req, res) {

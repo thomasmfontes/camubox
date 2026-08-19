@@ -465,11 +465,10 @@ export const dbService = {
             if (!rentals || rentals.length === 0) return { data: [], error: null };
 
             // 2. Get locker details from v_armario for these rentals
-            const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
-            const { data: lockers } = await supabase
-                .from('v_armario')
-                .select('*')
-                .in('id_armario', lockerIds);
+            const lockerIds = [...new Set(rentals.map(r => r.id_armario))].filter(Boolean);
+            const { data: lockers } = lockerIds.length > 0
+                ? await supabase.from('v_armario').select('*').in('id_armario', lockerIds)
+                : { data: [] };
 
             // 3. Manual Join
             const combined = rentals.map(r => {
@@ -498,10 +497,12 @@ export const dbService = {
         },
         getHistoryByLockers: async (lockerIds) => {
             if (isMockMode) return { data: [], error: null };
+            const cleanIds = (lockerIds || []).filter(Boolean);
+            if (cleanIds.length === 0) return { data: [], error: null };
             return await supabase
                 .from('t_locacao')
                 .select('*')
-                .in('id_armario', lockerIds)
+                .in('id_armario', cleanIds)
                 .order('dt_termino', { ascending: false });
         },
         getAll: async () => {
@@ -725,11 +726,10 @@ export const dbService = {
             if (!rentals?.length) return { data: [], error: null };
 
             // Join com v_armario para pegar detalhes do armário
-            const lockerIds = [...new Set(rentals.map(r => r.id_armario))];
-            const { data: lockers } = await supabase
-                .from('v_armario')
-                .select('*')
-                .in('id_armario', lockerIds);
+            const lockerIds = [...new Set(rentals.map(r => r.id_armario))].filter(Boolean);
+            const { data: lockers } = lockerIds.length > 0
+                ? await supabase.from('v_armario').select('*').in('id_armario', lockerIds)
+                : { data: [] };
 
             // Join com t_configuracao para pegar preços
             const { data: config } = await supabase
@@ -935,6 +935,22 @@ export const authService = {
             provider: 'apple',
             options: {
                 redirectTo: redirectTo
+            }
+        });
+    },
+    loginWithMicrosoft: async () => {
+        if (isMockMode) {
+            console.log('Mock: Login with Microsoft');
+            return { data: null, error: 'Sign in not available in mock mode' };
+        }
+
+        const redirectTo = window.location.origin;
+
+        return await supabase.auth.signInWithOAuth({
+            provider: 'azure',
+            options: {
+                redirectTo: redirectTo,
+                scopes: 'email'
             }
         });
     },

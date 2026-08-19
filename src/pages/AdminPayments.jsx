@@ -14,7 +14,10 @@ import {
     Clock, 
     ChevronLeft, 
     ChevronRight,
-    User as UserIcon
+    User as UserIcon,
+    HandCoins,
+    Phone,
+    Mail
 } from 'lucide-react';
 import { supabase, dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
@@ -26,6 +29,11 @@ const AdminPayments = () => {
     const [config, setConfig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [pendingInPerson, setPendingInPerson] = useState([]);
+    const [resolutionModal, setResolutionModal] = useState(null);
+    const [isResolving, setIsResolving] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [drawerSearch, setDrawerSearch] = useState('');
     
     // Search and Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -173,6 +181,34 @@ const AdminPayments = () => {
                 if (configErr) throw configErr;
                 setConfig(configData);
 
+                const { data: sessionData } = await supabase.auth.getSession();
+                const accessToken = sessionData?.session?.access_token;
+                let loadedPending = false;
+                if (accessToken) {
+                    try {
+                        const pendingResponse = await fetch('/api/payment/in-person', {
+                            headers: { 'Authorization': `Bearer ${accessToken}` }
+                        });
+                        if (pendingResponse.ok) {
+                            const pendingResult = await pendingResponse.json();
+                            setPendingInPerson(pendingResult.payments || []);
+                            loadedPending = true;
+                        }
+                    } catch (e) {
+                        console.warn('[AdminPayments] In-person API route unavailable, using direct DB query:', e);
+                    }
+                }
+                
+                if (!loadedPending) {
+                    const { data: localPending } = await supabase
+                        .from('t_transacao')
+                        .select('*')
+                        .eq('dc_status', 'AGUARDANDO_PAGAMENTO')
+                        .eq('tp_meio_pagamento', 'PRESENCIAL')
+                        .order('dt_criacao', { ascending: true });
+                    setPendingInPerson(localPending || []);
+                }
+
                 // 2. Fetch directly from t_transacao in Supabase
                 const { data: dbTransactions, error: txErr } = await supabase
                     .from('t_transacao')
@@ -244,7 +280,6 @@ const AdminPayments = () => {
                     };
 
                     combinedData = mockCharges.map((charge, idx) => {
-                        const corrID = charge.correlationID || '';
                         const comment = charge.comment || '';
                         
                         let parsedLockerNumber = null;
@@ -399,6 +434,14 @@ const AdminPayments = () => {
                     netValue: t.value - feeAmount
                 };
             }
+            if (['in_person', 'presencial'].includes(pm)) {
+                return {
+                    label: 'Presencial',
+                    feeAmount: 0,
+                    feeDescription: 'Sem tarifa de gateway',
+                    netValue: t.value
+                };
+            }
         }
 
         // Default: Pix fee (covers Woovi, OpenPix, and legacy transactions)
@@ -511,6 +554,149 @@ const AdminPayments = () => {
         }).join(' ');
     };
 
+    const handleResolveInPerson = async () => {
+        if (!resolutionModal) return;
+        setIsResolving(true);
+        setError(null);
+        try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData?.session?.access_token;
+            if (!accessToken) throw new Error('Sua sessão expirou. Entre novamente.');
+
+            let resolvedSuccess = false;
+            try {
+                const response = await fetch('/api/payment/in-person', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        transactionId: resolutionModal.payment.id_transacao,
+                        action: resolutionModal.action
+                    })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    resolvedSuccess = true;
+                } else if (response.status !== 404 && response.status !== 500) {
+                    throw new Error(result.error || 'Não foi possível concluir a operação.');
+                }
+            } catch (apiErr) {
+                console.warn('[In-person API route error, attempting direct RPC fallback]', apiErr);
+            }
+
+            if (!resolvedSuccess) {
+                const { data: userData } = await supabase.auth.getUser();
+                const { data: dbAdmin } = await supabase.from('t_usuario').select('id_usuario').ilike('dc_email', userData?.user?.email || '').maybeSingle();
+                
+                const { data: rpcData, error: rpcError } = await supabase.rpc('resolve_in_person_payment', {
+                    p_transaction_id: resolutionModal.payment.id_transacao,
+                    p_admin_user_id: dbAdmin?.id_usuario || 310,
+                    p_action: resolutionModal.action
+                });
+                if (rpcError) throw rpcError;
+            }
+
+            const resolvedPayment = resolutionModal.payment;
+            setPendingInPerson((current) => current.filter((item) => item.id_transacao !== resolvedPayment.id_transacao));
+
+            if (resolutionModal.action === 'CONFIRM') {
+                const paidAt = new Date();
+                setTransactions((current) => [{
+                    id: resolvedPayment.id_woovi_charge || resolvedPayment.id_transacao,
+                    dt_pagamento: paidAt.toISOString(),
+                    value: parseFloat(resolvedPayment.vl_transacao),
+                    studentName: resolvedPayment.nm_usuario || 'Usuário Desconhecido',
+                    studentEmail: resolvedPayment.dc_email || 'Sem e-mail',
+                    studentPhone: resolvedPayment.nr_celular || 'Sem telefone',
+                    lockerNumber: resolvedPayment.cd_armario || null,
+                    lockerSize: resolvedPayment.nm_tamanho || 'Pequeno',
+                    lockerFloor: resolvedPayment.nm_local || 'Térreo',
+                    contractType: resolvedPayment.tp_plano || 'SEMESTRAL',
+                    transactionType: resolvedPayment.tp_operacao || 'Locação',
+                    financialStatus: 'CONCLUIDO',
+                    payloadWebhook: { payment_method_id: 'in_person' },
+                    paymentDateFormatted: paidAt.toLocaleDateString('pt-BR'),
+                    paymentTimeFormatted: paidAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                }, ...current]);
+            }
+
+            setResolutionModal(null);
+        } catch (resolveError) {
+            console.error('[In-person resolution]', resolveError);
+            setError(resolveError.message || 'Não foi possível atualizar o pagamento presencial.');
+        } finally {
+            setIsResolving(false);
+        }
+    };
+
+    // Helpers for In-Person Drawer
+    const getRemainingTime = (isoExpiry) => {
+        if (!isoExpiry) return null;
+        const expiry = new Date(isoExpiry);
+        const now = new Date();
+        const diffMs = expiry - now;
+        if (diffMs <= 0) return { text: 'Expirado', isUrgent: true, isExpired: true };
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays >= 1) {
+            return { text: `${diffDays} ${diffDays === 1 ? 'dia restante' : 'dias restantes'}`, isUrgent: diffDays <= 1 };
+        }
+        return { text: `${Math.max(1, diffHours)}h restantes`, isUrgent: true };
+    };
+
+    const formatDisplayPhone = (phone) => {
+        if (!phone) return null;
+        const digits = String(phone).replace(/\D/g, '');
+        if (digits.length === 11) {
+            return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+        }
+        if (digits.length === 10) {
+            return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+        }
+        return phone;
+    };
+
+    const filteredPendingInPerson = useMemo(() => {
+        if (!drawerSearch.trim()) return pendingInPerson;
+        const q = drawerSearch.toLowerCase();
+        return pendingInPerson.filter(p => 
+            (p.nm_usuario && p.nm_usuario.toLowerCase().includes(q)) ||
+            (p.cd_armario && String(p.cd_armario).includes(q)) ||
+            (p.dc_email && p.dc_email.toLowerCase().includes(q)) ||
+            (p.tp_operacao && p.tp_operacao.toLowerCase().includes(q))
+        );
+    }, [pendingInPerson, drawerSearch]);
+
+    const totalPendingValue = useMemo(() => {
+        return pendingInPerson.reduce((acc, curr) => acc + parseFloat(curr.vl_transacao || 0), 0);
+    }, [pendingInPerson]);
+
+    // Close drawer on ESC & lock body/html scroll to prevent background scrolling
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && isDrawerOpen) {
+                setIsDrawerOpen(false);
+            }
+        };
+
+        if (isDrawerOpen) {
+            document.documentElement.classList.add('drawer-open-locked');
+            document.body.classList.add('drawer-open-locked');
+            window.addEventListener('keydown', handleKeyDown);
+        } else {
+            document.documentElement.classList.remove('drawer-open-locked');
+            document.body.classList.remove('drawer-open-locked');
+        }
+
+        return () => {
+            document.documentElement.classList.remove('drawer-open-locked');
+            document.body.classList.remove('drawer-open-locked');
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isDrawerOpen]);
+
     return (
         <div className="admin-payments premium-theme">
             <header className="page-header">
@@ -518,10 +704,23 @@ const AdminPayments = () => {
                     <h1>Extrato Financeiro</h1>
                     <p>Controle real de entradas Pix, taxas de trocas de armários e upgrades de planos.</p>
                 </div>
-                <button className="export-btn-premium" onClick={handleExport} disabled={filteredTransactions.length === 0}>
-                    <Download size={18} />
-                    Exportar Excel
-                </button>
+                <div className="header-actions-group">
+                    <button 
+                        className={`in-person-drawer-trigger ${pendingInPerson.length > 0 ? 'has-pending' : ''}`}
+                        onClick={() => setIsDrawerOpen(true)}
+                        title="Ver pagamentos presenciais pendentes"
+                    >
+                        <HandCoins size={18} />
+                        <span className="trigger-label">Presenciais Pendentes</span>
+                        {pendingInPerson.length > 0 && (
+                            <span className="trigger-badge-pill">{pendingInPerson.length}</span>
+                        )}
+                    </button>
+                    <button className="export-btn-premium" onClick={handleExport} disabled={filteredTransactions.length === 0}>
+                        <Download size={18} />
+                        Exportar Excel
+                    </button>
+                </div>
             </header>
 
             {/* Error Message */}
@@ -532,6 +731,173 @@ const AdminPayments = () => {
                         <h4 style={{ margin: 0, fontWeight: 700 }}>Erro ao carregar dados</h4>
                         <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem' }}>{error}</p>
                     </div>
+                </div>
+            )}
+
+            {/* SLIDE-OVER DRAWER FOR IN-PERSON PAYMENTS */}
+            {isDrawerOpen && (
+                <div className="in-person-drawer-overlay" onClick={() => setIsDrawerOpen(false)}>
+                    <aside 
+                        className="in-person-drawer-panel"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="drawer-header">
+                            <div className="drawer-header-title">
+                                <div className="drawer-icon-bubble">
+                                    <HandCoins size={22} />
+                                </div>
+                                <div>
+                                    <h2>Pagamentos Presenciais</h2>
+                                    <p>
+                                        {pendingInPerson.length === 0 
+                                            ? 'Nenhuma pendência no momento' 
+                                            : `${pendingInPerson.length} ${pendingInPerson.length === 1 ? 'solicitação aguardando' : 'solicitações aguardando'} conferência`
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                            <button 
+                                className="drawer-close-btn" 
+                                onClick={() => setIsDrawerOpen(false)}
+                                title="Fechar painel (ESC)"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {pendingInPerson.length > 0 && (
+                            <div className="drawer-search-bar">
+                                <Search size={16} className="drawer-search-icon" />
+                                <input 
+                                    type="text"
+                                    placeholder="Buscar por aluno ou armário..."
+                                    value={drawerSearch}
+                                    onChange={(e) => setDrawerSearch(e.target.value)}
+                                />
+                                {drawerSearch && (
+                                    <button className="drawer-search-clear" onClick={() => setDrawerSearch('')}>
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="drawer-content-scroll">
+                            {filteredPendingInPerson.length > 0 ? (
+                                <div className="drawer-cards-list">
+                                    {filteredPendingInPerson.map((payment) => {
+                                        const remaining = getRemainingTime(payment.dt_expiracao);
+                                        const lockerNum = String(payment.cd_armario || '---').padStart(3, '0');
+                                        const opType = payment.tp_operacao || 'Locação';
+                                        
+                                        return (
+                                            <div className="drawer-payment-card" key={payment.id_transacao}>
+                                                <div className="card-top-row">
+                                                    <div className="card-locker-main">
+                                                        <div className="card-locker-avatar">
+                                                            <HandCoins size={18} />
+                                                        </div>
+                                                        <div className="card-locker-titles">
+                                                            <span className="card-locker-id">Armário #{lockerNum}</span>
+                                                            <span className={`status-tag-camu ${getTypeClass(opType)}`}>
+                                                                {opType.toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {remaining && (
+                                                        <span className={`card-expiry-badge ${remaining.isUrgent ? 'urgent' : ''}`}>
+                                                            <Clock size={12} />
+                                                            <span>{remaining.text}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="card-body">
+                                                    <h3 className="card-student-name">
+                                                        {toTitleCase(payment.nm_usuario || 'Usuário Desconhecido')}
+                                                    </h3>
+                                                    
+                                                    <div className="card-specs-row">
+                                                        <span className="spec-item-badge">{payment.nm_local || 'Térreo'}</span>
+                                                        <span className="spec-item-badge">{payment.nm_tamanho || 'Pequeno'}</span>
+                                                        <span className="spec-item-badge">{payment.tp_plano || 'SEMESTRAL'}</span>
+                                                    </div>
+
+                                                    <div className="card-contacts">
+                                                        {payment.nr_celular && (
+                                                            <a 
+                                                                href={`https://wa.me/55${String(payment.nr_celular).replace(/\D/g, '')}`} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="contact-link"
+                                                                title="Abrir WhatsApp do aluno"
+                                                            >
+                                                                <Phone size={13} />
+                                                                <span>{formatDisplayPhone(payment.nr_celular)}</span>
+                                                            </a>
+                                                        )}
+                                                        {payment.dc_email && (
+                                                            <span className="contact-item" title={payment.dc_email}>
+                                                                <Mail size={13} />
+                                                                <span className="contact-text-truncate">{payment.dc_email}</span>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="card-footer-row">
+                                                    <div className="card-price-block">
+                                                        <span className="price-label">Valor a receber</span>
+                                                        <strong className="price-amount">{formatCurrency(payment.vl_transacao)}</strong>
+                                                    </div>
+                                                    <div className="card-actions-group">
+                                                        <button 
+                                                            className="btn-drawer-cancel"
+                                                            onClick={() => setResolutionModal({ payment, action: 'CANCEL' })}
+                                                            title="Cancelar esta reserva"
+                                                        >
+                                                            Cancelar
+                                                        </button>
+                                                        <button 
+                                                            className="btn-drawer-confirm"
+                                                            onClick={() => setResolutionModal({ payment, action: 'CONFIRM' })}
+                                                            title="Confirmar pagamento e ativar armário"
+                                                        >
+                                                            <CheckCircle2 size={16} />
+                                                            <span>Confirmar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="drawer-empty-state">
+                                    <div className="empty-icon-circle">
+                                        <CheckCircle2 size={36} />
+                                    </div>
+                                    <h3>Tudo em dia!</h3>
+                                    <p>
+                                        {drawerSearch 
+                                            ? 'Nenhum resultado encontrado para a sua busca.' 
+                                            : 'Não há pagamentos presenciais pendentes aguardando conferência no balcão.'
+                                        }
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {pendingInPerson.length > 0 && (
+                            <div className="drawer-footer-summary">
+                                <div className="summary-left">
+                                    <span>Total Pendente</span>
+                                    <small>{pendingInPerson.length} {pendingInPerson.length === 1 ? 'solicitação' : 'solicitações'}</small>
+                                </div>
+                                <strong className="summary-total-val">{formatCurrency(totalPendingValue)}</strong>
+                            </div>
+                        )}
+                    </aside>
                 </div>
             )}
 
@@ -785,6 +1151,29 @@ const AdminPayments = () => {
                     </div>
                 )}
             </div>
+
+            {resolutionModal && (
+                <div className="finance-resolution-overlay" onMouseDown={() => !isResolving && setResolutionModal(null)}>
+                    <div className="finance-resolution-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+                        <div className={`finance-resolution-icon ${resolutionModal.action === 'CONFIRM' ? 'confirm' : 'cancel'}`}>
+                            {resolutionModal.action === 'CONFIRM' ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
+                        </div>
+                        <h2>{resolutionModal.action === 'CONFIRM' ? 'Confirmar recebimento?' : 'Cancelar solicitação?'}</h2>
+                        <p>
+                            {resolutionModal.action === 'CONFIRM'
+                                ? <>Confirme que recebeu <strong>{formatCurrency(resolutionModal.payment.vl_transacao)}</strong> de <strong>{toTitleCase(resolutionModal.payment.nm_usuario)}</strong>.</>
+                                : <>A reserva presencial de <strong>{toTitleCase(resolutionModal.payment.nm_usuario)}</strong> será cancelada.</>}
+                        </p>
+                        <div className="finance-resolution-actions">
+                            <button className="secondary" onClick={() => setResolutionModal(null)} disabled={isResolving}>Voltar</button>
+                            <button className={resolutionModal.action === 'CONFIRM' ? 'confirm' : 'cancel'} onClick={handleResolveInPerson} disabled={isResolving}>
+                                {isResolving && <Loader2 className="animate-spin" size={18} />}
+                                {resolutionModal.action === 'CONFIRM' ? 'Confirmar pagamento' : 'Cancelar solicitação'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

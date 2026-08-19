@@ -21,6 +21,7 @@ const LoginPage = ({ onLogin }) => {
     const [registerPhone, setRegisterPhone] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
     const [isAppleLoading, setIsAppleLoading] = useState(false);
+    const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
     const [isGoogleLoadingStep1, setIsGoogleLoadingStep1] = useState(false);
 
     // Detect a real Supabase OAuth session after the provider redirects back.
@@ -86,6 +87,19 @@ const LoginPage = ({ onLogin }) => {
             console.error('[APPLE LOGIN ERROR]', err);
             setError('Erro ao iniciar login com Apple. Tente novamente.');
             setIsAppleLoading(false);
+        }
+    };
+
+    const handleMicrosoftLogin = async () => {
+        setError('');
+        setIsMicrosoftLoading(true);
+        try {
+            const { error: loginError } = await authService.loginWithMicrosoft();
+            if (loginError) throw loginError;
+        } catch (err) {
+            console.error('[MICROSOFT LOGIN ERROR]', err);
+            setError('Erro ao iniciar login com Microsoft. Tente novamente.');
+            setIsMicrosoftLoading(false);
         }
     };
 
@@ -244,7 +258,7 @@ const LoginPage = ({ onLogin }) => {
                         </div>
                         <div className="feature-item">
                             <div className="feature-icon"><Shield size={18} /></div>
-                            <span>Acesso seguro via Google</span>
+                            <span>Acesso seguro com sua conta digital</span>
                         </div>
                     </div>
                 </div>
@@ -297,7 +311,7 @@ const LoginPage = ({ onLogin }) => {
                             <div className="form-header">
                                 <div className="step-badge">Identidade</div>
                                 <h2>Confirme sua identidade</h2>
-                                <p>Olá, <strong>{googleStep.name}</strong>! Informe o celular cadastrado para vincular sua conta Google.</p>
+                                <p>Olá, <strong>{googleStep.name}</strong>! Informe o celular cadastrado para vincular sua conta digital.</p>
                             </div>
 
                             <form className="real-login-form" onSubmit={handlePhoneSubmit}>
@@ -353,10 +367,6 @@ const LoginPage = ({ onLogin }) => {
                                     <span>Entrar com Google</span>
                                 </button>
 
-                                <div className="divider-premium">
-                                    <span>ou</span>
-                                </div>
-
                                 <button 
                                     className="apple-login-btn" 
                                     onClick={handleAppleLogin}
@@ -370,6 +380,24 @@ const LoginPage = ({ onLogin }) => {
                                         </svg>
                                     )}
                                     <span>Entrar com Apple</span>
+                                </button>
+
+                                <button
+                                    className="microsoft-login-btn"
+                                    onClick={handleMicrosoftLogin}
+                                    disabled={isMicrosoftLoading}
+                                >
+                                    {isMicrosoftLoading ? (
+                                        <span className="loader-mini dark"></span>
+                                    ) : (
+                                        <svg viewBox="0 0 21 21" width="18" height="18" aria-hidden="true">
+                                            <path fill="#f25022" d="M1 1h9v9H1z" />
+                                            <path fill="#7fba00" d="M11 1h9v9h-9z" />
+                                            <path fill="#00a4ef" d="M1 11h9v9H1z" />
+                                            <path fill="#ffb900" d="M11 11h9v9h-9z" />
+                                        </svg>
+                                    )}
+                                    <span>Entrar com Microsoft</span>
                                 </button>
 
                                 {biometricService.isLoginEnabled() && biometricService.isSupported() && (

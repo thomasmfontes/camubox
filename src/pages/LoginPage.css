@@ -156,7 +156,8 @@
 }
 
 .google-login-btn-custom,
-.apple-login-btn {
+.apple-login-btn,
+.microsoft-login-btn {
     width: 250px;
     background: #ffffff;
     color: #3c4043;
@@ -178,29 +179,35 @@
     overflow: hidden;
 }
 
-.apple-login-btn {
+.apple-login-btn,
+.microsoft-login-btn {
     color: #000000; /* Apple icon/text typically black */
+    margin-top: 10px;
 }
 
 .google-login-btn-custom:hover:not(:disabled),
-.apple-login-btn:hover:not(:disabled) {
+.apple-login-btn:hover:not(:disabled),
+.microsoft-login-btn:hover:not(:disabled) {
     background: #f8f9fa;
     border-color: #d2d2d7;
 }
 
 .google-login-btn-custom:active:not(:disabled),
-.apple-login-btn:active:not(:disabled) {
+.apple-login-btn:active:not(:disabled),
+.microsoft-login-btn:active:not(:disabled) {
     transform: scale(0.99);
 }
 
 .google-login-btn-custom svg,
-.apple-login-btn svg {
+.apple-login-btn svg,
+.microsoft-login-btn svg {
     flex-shrink: 0;
     display: block;
 }
 
 .google-login-btn-custom span,
-.apple-login-btn span {
+.apple-login-btn span,
+.microsoft-login-btn span {
     display: block;
     line-height: normal;
 }
@@ -236,7 +243,8 @@
 }
 
 .apple-login-btn:disabled,
-.google-login-btn-custom:disabled {
+.google-login-btn-custom:disabled,
+.microsoft-login-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
 }
