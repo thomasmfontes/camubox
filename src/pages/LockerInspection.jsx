@@ -13,11 +13,36 @@ import {
     Filter,
     Loader2,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Phone
 } from 'lucide-react';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
 import './LockerInspection.css';
+
+const formatDisplayPhone = (phone) => {
+    if (!phone) return '';
+    let digits = String(phone).replace(/\D/g, '');
+    if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) {
+        digits = digits.slice(2);
+    }
+    if (digits.length === 11) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    }
+    if (digits.length === 10) {
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    return phone;
+};
+
+const getWhatsAppUrl = (phone) => {
+    if (!phone) return '#';
+    let digits = String(phone).replace(/\D/g, '');
+    if (!digits.startsWith('55')) {
+        digits = `55${digits}`;
+    }
+    return `https://wa.me/${digits}`;
+};
 
 const LockerInspection = () => {
     const [inspections, setInspections] = useState([]);
@@ -37,7 +62,7 @@ const LockerInspection = () => {
                 dbService.users.getAll()
             ]);
 
-            const userMap = (usersRes.data || []).reduce((acc, u) => ({ ...acc, [u.id_usuario]: u.nm_usuario }), {});
+            const userMap = (usersRes.data || []).reduce((acc, u) => ({ ...acc, [u.id_usuario]: u }), {});
 
             if (!lockersRes.error && lockersRes.data) {
                 const targetLockerRecords = lockersRes.data.filter(l => {
@@ -59,6 +84,7 @@ const LockerInspection = () => {
                     const lastRental = rentalsByLocker[l.id_armario];
                     const rawStatus = (l.situacao || l.dc_status || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
                     const category = (rawStatus === 'manutencao' || rawStatus === 'manutenção') ? 'manutencao' : 'vistoria';
+                    const previousUserObj = lastRental ? userMap[lastRental.id_usuario] : null;
                     
                     return {
                         id: (l.cd_armario || '').toString().padStart(3, '0'),
@@ -66,7 +92,8 @@ const LockerInspection = () => {
                         rentalId: lastRental?.id_status === 1 ? lastRental.id_locacao : null,
                         floor: l.nm_local || l.dc_andar || 'Térreo',
                         category,
-                        prevUser: lastRental ? (userMap[lastRental.id_usuario] || `ID: ${lastRental.id_usuario}`) : 'Sem locação prévia',
+                        prevUser: previousUserObj?.nm_usuario || (lastRental ? `ID: ${lastRental.id_usuario}` : 'Sem locação prévia'),
+                        prevUserPhone: previousUserObj?.nr_celular || null,
                         dueDate: lastRental?.dt_termino ? (function (dt) {
                             const date = new Date(dt);
                             date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
@@ -91,7 +118,11 @@ const LockerInspection = () => {
 
     const filteredInspections = inspections.filter(item => {
         const matchesTab = item.category === activeTab;
-        const matchesSearch = item.id.includes(searchTerm);
+        const searchClean = searchTerm.trim().toLowerCase();
+        const matchesSearch = !searchClean || 
+            item.id.toLowerCase().includes(searchClean) || 
+            (item.prevUser && item.prevUser.toLowerCase().includes(searchClean)) ||
+            (item.prevUserPhone && String(item.prevUserPhone).includes(searchClean));
         const matchesFloor = selectedFloor === 'all' || item.floor === selectedFloor;
         return matchesTab && matchesSearch && matchesFloor;
     });
@@ -240,6 +271,20 @@ const LockerInspection = () => {
                                             <UserIcon size={14} className="icon-sub" />
                                             <span className="txt-main">{item.prevUser}</span>
                                         </div>
+                                        {item.prevUserPhone && (
+                                            <div className="user-contact-row">
+                                                <a
+                                                    href={getWhatsAppUrl(item.prevUserPhone)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="student-whatsapp-link"
+                                                    title="Conversar com o aluno no WhatsApp"
+                                                >
+                                                    <Phone size={12} />
+                                                    <span>{formatDisplayPhone(item.prevUserPhone)}</span>
+                                                </a>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="col-date">
                                         <div className="info-item">

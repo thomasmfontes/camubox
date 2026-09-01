@@ -221,6 +221,36 @@
     color: #64748b;
 }
 
+.user-contact-row {
+    margin-top: 0.35rem;
+    display: flex;
+    align-items: center;
+}
+
+.student-whatsapp-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #047857;
+    text-decoration: none;
+    background: #ecfdf5;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid #a7f3d0;
+    transition: all 0.2s ease;
+    line-height: 1.2;
+}
+
+.student-whatsapp-link:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+    color: #065f46;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15);
+}
+
 /* Actions */
 .actions-cell {
     margin-top: 0.5rem;

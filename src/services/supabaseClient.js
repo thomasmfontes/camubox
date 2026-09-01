@@ -335,7 +335,7 @@ export const dbService = {
         },
         getAll: async () => {
             if (isMockMode) return { data: [], error: null };
-            return await supabase.from('t_usuario').select('id_usuario, nm_usuario, dc_email, is_adm');
+            return await supabase.from('t_usuario').select('id_usuario, nm_usuario, dc_email, nr_celular, is_adm');
         },
         getAdmins: async () => {
             if (isMockMode) {
