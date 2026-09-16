@@ -557,7 +557,7 @@ export const dbService = {
             // 3. Fetch all users (the students)
             const { data: users } = await supabase
                 .from('t_usuario')
-                .select('id_usuario, nm_usuario');
+                .select('id_usuario, nm_usuario, dc_email, nr_celular');
 
             // 4. Combine/Join
             const combined = (rentals || []).map(r => {
@@ -574,10 +574,13 @@ export const dbService = {
                 return {
                     ...r,
                     id_locacao: r.id_locacao,
+                    id_usuario: r.id_usuario,
                     dc_andar: locker?.nm_local,
                     nr_armario: locker?.cd_armario,
                     cd_armario: locker?.cd_armario,
                     nm_aluno: user?.nm_usuario,
+                    dc_email_aluno: user?.dc_email,
+                    nr_celular_aluno: user?.nr_celular,
                     dt_vencimento: r.dt_termino,
                     dc_status_locacao: (r.dc_status_locacao || rentalStatusNames[r.id_status] || 'ENCERRADA').toUpperCase(),
                     dc_tipo_contrato: (function() {

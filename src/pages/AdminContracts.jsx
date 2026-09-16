@@ -20,12 +20,16 @@ import {
     ChevronLeft,
     Tag
 } from 'lucide-react';
+import { FaUserSecret } from 'react-icons/fa';
 import { dbService } from '../services/supabaseClient';
 import CustomSelect from '../components/CustomSelect';
 import * as XLSX from 'xlsx';
 import './AdminContracts.css';
 
-const AdminContracts = () => {
+const AdminContracts = ({ user, onStartImpersonate }) => {
+    const isThomas = (user?.email || '').toLowerCase().trim() === 'thomas@fontes.ca' ||
+                     (user?.originalAdmin?.email || '').toLowerCase().trim() === 'thomas@fontes.ca';
+
     const [rentals, setRentals] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -73,6 +77,9 @@ const AdminContracts = () => {
             mapped.push({
                 id: contrato.id_locacao,
                 lockerId: contrato.id_armario,
+                id_usuario: contrato.id_usuario,
+                studentEmail: contrato.dc_email_aluno || '',
+                studentPhone: contrato.nr_celular_aluno || '',
                 lockerNumber: String(contrato.cd_armario || '---'),
                 student: contrato.nm_aluno || '---',
                 ra: contrato.nm_ra || '---',
@@ -566,12 +573,39 @@ const AdminContracts = () => {
                                     </section>
 
                                     <section className="detail-section">
-                                        <h3><UserIcon size={18} /> Aluno Responsável</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                            <h3 style={{ margin: 0 }}><UserIcon size={18} /> Aluno Responsável</h3>
+                                            {isThomas && selectedRental.id_usuario && (
+                                                <button
+                                                    type="button"
+                                                    className="detective-contract-btn"
+                                                    onClick={() => {
+                                                        if (onStartImpersonate) {
+                                                            onStartImpersonate({
+                                                                id_usuario: selectedRental.id_usuario,
+                                                                nm_usuario: selectedRental.student,
+                                                                dc_email: selectedRental.studentEmail,
+                                                                nr_celular: selectedRental.studentPhone
+                                                            });
+                                                        }
+                                                    }}
+                                                    title="Acessar visão deste aluno (Modo Detetive)"
+                                                >
+                                                    <FaUserSecret size={17} />
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="detail-grid">
                                             <div className="detail-item full">
                                                 <label>Nome Completo</label>
                                                 <strong>{selectedRental.student}</strong>
                                             </div>
+                                            {selectedRental.studentEmail && (
+                                                <div className="detail-item full">
+                                                    <label>E-mail</label>
+                                                    <span>{selectedRental.studentEmail}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </section>
 

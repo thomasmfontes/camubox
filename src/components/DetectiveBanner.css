@@ -1,0 +1,129 @@
+.detective-pill-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000; /* Abaixo do overlay mobile (1500) e da sidebar (2000) */
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    width: auto;
+    max-width: calc(100vw - 32px);
+    animation: detectivePillUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 769px) {
+    .detective-pill-container {
+        left: calc(50% + 130px); /* Centralizado em relação à área de conteúdo (descontando 260px da sidebar) */
+        bottom: 28px;
+    }
+}
+
+@keyframes detectivePillUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+.detective-pill {
+    pointer-events: auto;
+    background: rgba(17, 24, 39, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(234, 179, 8, 0.45);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(234, 179, 8, 0.15);
+    border-radius: 100px;
+    padding: 6px 8px 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #f3f4f6;
+    max-width: 100%;
+}
+
+.detective-pill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(234, 179, 8, 0.18);
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.detective-pill-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.detective-pill-label {
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+.detective-pill-name {
+    color: #fbbf24;
+    font-weight: 700;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.detective-pill-btn-exit {
+    background: #eab308;
+    color: #111827;
+    border: none;
+    border-radius: 100px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.detective-pill-btn-exit:hover {
+    background: #facc15;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+}
+
+.detective-pill-btn-exit:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+    .detective-pill-container {
+        bottom: 16px;
+    }
+
+    .detective-pill {
+        padding: 5px 6px 5px 10px;
+        gap: 8px;
+    }
+
+    .detective-pill-label {
+        display: none; /* Oculta o prefixo 'Visualizando:' em telas bem pequenas para economizar espaço */
+    }
+
+    .detective-pill-name {
+        max-width: 130px;
+    }
+}

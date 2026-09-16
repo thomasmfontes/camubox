@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
@@ -31,9 +31,19 @@ function App() {
 
 
   const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('camubox_user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedImpersonated = sessionStorage.getItem('camubox_impersonated_user');
+      const savedBackup = sessionStorage.getItem('camubox_admin_backup');
+      if (savedImpersonated && savedBackup) {
+        return JSON.parse(savedImpersonated);
+      }
+      const savedUser = localStorage.getItem('camubox_user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
@@ -67,6 +77,20 @@ function App() {
         isAdmin: !!dbUser?.is_adm, // Real admin check from DB
         isOAuth: true
       };
+
+      // Check if Detective mode is active in sessionStorage
+      const savedImpersonated = sessionStorage.getItem('camubox_impersonated_user');
+      const savedBackup = sessionStorage.getItem('camubox_admin_backup');
+      if (savedImpersonated && savedBackup) {
+        if (userData.email?.toLowerCase().trim() === 'thomas@fontes.ca') {
+          const parsed = JSON.parse(savedImpersonated);
+          setUser(parsed);
+          return;
+        } else {
+          sessionStorage.removeItem('camubox_impersonated_user');
+          sessionStorage.removeItem('camubox_admin_backup');
+        }
+      }
 
       console.log('[App] Syncing user data into state/storage:', userData);
       setUser(userData);
@@ -171,7 +195,59 @@ function App() {
     setUser(null);
     localStorage.removeItem('camubox_user');
     sessionStorage.removeItem('camubox_just_logged_in');
+    sessionStorage.removeItem('camubox_impersonated_user');
+    sessionStorage.removeItem('camubox_admin_backup');
   };
+
+  const handleStartImpersonate = useCallback((targetUser) => {
+    if (!targetUser) return;
+
+    // Security check: ONLY thomas@fontes.ca can initiate impersonation!
+    const activeEmail = (user?.email || '').toLowerCase().trim();
+    const backupEmail = (user?.originalAdmin?.email || '').toLowerCase().trim();
+
+    if (activeEmail !== 'thomas@fontes.ca' && backupEmail !== 'thomas@fontes.ca') {
+      console.warn('[App] Acesso negado: apenas thomas@fontes.ca pode usar o Modo Detetive.');
+      return;
+    }
+
+    const originalAdmin = user?.isImpersonating && user?.originalAdmin ? user.originalAdmin : user;
+
+    const impersonatedData = {
+      uid: targetUser.id_usuario?.toString() || targetUser.uid || `user-${targetUser.id_usuario}`,
+      id_usuario: targetUser.id_usuario,
+      name: targetUser.nm_usuario || targetUser.name || 'Aluno',
+      email: targetUser.dc_email || targetUser.email || '',
+      phone: targetUser.nr_celular || targetUser.phone || '',
+      isAdmin: false,
+      isImpersonating: true,
+      originalAdmin: originalAdmin
+    };
+
+    sessionStorage.setItem('camubox_admin_backup', JSON.stringify(originalAdmin));
+    sessionStorage.setItem('camubox_impersonated_user', JSON.stringify(impersonatedData));
+    setUser(impersonatedData);
+
+    navigate('/dashboard/my-locker');
+  }, [user, navigate]);
+
+  const handleStopImpersonate = useCallback(() => {
+    const backup = sessionStorage.getItem('camubox_admin_backup');
+    sessionStorage.removeItem('camubox_admin_backup');
+    sessionStorage.removeItem('camubox_impersonated_user');
+
+    if (backup) {
+      try {
+        const adminUser = JSON.parse(backup);
+        setUser(adminUser);
+        localStorage.setItem('camubox_user', JSON.stringify(adminUser));
+      } catch (e) {
+        console.error('[App] Failed to restore admin backup:', e);
+      }
+    }
+
+    navigate('/dashboard/admin');
+  }, [navigate]);
 
   if (isLoadingAuth) {
     return (
@@ -227,7 +303,13 @@ function App() {
           path="/dashboard/*"
           element={
             user ? (
-              <DashboardLayout user={user} handleLogout={handleLogout} location={location} />
+              <DashboardLayout 
+                user={user} 
+                handleLogout={handleLogout} 
+                location={location}
+                onStartImpersonate={handleStartImpersonate}
+                onStopImpersonate={handleStopImpersonate}
+              />
             ) : (
               <Navigate to="/" />
             )
@@ -241,7 +323,7 @@ function App() {
 }
 
 // Separate component to help ESLint and clean up App
-function DashboardLayout({ user, handleLogout, location }) {
+function DashboardLayout({ user, handleLogout, location, onStartImpersonate, onStopImpersonate }) {
   const [showBiometricPrompt, setShowBiometricPrompt] = useState(false);
   const [biometricStatus, setBiometricStatus] = useState(null);
 
@@ -278,13 +360,18 @@ function DashboardLayout({ user, handleLogout, location }) {
   }, [user?.email]);
 
   return (
-    <MainLayout user={user} onLogout={handleLogout}>
+    <MainLayout 
+      user={user} 
+      onLogout={handleLogout}
+      onStartImpersonate={onStartImpersonate}
+      onStopImpersonate={onStopImpersonate}
+    >
       <div style={{ width: '100%', height: '100%', overflow: 'visible' }}>
           <Routes location={location}>
             <Route path="/" element={user.isAdmin ? <AdminHome /> : <Navigate to="/dashboard/lockers" replace />} />
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/admin/lockers" element={<LockerManagement />} />
-            <Route path="/admin/contracts" element={<AdminContracts />} />
+            <Route path="/admin/contracts" element={<AdminContracts user={user} onStartImpersonate={onStartImpersonate} />} />
             <Route path="/admin/inspections" element={<LockerInspection />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/payments" element={<AdminPayments />} />

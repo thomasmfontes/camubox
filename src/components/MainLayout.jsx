@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import DetectiveBanner from './DetectiveBanner';
 import './MainLayout.css';
 
-const MainLayout = ({ children, user, onLogout }) => {
+const MainLayout = ({ children, user, onLogout, onStopImpersonate }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Reliable Scroll Lock for Mobile (HTML + Body)
@@ -42,6 +43,13 @@ const MainLayout = ({ children, user, onLogout }) => {
                     {children}
                 </main>
             </div>
+
+            {user?.isImpersonating && (
+                <DetectiveBanner 
+                    user={user} 
+                    onStopImpersonate={onStopImpersonate} 
+                />
+            )}
         </div>
     );
 };
